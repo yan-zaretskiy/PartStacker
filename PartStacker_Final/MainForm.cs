@@ -422,7 +422,9 @@ namespace PartStacker_Final
             try
             {
                 Stream stream = File.Open(select.FileName, FileMode.Open);
+#pragma warning disable SYSLIB0011
                 BinaryFormatter bformatter = new BinaryFormatter();
+#pragma warning restore SYSLIB0011
 
                 List<Part> items = (List<Part>)bformatter.Deserialize(stream);
                 stream.Close();
@@ -455,7 +457,9 @@ namespace PartStacker_Final
             try
             {
                 Stream stream = File.Open(select.FileName, FileMode.Create);
+#pragma warning disable SYSLIB0011
                 BinaryFormatter bformatter = new BinaryFormatter();
+#pragma warning restore SYSLIB0011
 
                 List<Part> temp = new List<Part>(PartsList.Items.Count);
                 foreach (Part p in PartsList.Items)
