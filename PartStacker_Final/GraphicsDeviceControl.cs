@@ -189,7 +189,8 @@ namespace WinFormsContentLoading
                 Rectangle sourceRectangle = new Rectangle(0, 0, ClientSize.Width,
                                                                 ClientSize.Height);
 
-                GraphicsDevice.Present(sourceRectangle, null, this.Handle);
+                GraphicsDevice.PresentationParameters.DeviceWindowHandle = this.Handle;
+                GraphicsDevice.Present();
             }
             catch
             {
