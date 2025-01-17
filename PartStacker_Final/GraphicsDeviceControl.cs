@@ -51,19 +51,6 @@ namespace WinFormsContentLoading
         }
 
 
-        /// <summary>
-        /// Gets an IServiceProvider containing our IGraphicsDeviceService.
-        /// This can be used with components such as the ContentManager,
-        /// which use this service to look up the GraphicsDevice.
-        /// </summary>
-        public ServiceContainer Services
-        {
-            get { return services; }
-        }
-
-        ServiceContainer services = new ServiceContainer();
-
-
         #endregion
 
         #region Initialization
@@ -80,9 +67,6 @@ namespace WinFormsContentLoading
                 graphicsDeviceService = GraphicsDeviceService.AddRef(Handle,
                                                                      ClientSize.Width,
                                                                      ClientSize.Height);
-
-                // Register the service, so components like ContentManager can find it.
-                services.AddService<IGraphicsDeviceService>(graphicsDeviceService);
 
                 // Give derived classes a chance to initialize themselves.
                 Initialize();
