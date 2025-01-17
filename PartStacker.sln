@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PartStacker_Final", "PartStacker_Final\PartStacker_Final.csproj", "{5BA1DDD3-A2E6-4CA7-BAC8-8EB6ED7575D2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PartStacker", "PartStacker\PartStacker.csproj", "{5BA1DDD3-A2E6-4CA7-BAC8-8EB6ED7575D2}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonoGame.Framework.WindowsDX", "Dependencies\MonoGame\MonoGame.Framework\MonoGame.Framework.WindowsDX.csproj", "{62CDD5BC-A222-4746-913B-747A5BC039D5}"
 EndProject

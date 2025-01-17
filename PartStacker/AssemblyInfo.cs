@@ -4,12 +4,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("PartStacker_Final")]
+[assembly: AssemblyTitle("PartStacker")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("PartStacker_Final")]
-[assembly: AssemblyCopyright("Copyright ©  2012")]
+[assembly: AssemblyProduct("PartStacker")]
+[assembly: AssemblyCopyright("Copyright © 2012, 2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
