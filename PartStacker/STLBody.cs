@@ -270,12 +270,21 @@ namespace PartStacker
 
                 for (int i = 1; i < lines.Length - 1; i += 7)
                 {
-                    string[] normal = lines[i].Replace('.', ',').Split(' ');
-                    string[] v1 = lines[i + 2].Replace('.', ',').Split(' ');
-                    string[] v2 = lines[i + 3].Replace('.', ',').Split(' ');
-                    string[] v3 = lines[i + 4].Replace('.', ',').Split(' ');
+                    string[] normal = lines[i].Split(' ');
+                    string[] v1 = lines[i + 2].Split(' ');
+                    string[] v2 = lines[i + 3].Split(' ');
+                    string[] v3 = lines[i + 4].Split(' ');
 
-                    this.Triangles.Add(new Triangle(Point3.fromStringArray(normal), Point3.fromStringArray(v1), Point3.fromStringArray(v2), Point3.fromStringArray(v3)));
+                    var ParsePoint = (string[] s) =>
+                    {
+                        Point3 result = new();
+                        result.X = float.Parse(s[s.Length - 3]);
+                        result.Y = float.Parse(s[s.Length - 2]);
+                        result.Z = float.Parse(s[s.Length - 1]);
+                        return result;
+                    };
+
+                    this.Triangles.Add(new Triangle(ParsePoint(normal), ParsePoint(v1), ParsePoint(v2), ParsePoint(v3)));
                 }
             }
             else // Binary STL

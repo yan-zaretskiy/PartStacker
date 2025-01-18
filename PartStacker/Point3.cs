@@ -16,16 +16,6 @@ namespace PartStacker
             this.Z = Z;
         }
 
-        public static Point3 fromStringArray(string[] s)
-        {
-            Point3 result = new Point3(0, 0, 0);
-            result.X = float.Parse(s[s.Length - 3], new System.Globalization.CultureInfo("nl-NL"));
-            result.Y = float.Parse(s[s.Length - 2], new System.Globalization.CultureInfo("nl-NL"));
-            result.Z = float.Parse(s[s.Length - 1], new System.Globalization.CultureInfo("nl-NL"));
-
-            return result;
-        }
-
         override public string ToString()
         {
             return X.ToString("e").Replace(',', '.') + " " + Y.ToString("e").Replace(',', '.') + " " + Z.ToString("e").Replace(',', '.');
