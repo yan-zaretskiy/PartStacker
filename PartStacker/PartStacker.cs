@@ -16,14 +16,18 @@ namespace PartStacker
 
         public void Stacker()
         {
-            Stacker_Sub();
+            bool? b = Stacker_Sub();
+            if (b.HasValue)
+                Invoke(() => FinishStacking(b.Value));
+            StackerThreadRunning = false;
+
             parts = null;
             voxels = null;
             space = null;
             baseParts = null;
         }
 
-        public void Stacker_Sub()
+        public bool? Stacker_Sub()
         {
             float triangles = 0;
             float scale = (float)(1 / MinimumClearance.Value);
@@ -87,8 +91,8 @@ namespace PartStacker
                 // Calculate all the rotations
                 for (int j = 0; j < parts[i].Length; j++)
                 {
-                    if (StackerThread == null)
-                        return;
+                    if (!StackerThreadRunning)
+                        return null;
 
                     STLBody thisPart = (STLBody)baseParts[i].BasePart.Clone();
                     thisPart.Scale(scale);
@@ -111,8 +115,8 @@ namespace PartStacker
                 int index = 1;
                 for (int j = 0; j < parts[i].Length; j++)
                 {
-                    if (StackerThread == null)
-                        return;
+                    if (!StackerThreadRunning)
+                        return null;
 
                     parts[i][j].Voxelize(voxels[i], index, baseParts[i].MinHole);
                     index *= 2;
@@ -224,10 +228,7 @@ namespace PartStacker
                     if (best == int.MaxValue)
                     {
                         result = null;
-                        if (StackerThread != null)
-                            this.Invoke((MethodInvoker)delegate { StartHandler(StackerThread, null); });
-
-                        return;
+                        return false;
                     }
 
                     maxX = Math.Max(maxX, newX + 2);
@@ -235,14 +236,12 @@ namespace PartStacker
                     maxZ = Math.Max(maxZ, newZ + 2);
                 }
 
-                if (StackerThread == null)
-                    return;
+                if (!StackerThreadRunning)
+                    return null;
             }
 
             result.Scale(1 / scale);
-
-            if(StackerThread != null)
-                this.Invoke((MethodInvoker)delegate { StartHandler(StackerThread, null); });
+            return true;
         }
 
         private int TryPlace(int p, int maxX, int maxY, int maxZ, int totalParts, ref int currentCount)
@@ -335,7 +334,7 @@ namespace PartStacker
 
         public void SetProgress(float progress, float total)
         {
-            if (StackerThread == null)
+            if (!StackerThreadRunning)
                 return;
 
             if (Progress.InvokeRequired)
