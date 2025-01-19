@@ -22,8 +22,10 @@ namespace PartStacker
         CheckBox RotateMinBox;
         ProgressBar Progress;
         Label InfoLabel;
-        Thread StackerThread;
         RadioButton None, Cubic, Arbitrary;
+
+        Thread StackerThread;
+        bool StackerThreadRunning = false;
 
         STLBody result;
 
@@ -46,7 +48,13 @@ namespace PartStacker
             Text = "PartStacker 1.0 - Tom van der Zanden";
 
             // Abort stacking when program is closed
-            this.FormClosing += (o, e) => { if (StackerThread != null) StackerThread.Abort(); };
+            this.FormClosing += (o, e) => {
+                if (StackerThreadRunning)
+                {
+                    StackerThreadRunning = false;
+                    StackerThread.Join();
+                }
+            };
 
             // Set up the array containing rotations
             LoadRotations();
@@ -646,9 +654,37 @@ namespace PartStacker
 
             SetText();
         }
+
+        private void DisableButtons()
+        {
+            Start.Text = "Stop";
+            PartsList.SelectedItems.Clear();
+            PartsList.Select();
+            this.Import.Enabled = false;
+            this.ImportMenu.Enabled = false;
+            this.Export.Enabled = false;
+            this.ExportMenu.Enabled = false;
+            this.Reload.Enabled = false;
+            this.PartsList.Enabled = false;
+            this.InitialBoxSize.Enabled = false;
+            this.MaximumBoxSize.Enabled = false;
+            this.MinimumClearance.Enabled = false;
+        }
+        private void EnableButtons()
+        {
+            Start.Text = "Start";
+            this.Import.Enabled = true;
+            this.ImportMenu.Enabled = true;
+            this.Reload.Enabled = true;
+            this.PartsList.Enabled = true;
+            this.InitialBoxSize.Enabled = true;
+            this.MaximumBoxSize.Enabled = true;
+            this.MinimumClearance.Enabled = true;
+        }
+
         public void StartHandler(object o, EventArgs ea)
         {
-            if (StackerThread == null)
+            if (!StackerThreadRunning)
             {
                 int modelTriangles = 0;
                 foreach(Part p in PartsList.Items)
@@ -663,18 +699,7 @@ namespace PartStacker
                         return;
                 }
 
-                Start.Text = "Stop";
-                PartsList.SelectedItems.Clear();
-                PartsList.Select();
-                this.Import.Enabled = false;
-                this.ImportMenu.Enabled = false;
-                this.Export.Enabled = false;
-                this.ExportMenu.Enabled = false;
-                this.Reload.Enabled = false;
-                this.PartsList.Enabled = false;
-                this.InitialBoxSize.Enabled = false;
-                this.MaximumBoxSize.Enabled = false;
-                this.MinimumClearance.Enabled = false;
+                DisableButtons();
 
                 result = new STLBody(modelTriangles + 2);
 
@@ -686,46 +711,40 @@ namespace PartStacker
                 }
 
                 StackerThread = new Thread(Stacker);
+                StackerThreadRunning = true;
                 StackerThread.Start();
             }
             else
             {
-                if (o != StackerThread)
-                {
-                    DialogResult confirm = MessageBox.Show("Are you sure you want to abort stacking? Any progress will be lost.", "Stop stacking", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                    if (confirm != DialogResult.Yes)
-                        return;
-                }
-                else
-                {
-                    if (result == null)
-                    {
-                        MessageBox.Show("Did not manage to stack parts within maximum bounding box", "Stacking failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                    else
-                    {
-                        result.CalcBox();
-                        this.Export.Enabled = true;
-                        this.ExportMenu.Enabled = true;
-                        DialogResult dl = MessageBox.Show("Done stacking! Final bounding box: " + Math.Round(result.size.X, 1) + "x" + Math.Round(result.size.Y, 1) + "x" + Math.Round(result.size.Z, 1) + "mm (" + Math.Round(100 * result.Volume() / (result.size.X * result.size.Y * result.size.Z), 1) + "% density).\n\nWould you like to save the result now?", "Stacking complete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-                        if (dl == DialogResult.Yes)
-                            ExportHandler(null, null);
-                    }
-                }
+                DialogResult confirm = MessageBox.Show("Are you sure you want to abort stacking? Any progress will be lost.", "Stop stacking", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (confirm != DialogResult.Yes)
+                    return;
 
-                StackerThread.Abort();
-                StackerThread = null;
+                StackerThreadRunning = false;
+                StackerThread.Join();
 
-                Start.Text = "Start";
-                this.Import.Enabled = true;
-                this.ImportMenu.Enabled = true;
-                this.Reload.Enabled = true;
-                this.PartsList.Enabled = true;
-                this.InitialBoxSize.Enabled = true;
-                this.MaximumBoxSize.Enabled = true;
-                this.MinimumClearance.Enabled = true;
+                EnableButtons();
                 Progress.Value = 0;
             }
+        }
+        public void FinishStacking(bool succeeded)
+        {
+            if (succeeded)
+            {
+                result.CalcBox();
+                this.Export.Enabled = true;
+                this.ExportMenu.Enabled = true;
+                DialogResult dl = MessageBox.Show("Done stacking! Final bounding box: " + Math.Round(result.size.X, 1) + "x" + Math.Round(result.size.Y, 1) + "x" + Math.Round(result.size.Z, 1) + "mm (" + Math.Round(100 * result.Volume() / (result.size.X * result.size.Y * result.size.Z), 1) + "% density).\n\nWould you like to save the result now?", "Stacking complete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (dl == DialogResult.Yes)
+                    ExportHandler(null, null);
+            }
+            else
+            {
+                MessageBox.Show("Did not manage to stack parts within maximum bounding box", "Stacking failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            EnableButtons();
+            Progress.Value = 0;
         }
 
         public void PartSelectHandler(object o, EventArgs ea)
