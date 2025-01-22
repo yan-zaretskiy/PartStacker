@@ -17,12 +17,14 @@ namespace PartStacker
     {
         ModelViewerControl Display3D;
         ListView PartsList;
-        Button Import, Delete, Change, Reload, Start, Preview, Export, CopyMirror;
-        NumericUpDown PartQuantity, MinHole, InitialBoxSize, MaximumBoxSize, MinimumClearance;
-        CheckBox RotateMinBox;
+        Button Import, Delete, Change, Reload, Start, Preview, Export, CopyMirror, GenerateBox;
+        NumericUpDown PartQuantity, MinHole, MinimumClearance;
+        CheckBox RotateMinBox, EnableSinterbox;
         ProgressBar Progress;
         Label InfoLabel;
         RadioButton None, Cubic, Arbitrary;
+        NumericUpDown Clearance, Spacing, Thickness, BWidth;
+        NumericUpDown xMin, xMax, yMin, yMax, zMin, zMax;
 
         Thread StackerThread;
         bool StackerThreadRunning = false;
@@ -196,46 +198,6 @@ namespace PartStacker
             section.CheckedChanged += (o, e) => { Display3D.Section = section.Checked; };
             Controls.Add(section);
 
-            // Initial bounding box size control
-            Label caption = new Label()
-            {
-                Text = "Initial bounding box:",
-                Location = Location = new Point(ClientSize.Width - 400, ClientSize.Height - 125),
-                Width = 110
-            };
-            Controls.Add(caption);
-            InitialBoxSize = new NumericUpDown()
-            {
-                Minimum = 10,
-                Maximum = 200,
-                Location = new Point(ClientSize.Width - 288, ClientSize.Height - 127),
-                Width = 50,
-                Value = 60,
-                Enabled = true,
-                DecimalPlaces = 0
-            };
-            Controls.Add(InitialBoxSize);
-
-            // Maximal bounding box size control
-            caption = new Label()
-            {
-                Text = "Maximal bounding box:",
-                Location = Location = new Point(ClientSize.Width - 200, ClientSize.Height - 125),
-                Width = 120
-            };
-            Controls.Add(caption);
-            MaximumBoxSize = new NumericUpDown()
-            {
-                Minimum = 10,
-                Maximum = 250,
-                Location = new Point(ClientSize.Width - 68, ClientSize.Height - 127),
-                Width = 50,
-                Value = 80,
-                Enabled = true,
-                DecimalPlaces = 0
-            };
-            Controls.Add(MaximumBoxSize);
-
             // Export button
             Export = new Button()
             {
@@ -248,7 +210,7 @@ namespace PartStacker
             Controls.Add(Export);
 
             // Minimal clearance size control
-            caption = new Label()
+            Label caption = new Label()
             {
                 Text = "Minimum clearance:",
                 Location = Location = new Point(ClientSize.Width - 400, ClientSize.Height - 100),
@@ -269,99 +231,100 @@ namespace PartStacker
             Controls.Add(MinimumClearance);
 
             // Group box that contains controls for editing the parts
-            GroupBox PartBox = new GroupBox()
+            TabControl Tabs = new TabControl()
             {
-                Text = "Part settings",
                 Location = new Point(ClientSize.Width - 400, 325 + menu.Height),
-                Size = new Size(380, 130),
+                Size = new Size(380, 140),
             };
 
-            Controls.Add(PartBox);
+            Controls.Add(Tabs);
 
             // Part quantity updown
+            Tabs.TabPages.Add("Part Settings");
+            TabPage PartsTab = Tabs.TabPages[0];
             caption = new Label()
             {
                 Text = "Quantity: ",
-                Location = new Point(10, 25)
+                Location = new Point(10, 25) - new Size(5, 15)
             };
-            PartBox.Controls.Add(caption);
+            PartsTab.Controls.Add(caption);
             PartQuantity = new NumericUpDown()
             {
                 Minimum = 0,
                 Maximum = 200,
-                Location = new Point(120, 22),
+                Location = new Point(120, 22) - new Size(5, 15),
                 Width = 50,
                 Value = 1,
                 Enabled = false
             };
             PartQuantity.ValueChanged += PartQuantityHandler;
-            PartBox.Controls.Add(PartQuantity);
+            PartsTab.Controls.Add(PartQuantity);
 
             // Minimum hole size updown
             caption = new Label()
             {
                 Text = "Minimum hole: ",
-                Location = new Point(10, 50)
+                Location = new Point(10, 50) - new Size(5, 15)
             };
-            PartBox.Controls.Add(caption);
+            PartsTab.Controls.Add(caption);
             MinHole = new NumericUpDown()
             {
                 Minimum = 0,
                 Maximum = 100,
-                Location = new Point(120, 47),
+                Location = new Point(120, 47) - new Size(5, 15),
                 Width = 50,
                 Value = 1,
                 Enabled = false
             };
             MinHole.ValueChanged += MinHoleHandler;
-            PartBox.Controls.Add(MinHole);
+            PartsTab.Controls.Add(MinHole);
 
             // Checkbox for minimizing the bounding box
             caption = new Label()
             {
                 Text = "Minimize box: ",
-                Location = new Point(10, 75)
+                Location = new Point(10, 75) - new Size(5, 15)
             };
-            PartBox.Controls.Add(caption);
+            PartsTab.Controls.Add(caption);
             RotateMinBox = new CheckBox()
             {
-                Location = new Point(120, 71),
+                Location = new Point(120, 71) - new Size(5, 15),
                 Checked = false,
                 Enabled = false,
                 Width = 20
             };
             RotateMinBox.CheckedChanged += RotateMinBoxHandler;
-            PartBox.Controls.Add(RotateMinBox);
+            PartsTab.Controls.Add(RotateMinBox);
 
             // Preview button that shows the voxelation
             Preview = new Button()
             {
-                Location = new Point(10, 98),
+                Location = new Point(10, 98) - new Size(5, 15),
                 Size = new Size(88, 25),
                 Text = "Preview",
                 Enabled = false
             };
             Preview.Click += PreviewHandler;
-            PartBox.Controls.Add(Preview);
+            PartsTab.Controls.Add(Preview);
 
             // Preview button that shows the voxelation
             CopyMirror = new Button()
             {
-                Location = new Point(110, 98),
+                Location = new Point(110, 98) - new Size(5, 15),
                 Size = new Size(88, 25),
                 Text = "Mirrored copy",
                 Enabled = false
             };
             CopyMirror.Click += CopyHandler;
-            PartBox.Controls.Add(CopyMirror);
+            PartsTab.Controls.Add(CopyMirror);
 
             GroupBox rotations = new GroupBox()
             {
-                Location = new Point(180, 20),
+                Location = new Point(180, 20) - new Size(5, 15),
                 Text = "Part rotations",
                 Size = new Size(190, 61)
             };
-            PartBox.Controls.Add(rotations);
+            PartsTab.Controls.Add(rotations);
 
             None = new RadioButton()
             {
@@ -390,6 +353,223 @@ namespace PartStacker
             };
             Arbitrary.Click += RotationHandler;
             rotations.Controls.Add(Arbitrary);
+            
+            Tabs.TabPages.Add("Sinterbox");
+            TabPage SinterboxTab = Tabs.TabPages[1];
+            caption = new Label()
+            {
+                Text = "Clearance: ",
+                Location = new Point(10, 25) - new Size(5, 15)
+            };
+            SinterboxTab.Controls.Add(caption);
+            Clearance = new NumericUpDown()
+            {
+                Minimum = (decimal)0.1,
+                Maximum = 4,
+                Location = new Point(120, 22) - new Size(5, 15),
+                Width = 50,
+                Value = (decimal)0.8,
+                Increment = (decimal)0.1,
+                DecimalPlaces = 1
+            };
+            SinterboxTab.Controls.Add(Clearance);
+            caption = new Label()
+            {
+                Text = "Spacing: ",
+                Location = new Point(10, 50) - new Size(5, 15)
+            };
+            SinterboxTab.Controls.Add(caption);
+            Spacing = new NumericUpDown()
+            {
+                Minimum = 1,
+                Maximum = 20,
+                Location = new Point(120, 47) - new Size(5, 15),
+                Width = 50,
+                Value = 6,
+                Increment = (decimal)0.5,
+                DecimalPlaces = 1
+            };
+            SinterboxTab.Controls.Add(Spacing);
+            caption = new Label()
+            {
+                Text = "Thickness: ",
+                Location = new Point(10, 75) - new Size(5, 15)
+            };
+            SinterboxTab.Controls.Add(caption);
+            Thickness = new NumericUpDown()
+            {
+                Minimum = (decimal)0.1,
+                Maximum = 4,
+                Location = new Point(120, 72) - new Size(5, 15),
+                Width = 50,
+                Value = (decimal)0.8,
+                Increment = (decimal)0.1,
+                DecimalPlaces = 1
+            };
+            SinterboxTab.Controls.Add(Thickness);
+            caption = new Label()
+            {
+                Text = "Width: ",
+                Location = new Point(10, 100) - new Size(5, 15)
+            };
+            SinterboxTab.Controls.Add(caption);
+            BWidth = new NumericUpDown()
+            {
+                Minimum = (decimal)0.1,
+                Maximum = 4,
+                Location = new Point(120, 97) - new Size(5, 15),
+                Width = 50,
+                Value = (decimal)1.1,
+                Increment = (decimal)0.1,
+                DecimalPlaces = 1
+            };
+            SinterboxTab.Controls.Add(BWidth);
+            caption = new Label()
+            {
+                Text = "Generate sinterbox: ",
+                Location = new Point(180, 22) - new Size(5, 15)
+            };
+            SinterboxTab.Controls.Add(caption);
+            EnableSinterbox = new CheckBox()
+            {
+                Location = new Point(300, 18) - new Size(5, 15),
+                Checked = true
+            };
+            SinterboxTab.Controls.Add(EnableSinterbox);
+            GenerateBox = new Button()
+            {
+                Location = new Point(180, 47) - new Size(5, 15),
+                Text = "Box+Export current part",
+                Width = 135,
+                Enabled = false
+            };
+            GenerateBox.Click += GenerateBoxHandler;
+            SinterboxTab.Controls.Add(GenerateBox);
+            
+            Tabs.TabPages.Add("Bounding Box");
+            TabPage BBTab = Tabs.TabPages[2];
+            caption = new Label()
+            {
+                Text = "Initial X: ",
+                Location = new Point(10, 25) - new Size(5, 15)
+            };
+            BBTab.Controls.Add(caption);
+            xMin = new NumericUpDown()
+            {
+                Minimum = 10,
+                Maximum = 250,
+                Location = new Point(120, 22) - new Size(5, 15),
+                Width = 50,
+                Value = 150,
+                Increment = 1,
+                DecimalPlaces = 0
+            };
+            BBTab.Controls.Add(xMin);
+            caption = new Label()
+            {
+                Text = "Initial Y: ",
+                Location = new Point(10, 50) - new Size(5, 15)
+            };
+            BBTab.Controls.Add(caption);
+            yMin = new NumericUpDown()
+            {
+                Minimum = 10,
+                Maximum = 250,
+                Location = new Point(120, 47) - new Size(5, 15),
+                Width = 50,
+                Value = 150,
+                Increment = 1,
+                DecimalPlaces = 0
+            };
+            BBTab.Controls.Add(yMin);
+            caption = new Label()
+            {
+                Text = "Initial Z: ",
+                Location = new Point(10, 75) - new Size(5, 15)
+            };
+            BBTab.Controls.Add(caption);
+            zMin = new NumericUpDown()
+            {
+                Minimum = 10,
+                Maximum = 250,
+                Location = new Point(120, 72) - new Size(5, 15),
+                Width = 50,
+                Value = 30,
+                Increment = 1,
+                DecimalPlaces = 0
+            };
+            BBTab.Controls.Add(zMin);
+            //
+            //
+            caption = new Label()
+            {
+                Text = "Maximum X: ",
+                Location = new Point(10, 25) - new Size(5, 15) + new Size(170, 0)
+            };
+            BBTab.Controls.Add(caption);
+            xMax = new NumericUpDown()
+            {
+                Minimum = 10,
+                Maximum = 250,
+                Location = new Point(120, 22) - new Size(5, 15) + new Size(170, 0),
+                Width = 50,
+                Value = 156,
+                Increment = 1,
+                DecimalPlaces = 0
+            };
+            BBTab.Controls.Add(xMax);
+            caption = new Label()
+            {
+                Text = "Maximum Y: ",
+                Location = new Point(10, 50) - new Size(5, 15) + new Size(170, 0)
+            };
+            BBTab.Controls.Add(caption);
+            yMax = new NumericUpDown()
+            {
+                Minimum = 10,
+                Maximum = 250,
+                Location = new Point(120, 47) - new Size(5, 15) + new Size(170, 0),
+                Width = 50,
+                Value = 156,
+                Increment = 1,
+                DecimalPlaces = 0
+            };
+            BBTab.Controls.Add(yMax);
+            caption = new Label()
+            {
+                Text = "Maximum Z: ",
+                Location = new Point(10, 75) - new Size(5, 15) + new Size(170, 0)
+            };
+            BBTab.Controls.Add(caption);
+            zMax = new NumericUpDown()
+            {
+                Minimum = 10,
+                Maximum = 250,
+                Location = new Point(120, 72) - new Size(5, 15) + new Size(170, 0),
+                Width = 50,
+                Value = 90,
+                Increment = 1,
+                DecimalPlaces = 0
+            };
+            BBTab.Controls.Add(zMax);
+            
+            ComboBox PresetBox = new ComboBox()
+            {
+                Location = new Point(10, 85),
+                Width = 200,
+                DropDownStyle = ComboBoxStyle.DropDownList
+            };
+            BBTab.Controls.Add(PresetBox);
+            PresetBox.Items.Add("Load Preset");
+            PresetBox.Items.Add("P1 130x105");
+            PresetBox.Items.Add("P1 65x105");
+            PresetBox.Items.Add("P1 86x105");
+            PresetBox.Items.Add("P2 165x165");
+            PresetBox.Items.Add("P2 82x165");
+            PresetBox.Items.Add("P2 82x82");
+            PresetBox.Items.Add("P2 110x110");
+            PresetBox.SelectedIndex = 0;
+            PresetBox.SelectedIndexChanged += loadBBPreset;
         }
 
         public void CopyHandler(object o, EventArgs ea)
@@ -585,6 +765,60 @@ namespace PartStacker
             body.SetAsModel(Display3D, voxels_temp, volume);
         }
 
+        public void GenerateBoxHandler(object o, EventArgs ea)
+        {
+            STLBody body = (STLBody) ((Part)PartsList.SelectedItems[0]).BasePart.Clone();
+            body.SinterBox((float)Clearance.Value, (float)Thickness.Value, (float)BWidth.Value, ((float)Spacing.Value) + 0.00013759f);
+
+            SaveFileDialog select = new SaveFileDialog()
+            {
+                Title = "Select file to save result to",
+                Filter = "STL files (*.stl)|*.stl"
+            };
+            DialogResult dr = select.ShowDialog();
+
+            if (dr != DialogResult.OK)
+                return;
+
+            try
+            {
+                result.ExportSTL(select.FileName);
+            }
+            catch
+            {
+                MessageBox.Show("Error writing to file " + select.FileName + "!", "File error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        public void loadBBPreset(object o, EventArgs ea)
+        {
+            ComboBox box = (ComboBox) o;
+            if (box.SelectedIndex != 0)
+            {
+                string[] strArray = box.GetItemText(box.SelectedItem).Split(new char[] { ' ', 'x' });
+                int num = int.Parse(strArray[1]);
+                int num2 = int.Parse(strArray[2]);
+                xMin.Value = num - 7;
+                yMin.Value = num2 - 7;
+                xMax.Value = num - 4;
+                yMax.Value = num2 - 4;
+                float num3 = 0f;
+                int minimum = (int) zMin.Minimum;
+                foreach (Part part in PartsList.Items)
+                {
+                    num3 += part.Quantity * part.Volume;
+                    Tuple<int, int, int> tuple = part.BasePart.CalcBox();
+                    minimum = Math.Max(minimum, 1 + Math.Min(tuple.Item1, Math.Min(tuple.Item2, tuple.Item3)));
+                }
+                if (num3 == 0f)
+                {
+                    num3 = 1000f;
+                }
+                zMin.Value = Math.Min(zMin.Maximum, Math.Max(minimum, (decimal) ((((double) num3) / 0.135) / ((double) (num * num2)))));
+                zMax.Value = Math.Max(zMax.Minimum, Math.Min(zMax.Maximum, 2M * ((decimal) ((((double) num3) / 0.15) / ((double) (num * num2))))));
+            }
+        }
+
         public void ImportHandler(object o, EventArgs ea)
         {
             FileDialog select = new OpenFileDialog()
@@ -666,9 +900,8 @@ namespace PartStacker
             this.ExportMenu.Enabled = false;
             this.Reload.Enabled = false;
             this.PartsList.Enabled = false;
-            this.InitialBoxSize.Enabled = false;
-            this.MaximumBoxSize.Enabled = false;
             this.MinimumClearance.Enabled = false;
+            this.GenerateBox.Enabled = false;
         }
         private void EnableButtons()
         {
@@ -677,8 +910,6 @@ namespace PartStacker
             this.ImportMenu.Enabled = true;
             this.Reload.Enabled = true;
             this.PartsList.Enabled = true;
-            this.InitialBoxSize.Enabled = true;
-            this.MaximumBoxSize.Enabled = true;
             this.MinimumClearance.Enabled = true;
         }
 
@@ -731,7 +962,10 @@ namespace PartStacker
         {
             if (succeeded)
             {
+                if (EnableSinterbox.Checked)
+                    result.SinterBox((float)Clearance.Value, (float)Thickness.Value, (float)BWidth.Value, ((float)Spacing.Value) + 0.00013759f);
                 result.CalcBox();
+                result.SetAsModel(Display3D);
                 this.Export.Enabled = true;
                 this.ExportMenu.Enabled = true;
                 DialogResult dl = MessageBox.Show("Done stacking! Final bounding box: " + Math.Round(result.size.X, 1) + "x" + Math.Round(result.size.Y, 1) + "x" + Math.Round(result.size.Z, 1) + "mm (" + Math.Round(100 * result.Volume() / (result.size.X * result.size.Y * result.size.Z), 1) + "% density).\n\nWould you like to save the result now?", "Stacking complete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -756,6 +990,7 @@ namespace PartStacker
             RotateMinBox.Enabled = false;
             Preview.Enabled = false;
             CopyMirror.Enabled = false;
+            GenerateBox.Enabled = false;
 
             None.Enabled = false;
             Cubic.Enabled = false;
@@ -777,6 +1012,7 @@ namespace PartStacker
                 RotateMinBox.Enabled = true;
 
                 CopyMirror.Enabled = true;
+                GenerateBox.Enabled = true;
 
                 if(((Part)PartsList.SelectedItems[0]).BasePart != null)
                     Preview.Enabled = true;
@@ -810,12 +1046,6 @@ namespace PartStacker
             }
 
             InfoLabel.Text = "Parts: " + parts + " - Volume: " + Math.Round(volume / 1000, 1) + " - Triangles: " + triangles;
-
-            if(InitialBoxSize != null)
-                InitialBoxSize.Value = Math.Max(InitialBoxSize.Minimum, (decimal)Math.Round(0.9 * (10 * Math.Pow(volume / 100, 1.0 / 3.0)), 0));
-
-            if (MaximumBoxSize != null)
-                MaximumBoxSize.Value = Math.Max(MaximumBoxSize.Minimum, (decimal)Math.Round(1.07 * (10 * Math.Pow(volume / 100, 1.0 / 3.0)), 0));
         }
     }
 }
