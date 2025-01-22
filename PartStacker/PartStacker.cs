@@ -149,8 +149,10 @@ namespace PartStacker
                 }
             }
 
-            int maxX = (int)(scale * (float)InitialBoxSize.Value), maxY = (int)(scale * (float)InitialBoxSize.Value), maxZ = (int)(scale * (float)InitialBoxSize.Value);
-            space = new bool[(int)Math.Max(maxX, (scale * (float)MaximumBoxSize.Value)), (int)Math.Max(maxY, (scale * (float)MaximumBoxSize.Value)), (int)Math.Max(maxZ, (scale * (float)MaximumBoxSize.Value))];
+            int maxX = (int)(scale * (float)xMin.Value);
+            int maxY = (int)(scale * (float)yMin.Value);
+            int maxZ = (int)(scale * (float)zMin.Value);
+            space = new bool[(int)Math.Max(maxX, (scale * (float)xMax.Value)), (int)Math.Max(maxY, (scale * (float)yMax.Value)), (int)Math.Max(maxZ, (scale * (float)zMax.Value))];
 
             SetProgress(0, 1);
 
