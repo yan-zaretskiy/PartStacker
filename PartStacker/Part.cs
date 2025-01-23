@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Runtime.Serialization;
 using System.IO;
+using PartStacker.MeshFile;
 
 namespace PartStacker
 {
@@ -99,7 +100,7 @@ namespace PartStacker
 
             try
             {
-                BasePart = STLBody.FromSTL(select.FileName);
+                BasePart = STL.From(select.FileName);
                 Mirror();
                 BasePart.CalcBox();
                 this.Volume = BasePart.Volume();
@@ -126,7 +127,7 @@ namespace PartStacker
             
             try
             {
-                BasePart = STLBody.FromSTL(FileName);
+                BasePart = STL.From(FileName);
                 Mirror();
                 BasePart.CalcBox();
                 this.Volume = BasePart.Volume();

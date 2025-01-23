@@ -11,6 +11,7 @@ using WinFormsContentLoading;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using PartStacker.Geometry;
+using PartStacker.MeshFile;
 
 namespace PartStacker
 {
@@ -682,7 +683,7 @@ namespace PartStacker
 
             try
             {
-                result.ExportSTL(select.FileName);
+                STL.To(result, select.FileName);
             }
             catch
             {
@@ -783,7 +784,7 @@ namespace PartStacker
 
             try
             {
-                result.ExportSTL(select.FileName);
+                STL.To(result, select.FileName);
             }
             catch
             {
@@ -837,7 +838,7 @@ namespace PartStacker
             {
                 try
                 {
-                    Part p = new Part(select.FileNames[i], STLBody.FromSTL(select.FileNames[i]));
+                    Part p = new Part(select.FileNames[i], STL.From(select.FileNames[i]));
                     
                     PartsList.Items.Add(p);
                     if (select.FileNames.Length == 1)
