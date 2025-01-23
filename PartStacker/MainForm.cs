@@ -762,7 +762,7 @@ namespace PartStacker
             STLBody body = ((Part)PartsList.SelectedItems[0]).BasePart;
             int[,,] voxels_temp = new int[body.box.Item1, body.box.Item2, body.box.Item3];
             int volume = body.Voxelize(voxels_temp, 1, (int)MinHole.Value);
-            body.SetAsModel(Display3D, voxels_temp, volume);
+            Display3D.SetMeshWithVoxels(body, voxels_temp, volume);
         }
 
         public void GenerateBoxHandler(object o, EventArgs ea)
@@ -965,7 +965,7 @@ namespace PartStacker
                 if (EnableSinterbox.Checked)
                     result.SinterBox((float)Clearance.Value, (float)Thickness.Value, (float)BWidth.Value, ((float)Spacing.Value) + 0.00013759f);
                 result.CalcBox();
-                result.SetAsModel(Display3D);
+                Display3D.SetMesh(result);
                 this.Export.Enabled = true;
                 this.ExportMenu.Enabled = true;
                 DialogResult dl = MessageBox.Show("Done stacking! Final bounding box: " + Math.Round(result.size.X, 1) + "x" + Math.Round(result.size.Y, 1) + "x" + Math.Round(result.size.Z, 1) + "mm (" + Math.Round(100 * result.Volume() / (result.size.X * result.size.Y * result.size.Z), 1) + "% density).\n\nWould you like to save the result now?", "Stacking complete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
@@ -1000,7 +1000,7 @@ namespace PartStacker
             {
                 Change.Enabled = true;
                 if(((Part)PartsList.SelectedItems[0]).BasePart != null)
-                    ((Part)PartsList.SelectedItems[0]).BasePart.SetAsModel(Display3D);
+                    Display3D.SetMesh(((Part)PartsList.SelectedItems[0]).BasePart);
 
                 MinHole.Value = ((Part)PartsList.SelectedItems[0]).MinHole;
                 MinHole.Enabled = true;

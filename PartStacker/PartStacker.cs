@@ -283,7 +283,7 @@ namespace PartStacker
 
                                     currentCount++;
                                     SetProgress(currentCount, totalParts);
-                                    this.Invoke((MethodInvoker)delegate { result.SetAsModel(Display3D); Display3D.BB = new Microsoft.Xna.Framework.Vector3(maxX, maxY, maxZ); });
+                                    this.Invoke((MethodInvoker)delegate { Display3D.SetMesh(result); Display3D.BB = new Microsoft.Xna.Framework.Vector3(maxX, maxY, maxZ); });
 
                                     baseParts[p].Remaining--; // Move to next instance of part
                                     if (baseParts[p].Remaining == 0) // All instances placed, try next part
