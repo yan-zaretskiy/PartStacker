@@ -696,17 +696,17 @@ namespace PartStacker
             RotationSets[0] = new Rotation[] { (STLBody b) => { } };
 
             // Cubic rotations
-            RotationSets[1] = new Rotation[] { (STLBody b) => { }, (STLBody b) => { b.Rotate(new Point3(1, 0, 0), 90.0f); }, (STLBody b) => { b.Rotate(new Point3(1, 0, 0), 180.0f); }, (STLBody b) => { b.Rotate(new Point3(1, 0, 0), 270.0f); }, (STLBody b) => { b.Rotate(new Point3(0, 1, 0), 90.0f); }, (STLBody b) => { b.Rotate(new Point3(0, 1, 0), 180.0f); }, (STLBody b) => { b.Rotate(new Point3(0, 1, 0), 270.0f); }, (STLBody b) => { b.Rotate(new Point3(0, 0, 1), 90.0f); }, (STLBody b) => { b.Rotate(new Point3(0, 0, 1), 180.0f); }, (STLBody b) => { b.Rotate(new Point3(0, 0, 1), 270.0f); }, (STLBody b) => { b.Rotate(new Point3(1, 1, 0), 180.0f); }, (STLBody b) => { b.Rotate(new Point3(1, -1, 0), 180.0f); }, (STLBody b) => { b.Rotate(new Point3(0, 1, 1), 180.0f); }, (STLBody b) => { b.Rotate(new Point3(0, -1, 1), 180.0f); }, (STLBody b) => { b.Rotate(new Point3(1, 0, 1), 180.0f); }, (STLBody b) => { b.Rotate(new Point3(1, 0, -1), 180.0f); }, (STLBody b) => { b.Rotate(new Point3(1, 1, 1), 120.0f); }, (STLBody b) => { b.Rotate(new Point3(1, 1, 1), 240.0f); }, (STLBody b) => { b.Rotate(new Point3(-1, 1, 1), 120.0f); }, (STLBody b) => { b.Rotate(new Point3(-1, 1, 1), 240.0f); }, (STLBody b) => { b.Rotate(new Point3(1, -1, 1), 120.0f); }, (STLBody b) => { b.Rotate(new Point3(1, -1, 1), 240.0f); }, (STLBody b) => { b.Rotate(new Point3(1, 1, -1), 120.0f); }, (STLBody b) => { b.Rotate(new Point3(1, 1, -1), 240.0f); } };
+            RotationSets[1] = new Rotation[] { (STLBody b) => { }, (STLBody b) => { b.Rotate(new Vector(1, 0, 0), 90.0f); }, (STLBody b) => { b.Rotate(new Vector(1, 0, 0), 180.0f); }, (STLBody b) => { b.Rotate(new Vector(1, 0, 0), 270.0f); }, (STLBody b) => { b.Rotate(new Vector(0, 1, 0), 90.0f); }, (STLBody b) => { b.Rotate(new Vector(0, 1, 0), 180.0f); }, (STLBody b) => { b.Rotate(new Vector(0, 1, 0), 270.0f); }, (STLBody b) => { b.Rotate(new Vector(0, 0, 1), 90.0f); }, (STLBody b) => { b.Rotate(new Vector(0, 0, 1), 180.0f); }, (STLBody b) => { b.Rotate(new Vector(0, 0, 1), 270.0f); }, (STLBody b) => { b.Rotate(new Vector(1, 1, 0), 180.0f); }, (STLBody b) => { b.Rotate(new Vector(1, -1, 0), 180.0f); }, (STLBody b) => { b.Rotate(new Vector(0, 1, 1), 180.0f); }, (STLBody b) => { b.Rotate(new Vector(0, -1, 1), 180.0f); }, (STLBody b) => { b.Rotate(new Vector(1, 0, 1), 180.0f); }, (STLBody b) => { b.Rotate(new Vector(1, 0, -1), 180.0f); }, (STLBody b) => { b.Rotate(new Vector(1, 1, 1), 120.0f); }, (STLBody b) => { b.Rotate(new Vector(1, 1, 1), 240.0f); }, (STLBody b) => { b.Rotate(new Vector(-1, 1, 1), 120.0f); }, (STLBody b) => { b.Rotate(new Vector(-1, 1, 1), 240.0f); }, (STLBody b) => { b.Rotate(new Vector(1, -1, 1), 120.0f); }, (STLBody b) => { b.Rotate(new Vector(1, -1, 1), 240.0f); }, (STLBody b) => { b.Rotate(new Vector(1, 1, -1), 120.0f); }, (STLBody b) => { b.Rotate(new Vector(1, 1, -1), 240.0f); } };
             
             //TODO: arbitrary rotations
             RotationSets[2] = new Rotation[32];
 
             RotationSets[2][0] = (STLBody b) => { };
-            RotationSets[2][1] = (STLBody b) => { b.Rotate(new Point3(1, 1, 1), 120.0f); };
-            RotationSets[2][2] = (STLBody b) => { b.Rotate(new Point3(1, 1, 1), 240.0f); };
-            RotationSets[2][3] = (STLBody b) => { b.Rotate(new Point3(1, 0, 0), 180.0f); };
-            RotationSets[2][4] = (STLBody b) => { b.Rotate(new Point3(0, 1, 0), 180.0f); };
-            RotationSets[2][5] = (STLBody b) => { b.Rotate(new Point3(0, 0, 1), 180.0f); };
+            RotationSets[2][1] = (STLBody b) => { b.Rotate(new Vector(1, 1, 1), 120.0f); };
+            RotationSets[2][2] = (STLBody b) => { b.Rotate(new Vector(1, 1, 1), 240.0f); };
+            RotationSets[2][3] = (STLBody b) => { b.Rotate(new Vector(1, 0, 0), 180.0f); };
+            RotationSets[2][4] = (STLBody b) => { b.Rotate(new Vector(0, 1, 0), 180.0f); };
+            RotationSets[2][5] = (STLBody b) => { b.Rotate(new Vector(0, 0, 1), 180.0f); };
 
             Random r = new Random();
             for (int i = 6; i < 32; i++)
@@ -714,7 +714,7 @@ namespace PartStacker
                 float rx = (float)(r.NextDouble() * 360.0);
                 float ry = (float)(r.NextDouble() * 360.0);
                 float rz = (float)(r.NextDouble() * 360.0);
-                RotationSets[2][i] = (STLBody b) => { b.Rotate(new Point3(1, 0, 0), rx); b.Rotate(new Point3(0, 1, 0), ry); b.Rotate(new Point3(0, 0, 1), rz); };
+                RotationSets[2][i] = (STLBody b) => { b.Rotate(new Vector(1, 0, 0), rx); b.Rotate(new Vector(0, 1, 0), ry); b.Rotate(new Vector(0, 0, 1), rz); };
             }
         }
 

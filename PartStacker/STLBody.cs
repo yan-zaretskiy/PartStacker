@@ -16,7 +16,7 @@ namespace PartStacker
         public List<Triangle> Triangles;
 
         public Tuple<int, int, int> box;
-        public Point3 size;
+        public Vector size;
 
         public STLBody(int InitialTriangles)
         {
@@ -48,14 +48,14 @@ namespace PartStacker
                 }
             }
 
-            this.Translate(new Point3(-min[0], -min[1], -min[2]));
+            this.Translate(new Vector(-min[0], -min[1], -min[2]));
 
-            size = new Point3(max[0] - min[0], max[1] - min[1], max[2] - min[2]);
+            size = new Vector(max[0] - min[0], max[1] - min[1], max[2] - min[2]);
             box = new Tuple<int, int, int>((int)Math.Ceiling(max[0] - min[0] + 2), (int)Math.Ceiling(max[1] - min[1] + 2), (int)Math.Ceiling(max[2] - min[2] + 2));
             return box;
         }
 
-        public bool TranslateAndAdd(STLBody target, Point3 offset)
+        public bool TranslateAndAdd(STLBody target, Vector offset)
         {
             bool ok = true;
 
@@ -81,9 +81,9 @@ namespace PartStacker
             // First render each part, placing voxels at the position of each triangle
             foreach (Triangle t in Triangles)
             {
-                Point3 a = t.Vertices[0];
-                Point3 b = t.Vertices[1] - t.Vertices[0];
-                Point3 c = t.Vertices[2] - t.Vertices[0];
+                Vector a = t.Vertices[0].Vector;
+                Vector b = t.Vertices[1] - t.Vertices[0];
+                Vector c = t.Vertices[2] - t.Vertices[0];
 
                 // Approximate the step size
                 float db = 0.1f / Math.Max(Math.Abs(b.X), Math.Max(Math.Abs(b.Z), Math.Abs(b.Y)));
@@ -93,7 +93,7 @@ namespace PartStacker
                 for (float p = 0; p < 1; p += db)
                     for (float q = 0; q < 1 - p; q += dc)
                     {
-                        Point3 pos = a + p * b + q * c;
+                        Vector pos = a + p * b + q * c;
                         actualTriangles[(int)Math.Round(pos.X), (int)Math.Round(pos.Y), (int)Math.Round(pos.Z)] = true;
                     }
             }
@@ -285,7 +285,9 @@ namespace PartStacker
                         return result;
                     };
 
-                    this.Triangles.Add(new Triangle(ParsePoint(normal), ParsePoint(v1), ParsePoint(v2), ParsePoint(v3)));
+                    Point3 normalAsPoint = ParsePoint(normal);
+                    Vector norm = new Vector(normalAsPoint.X, normalAsPoint.Y, normalAsPoint.Z);
+                    this.Triangles.Add(new Triangle(norm, ParsePoint(v1), ParsePoint(v2), ParsePoint(v3)));
                 }
             }
             else // Binary STL
@@ -307,7 +309,7 @@ namespace PartStacker
         {
             float volume = 0;
             foreach (Triangle t in Triangles)
-                volume += t.v1.Dot(t.v2.Cross(t.v3));
+                volume += t.v1.Vector.Dot(t.v2.Vector.Cross(t.v3.Vector));
 
             return volume / 6;
         }
@@ -318,7 +320,7 @@ namespace PartStacker
                 Triangles[i] = Triangles[i].Mirror();
         }
 
-        public void Rotate(Point3 axis, float angle)
+        public void Rotate(Vector axis, float angle)
         {
             for (int i = 0; i < Triangles.Count; i++)
                 Triangles[i] = Triangles[i].Rotate(axis, angle);
@@ -330,7 +332,7 @@ namespace PartStacker
                 Triangles[i] = Triangles[i].Scale(factor);
         }
 
-        public void Translate(Point3 offset)
+        public void Translate(Vector offset)
         {
             for(int i = 0; i < Triangles.Count; i++)
                 Triangles[i] = Triangles[i].Translate(offset);
@@ -417,8 +419,8 @@ namespace PartStacker
                     numArray2[2] = Math.Max(triangle.Vertices[i].Z, numArray2[2]);
                 }
             }
-            this.Translate(new Point3(-numArray[0], -numArray[1], -numArray[2]));
-            this.size = new Point3(numArray2[0] - numArray[0], numArray2[1] - numArray[1], numArray2[2] - numArray[2]);
+            this.Translate(new Vector(-numArray[0], -numArray[1], -numArray[2]));
+            this.size = new Vector(numArray2[0] - numArray[0], numArray2[1] - numArray[1], numArray2[2] - numArray[2]);
             return new Tuple<float, float, float>(numArray2[0] - numArray[0], numArray2[1] - numArray[1], numArray2[2] - numArray[2]);
         }
 
@@ -426,18 +428,18 @@ namespace PartStacker
         {
             Triangle[] triangleArray = new Triangle[12];
             int num = 0;
-            triangleArray[num++] = new Triangle(new Point3(-1f, 0f, 0f), new Point3(0f, 0f, 0f), new Point3(0f, 1f, 1f), new Point3(0f, 1f, 0f));
-            triangleArray[num++] = new Triangle(new Point3(-1f, 0f, 0f), new Point3(0f, 0f, 0f), new Point3(0f, 0f, 1f), new Point3(0f, 1f, 1f));
-            triangleArray[num++] = new Triangle(new Point3(1f, 0f, 0f), new Point3(1f, 0f, 0f), new Point3(1f, 1f, 0f), new Point3(1f, 1f, 1f));
-            triangleArray[num++] = new Triangle(new Point3(1f, 0f, 0f), new Point3(1f, 0f, 0f), new Point3(1f, 1f, 1f), new Point3(1f, 0f, 1f));
-            triangleArray[num++] = new Triangle(new Point3(0f, -1f, 0f), new Point3(0f, 0f, 0f), new Point3(1f, 0f, 0f), new Point3(1f, 0f, 1f));
-            triangleArray[num++] = new Triangle(new Point3(0f, -1f, 0f), new Point3(0f, 0f, 0f), new Point3(1f, 0f, 1f), new Point3(0f, 0f, 1f));
-            triangleArray[num++] = new Triangle(new Point3(0f, 1f, 0f), new Point3(0f, 1f, 0f), new Point3(1f, 1f, 1f), new Point3(1f, 1f, 0f));
-            triangleArray[num++] = new Triangle(new Point3(0f, 1f, 0f), new Point3(0f, 1f, 0f), new Point3(0f, 1f, 1f), new Point3(1f, 1f, 1f));
-            triangleArray[num++] = new Triangle(new Point3(0f, 0f, -1f), new Point3(0f, 0f, 0f), new Point3(1f, 1f, 0f), new Point3(1f, 0f, 0f));
-            triangleArray[num++] = new Triangle(new Point3(0f, 0f, -1f), new Point3(0f, 0f, 0f), new Point3(0f, 1f, 0f), new Point3(1f, 1f, 0f));
-            triangleArray[num++] = new Triangle(new Point3(0f, 0f, 1f), new Point3(0f, 0f, 1f), new Point3(1f, 0f, 1f), new Point3(1f, 1f, 1f));
-            triangleArray[num++] = new Triangle(new Point3(0f, 0f, 1f), new Point3(0f, 0f, 1f), new Point3(1f, 1f, 1f), new Point3(0f, 1f, 1f));
+            triangleArray[num++] = new Triangle(new Vector(-1f, 0f, 0f), new Point3(0f, 0f, 0f), new Point3(0f, 1f, 1f), new Point3(0f, 1f, 0f));
+            triangleArray[num++] = new Triangle(new Vector(-1f, 0f, 0f), new Point3(0f, 0f, 0f), new Point3(0f, 0f, 1f), new Point3(0f, 1f, 1f));
+            triangleArray[num++] = new Triangle(new Vector(1f, 0f, 0f), new Point3(1f, 0f, 0f), new Point3(1f, 1f, 0f), new Point3(1f, 1f, 1f));
+            triangleArray[num++] = new Triangle(new Vector(1f, 0f, 0f), new Point3(1f, 0f, 0f), new Point3(1f, 1f, 1f), new Point3(1f, 0f, 1f));
+            triangleArray[num++] = new Triangle(new Vector(0f, -1f, 0f), new Point3(0f, 0f, 0f), new Point3(1f, 0f, 0f), new Point3(1f, 0f, 1f));
+            triangleArray[num++] = new Triangle(new Vector(0f, -1f, 0f), new Point3(0f, 0f, 0f), new Point3(1f, 0f, 1f), new Point3(0f, 0f, 1f));
+            triangleArray[num++] = new Triangle(new Vector(0f, 1f, 0f), new Point3(0f, 1f, 0f), new Point3(1f, 1f, 1f), new Point3(1f, 1f, 0f));
+            triangleArray[num++] = new Triangle(new Vector(0f, 1f, 0f), new Point3(0f, 1f, 0f), new Point3(0f, 1f, 1f), new Point3(1f, 1f, 1f));
+            triangleArray[num++] = new Triangle(new Vector(0f, 0f, -1f), new Point3(0f, 0f, 0f), new Point3(1f, 1f, 0f), new Point3(1f, 0f, 0f));
+            triangleArray[num++] = new Triangle(new Vector(0f, 0f, -1f), new Point3(0f, 0f, 0f), new Point3(0f, 1f, 0f), new Point3(1f, 1f, 0f));
+            triangleArray[num++] = new Triangle(new Vector(0f, 0f, 1f), new Point3(0f, 0f, 1f), new Point3(1f, 0f, 1f), new Point3(1f, 1f, 1f));
+            triangleArray[num++] = new Triangle(new Vector(0f, 0f, 1f), new Point3(0f, 0f, 1f), new Point3(1f, 1f, 1f), new Point3(0f, 1f, 1f));
             for (int i = 0; i < 12; i++)
             {
                 var ToVector3 = (Point3 point) => new Vector3(point.X, point.Y, point.Z);

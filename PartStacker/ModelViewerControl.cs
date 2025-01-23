@@ -130,6 +130,7 @@ namespace PartStacker
             }
         }
 
+        private static Vector3 ToVector3(Vector vec) => new Vector3(vec.X, vec.Y, vec.Z);
         private static Vector3 ToVector3(Point3 point) => new Vector3(point.X, point.Y, point.Z);
 
         public void SetMesh(STLBody mesh)

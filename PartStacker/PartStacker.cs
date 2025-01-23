@@ -66,10 +66,10 @@ namespace PartStacker
 
                     for (int a = 0; a < 360; a += 9)
                     {
-                        original.Rotate(new Point3(1, 0, 0), 9.0f);
+                        original.Rotate(new Vector(1, 0, 0), 9.0f);
                         for (int b = 0; b < 360; b += 9)
                         {
-                            original.Rotate(new Point3(0, 1, 0), 9.0f);
+                            original.Rotate(new Vector(0, 1, 0), 9.0f);
                             Tuple<int, int, int> box = original.CalcBox();
                             int volume = box.Item1 * box.Item2 * box.Item3;
                             if (volume < best)
@@ -80,7 +80,7 @@ namespace PartStacker
                         }
                     }
 
-                    baseRotation = (STLBody b) => { b.Rotate(new Point3(1, 0, 0), bestA); b.Rotate(new Point3(0, 1, 0), bestB); };
+                    baseRotation = (STLBody b) => { b.Rotate(new Vector(1, 0, 0), bestA); b.Rotate(new Vector(0, 1, 0), bestB); };
                 }
 
                 // Set up array of parts
@@ -276,7 +276,7 @@ namespace PartStacker
                             for (int i = 0; i < rotations.Length; i++)
                                 if ((possible & index) != 0)
                                 {
-                                    if (!parts[p][i].TranslateAndAdd(result, new Point3(x, y, z))) // Add to result
+                                    if (!parts[p][i].TranslateAndAdd(result, new Vector(x, y, z))) // Add to result
                                     {
                                         MessageBox.Show("Intersecting triangles error!");
                                     }
