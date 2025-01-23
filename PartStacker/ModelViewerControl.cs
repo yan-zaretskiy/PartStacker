@@ -25,7 +25,7 @@ namespace PartStacker
     /// a spinning 3D model. The main form class is responsible for loading
     /// the model: this control just displays it.
     /// </summary>
-    
+
     public class ModelViewerControl : GraphicsDeviceControl
     {
         public int TriangleCount;
@@ -133,7 +133,7 @@ namespace PartStacker
         private static Vector3 ToVector3(Vector vec) => new Vector3(vec.X, vec.Y, vec.Z);
         private static Vector3 ToVector3(Point3 point) => new Vector3(point.X, point.Y, point.Z);
 
-        public void SetMesh(STLBody mesh)
+        public void SetMesh(Mesh mesh)
         {
             TriangleCount = 0;
             triangles = null;
@@ -155,7 +155,7 @@ namespace PartStacker
             Invalidate();
         }
 
-        public void SetMeshWithVoxels(STLBody mesh, int[,,] voxels, int volume)
+        public void SetMeshWithVoxels(Mesh mesh, int[,,] voxels, int volume)
         {
             TriangleCount = 0;
             triangles = null;

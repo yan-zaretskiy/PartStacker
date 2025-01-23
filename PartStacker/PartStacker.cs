@@ -10,7 +10,7 @@ namespace PartStacker
 {
     partial class MainForm
     {
-        STLBody[][] parts;
+        Mesh[][] parts;
         int[][, ,] voxels;
         bool[,,] space;
         Part[] baseParts;
@@ -40,17 +40,17 @@ namespace PartStacker
                 totalParts += p.Quantity;
             }
 
-            parts = new STLBody[baseParts.Length][];
+            parts = new Mesh[baseParts.Length][];
             voxels = new int[baseParts.Length][, ,];
 
             float progress = 0;
             for (int i = 0; i < baseParts.Length; i++)
             {
-                Rotation baseRotation = (STLBody b) => { };
+                Rotation baseRotation = (Mesh m) => { };
 
                 if (baseParts[i].RotateMinBox)
                 {
-                    STLBody original = (STLBody)baseParts[i].BasePart.Clone();
+                    Mesh original = (Mesh)baseParts[i].BasePart.Clone();
 
                     List<Triangle> toRemove = new List<Triangle>();
                     for (int j = 0; j < original.Triangles.Count; j++)
@@ -80,11 +80,11 @@ namespace PartStacker
                         }
                     }
 
-                    baseRotation = (STLBody b) => { b.Rotate(new Vector(1, 0, 0), bestA); b.Rotate(new Vector(0, 1, 0), bestB); };
+                    baseRotation = (Mesh m) => { m.Rotate(new Vector(1, 0, 0), bestA); m.Rotate(new Vector(0, 1, 0), bestB); };
                 }
 
                 // Set up array of parts
-                parts[i] = new STLBody[RotationSets[baseParts[i].RotationIndex].Length];
+                parts[i] = new Mesh[RotationSets[baseParts[i].RotationIndex].Length];
 
                 // Track bounding box size
                 int maxBX = 1, maxBY = 1, maxBZ = 1;
@@ -95,7 +95,7 @@ namespace PartStacker
                     if (!StackerThreadRunning)
                         return null;
 
-                    STLBody thisPart = (STLBody)baseParts[i].BasePart.Clone();
+                    Mesh thisPart = (Mesh)baseParts[i].BasePart.Clone();
                     thisPart.Scale(scale);
                     RotationSets[baseParts[i].RotationIndex][j](thisPart);
                     baseRotation(thisPart);
@@ -133,7 +133,7 @@ namespace PartStacker
                 int j = i;
                 while (baseParts[j].Volume < baseParts[j - 1].Volume)
                 {
-                    STLBody[] tempBD = parts[j];
+                    Mesh[] tempBD = parts[j];
                     int[, ,] tempVX = voxels[j];
                     Part tempPT = baseParts[j];
 
@@ -174,7 +174,7 @@ namespace PartStacker
                     int newX = space.GetLength(0), newY = space.GetLength(1), newZ = space.GetLength(2);
 
                     int minBX = int.MaxValue, minBY = int.MaxValue, minBZ = int.MaxValue;
-                    foreach (STLBody p in parts[pIndex])
+                    foreach (Mesh p in parts[pIndex])
                     {
                         minBX = Math.Min(p.box.Item1, minBX);
                         minBY = Math.Min(p.box.Item2, minBY);

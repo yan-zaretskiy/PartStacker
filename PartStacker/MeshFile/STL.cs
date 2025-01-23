@@ -5,13 +5,13 @@ namespace PartStacker.MeshFile
 {
     public class STL
     {
-        public static STLBody From(string fromFile)
+        public static Mesh From(string fromFile)
         {
             BinaryReader br = new BinaryReader(new FileStream(fromFile, FileMode.Open));
             string header = new String(br.ReadChars(80));
             int tCount = br.ReadInt32();
 
-            STLBody mesh = new();
+            Mesh mesh = new();
 
             //if (header.Trim().StartsWith("solid")) // ASCI STL
             if (br.BaseStream.Length != 84 + tCount * 50)
@@ -58,7 +58,7 @@ namespace PartStacker.MeshFile
             return mesh;
         }
 
-        public static void To(STLBody mesh, string toFile)
+        public static void To(Mesh mesh, string toFile)
         {
             BinaryWriter bw = new BinaryWriter(new FileStream(toFile, FileMode.OpenOrCreate));
 

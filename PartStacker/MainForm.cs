@@ -31,7 +31,7 @@ namespace PartStacker
         Thread StackerThread;
         bool StackerThreadRunning = false;
 
-        STLBody result;
+        Mesh result;
 
         Rotation[][] RotationSets = new Rotation[3][];
 
@@ -579,7 +579,7 @@ namespace PartStacker
             if (((Part)PartsList.SelectedItems[0]).BasePart == null)
                 return;
 
-            Part copy = new Part(((Part)PartsList.SelectedItems[0]).FileName, (STLBody)((Part)PartsList.SelectedItems[0]).BasePart.Clone());
+            Part copy = new Part(((Part)PartsList.SelectedItems[0]).FileName, (Mesh)((Part)PartsList.SelectedItems[0]).BasePart.Clone());
 
             copy.Quantity = ((Part)PartsList.SelectedItems[0]).Quantity;
             copy.RotateMinBox = ((Part)PartsList.SelectedItems[0]).RotateMinBox;
@@ -694,20 +694,20 @@ namespace PartStacker
         public void LoadRotations()
         {
             // No rotation
-            RotationSets[0] = new Rotation[] { (STLBody b) => { } };
+            RotationSets[0] = new Rotation[] { (Mesh m) => { } };
 
             // Cubic rotations
-            RotationSets[1] = new Rotation[] { (STLBody b) => { }, (STLBody b) => { b.Rotate(new Vector(1, 0, 0), 90.0f); }, (STLBody b) => { b.Rotate(new Vector(1, 0, 0), 180.0f); }, (STLBody b) => { b.Rotate(new Vector(1, 0, 0), 270.0f); }, (STLBody b) => { b.Rotate(new Vector(0, 1, 0), 90.0f); }, (STLBody b) => { b.Rotate(new Vector(0, 1, 0), 180.0f); }, (STLBody b) => { b.Rotate(new Vector(0, 1, 0), 270.0f); }, (STLBody b) => { b.Rotate(new Vector(0, 0, 1), 90.0f); }, (STLBody b) => { b.Rotate(new Vector(0, 0, 1), 180.0f); }, (STLBody b) => { b.Rotate(new Vector(0, 0, 1), 270.0f); }, (STLBody b) => { b.Rotate(new Vector(1, 1, 0), 180.0f); }, (STLBody b) => { b.Rotate(new Vector(1, -1, 0), 180.0f); }, (STLBody b) => { b.Rotate(new Vector(0, 1, 1), 180.0f); }, (STLBody b) => { b.Rotate(new Vector(0, -1, 1), 180.0f); }, (STLBody b) => { b.Rotate(new Vector(1, 0, 1), 180.0f); }, (STLBody b) => { b.Rotate(new Vector(1, 0, -1), 180.0f); }, (STLBody b) => { b.Rotate(new Vector(1, 1, 1), 120.0f); }, (STLBody b) => { b.Rotate(new Vector(1, 1, 1), 240.0f); }, (STLBody b) => { b.Rotate(new Vector(-1, 1, 1), 120.0f); }, (STLBody b) => { b.Rotate(new Vector(-1, 1, 1), 240.0f); }, (STLBody b) => { b.Rotate(new Vector(1, -1, 1), 120.0f); }, (STLBody b) => { b.Rotate(new Vector(1, -1, 1), 240.0f); }, (STLBody b) => { b.Rotate(new Vector(1, 1, -1), 120.0f); }, (STLBody b) => { b.Rotate(new Vector(1, 1, -1), 240.0f); } };
+            RotationSets[1] = new Rotation[] { (Mesh m) => { }, (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 90.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 270.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 90.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 270.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 90.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 270.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 1, 0), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(1, -1, 0), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 1, 1), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(0, -1, 1), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 0, 1), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 0, -1), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 120.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 240.0f); }, (Mesh m) => { m.Rotate(new Vector(-1, 1, 1), 120.0f); }, (Mesh m) => { m.Rotate(new Vector(-1, 1, 1), 240.0f); }, (Mesh m) => { m.Rotate(new Vector(1, -1, 1), 120.0f); }, (Mesh m) => { m.Rotate(new Vector(1, -1, 1), 240.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 1, -1), 120.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 1, -1), 240.0f); } };
             
             //TODO: arbitrary rotations
             RotationSets[2] = new Rotation[32];
 
-            RotationSets[2][0] = (STLBody b) => { };
-            RotationSets[2][1] = (STLBody b) => { b.Rotate(new Vector(1, 1, 1), 120.0f); };
-            RotationSets[2][2] = (STLBody b) => { b.Rotate(new Vector(1, 1, 1), 240.0f); };
-            RotationSets[2][3] = (STLBody b) => { b.Rotate(new Vector(1, 0, 0), 180.0f); };
-            RotationSets[2][4] = (STLBody b) => { b.Rotate(new Vector(0, 1, 0), 180.0f); };
-            RotationSets[2][5] = (STLBody b) => { b.Rotate(new Vector(0, 0, 1), 180.0f); };
+            RotationSets[2][0] = (Mesh m) => { };
+            RotationSets[2][1] = (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 120.0f); };
+            RotationSets[2][2] = (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 240.0f); };
+            RotationSets[2][3] = (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 180.0f); };
+            RotationSets[2][4] = (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 180.0f); };
+            RotationSets[2][5] = (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 180.0f); };
 
             Random r = new Random();
             for (int i = 6; i < 32; i++)
@@ -715,7 +715,7 @@ namespace PartStacker
                 float rx = (float)(r.NextDouble() * 360.0);
                 float ry = (float)(r.NextDouble() * 360.0);
                 float rz = (float)(r.NextDouble() * 360.0);
-                RotationSets[2][i] = (STLBody b) => { b.Rotate(new Vector(1, 0, 0), rx); b.Rotate(new Vector(0, 1, 0), ry); b.Rotate(new Vector(0, 0, 1), rz); };
+                RotationSets[2][i] = (Mesh m) => { m.Rotate(new Vector(1, 0, 0), rx); m.Rotate(new Vector(0, 1, 0), ry); m.Rotate(new Vector(0, 0, 1), rz); };
             }
         }
 
@@ -761,16 +761,16 @@ namespace PartStacker
 
         public void PreviewHandler(object o, EventArgs ea)
         {
-            STLBody body = ((Part)PartsList.SelectedItems[0]).BasePart;
-            int[,,] voxels_temp = new int[body.box.Item1, body.box.Item2, body.box.Item3];
-            int volume = body.Voxelize(voxels_temp, 1, (int)MinHole.Value);
-            Display3D.SetMeshWithVoxels(body, voxels_temp, volume);
+            Mesh mesh = ((Part)PartsList.SelectedItems[0]).BasePart;
+            int[,,] voxels_temp = new int[mesh.box.Item1, mesh.box.Item2, mesh.box.Item3];
+            int volume = mesh.Voxelize(voxels_temp, 1, (int)MinHole.Value);
+            Display3D.SetMeshWithVoxels(mesh, voxels_temp, volume);
         }
 
         public void GenerateBoxHandler(object o, EventArgs ea)
         {
-            STLBody body = (STLBody) ((Part)PartsList.SelectedItems[0]).BasePart.Clone();
-            body.SinterBox((float)Clearance.Value, (float)Thickness.Value, (float)BWidth.Value, ((float)Spacing.Value) + 0.00013759f);
+            Mesh mesh = (Mesh) ((Part)PartsList.SelectedItems[0]).BasePart.Clone();
+            mesh.SinterBox((float)Clearance.Value, (float)Thickness.Value, (float)BWidth.Value, ((float)Spacing.Value) + 0.00013759f);
 
             SaveFileDialog select = new SaveFileDialog()
             {
@@ -934,7 +934,7 @@ namespace PartStacker
 
                 DisableButtons();
 
-                result = new STLBody(modelTriangles + 2);
+                result = new Mesh(modelTriangles + 2);
 
                 baseParts = new Part[PartsList.Items.Count];
                 for (int i = 0; i < baseParts.Length; i++)

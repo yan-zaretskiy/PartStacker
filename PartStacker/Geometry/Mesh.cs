@@ -1,29 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Runtime.InteropServices;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Content;
+﻿using Microsoft.Xna.Framework;
 using PartStacker.Geometry;
 
 namespace PartStacker
 {
-    public class STLBody : ICloneable
+    public class Mesh : ICloneable
     {
         public List<Triangle> Triangles;
 
         public Tuple<int, int, int> box;
         public Vector size;
 
-        public STLBody(int InitialTriangles)
+        public Mesh(int InitialTriangles)
         {
             Triangles = new List<Triangle>(InitialTriangles);
         }
 
-        public STLBody()
+        public Mesh()
         {
             Triangles = new List<Triangle>();
         }
@@ -55,7 +47,7 @@ namespace PartStacker
             return box;
         }
 
-        public bool TranslateAndAdd(STLBody target, Vector offset)
+        public bool TranslateAndAdd(Mesh target, Vector offset)
         {
             bool ok = true;
 
@@ -258,7 +250,7 @@ namespace PartStacker
 
         public object Clone()
         {
-            STLBody newBody = new STLBody(this.Triangles.Count);
+            Mesh newBody = new Mesh(this.Triangles.Count);
             foreach (Triangle t in this.Triangles)
                 newBody.Triangles.Add(t);
             return newBody;
