@@ -15,6 +15,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using WinFormsContentLoading;
+using PartStacker.Geometry;
 #endregion
 
 namespace PartStacker
@@ -24,7 +25,7 @@ namespace PartStacker
     /// a spinning 3D model. The main form class is responsible for loading
     /// the model: this control just displays it.
     /// </summary>
-    
+
     public class ModelViewerControl : GraphicsDeviceControl
     {
         public int TriangleCount;
@@ -127,6 +128,118 @@ namespace PartStacker
 
                 Invalidate();
             }
+        }
+
+        private static Vector3 ToVector3(Vector vec) => new Vector3(vec.X, vec.Y, vec.Z);
+        private static Vector3 ToVector3(Point3 point) => new Vector3(point.X, point.Y, point.Z);
+
+        public void SetMesh(Mesh mesh)
+        {
+            TriangleCount = 0;
+            triangles = null;
+            GC.AddMemoryPressure(mesh.Triangles.Count * 3 * 40 + 1);
+            GC.Collect();
+
+            VertexPositionColorNormal[] buffer = new VertexPositionColorNormal[mesh.Triangles.Count * 3];
+
+            for (int i = 0; i < mesh.Triangles.Count; i++)
+            {
+                buffer[3 * i + 0] = new VertexPositionColorNormal(ToVector3(mesh.Triangles[i].v1), Microsoft.Xna.Framework.Color.White, ToVector3(mesh.Triangles[i].Normal));
+                buffer[3 * i + 1] = new VertexPositionColorNormal(ToVector3(mesh.Triangles[i].v2), Microsoft.Xna.Framework.Color.White, ToVector3(mesh.Triangles[i].Normal));
+                buffer[3 * i + 2] = new VertexPositionColorNormal(ToVector3(mesh.Triangles[i].v3), Microsoft.Xna.Framework.Color.White, ToVector3(mesh.Triangles[i].Normal));
+            }
+
+            triangles = buffer;
+            TriangleCount = mesh.Triangles.Count;
+            BB = ToVector3(mesh.size);
+            Invalidate();
+        }
+
+        public void SetMeshWithVoxels(Mesh mesh, int[,,] voxels, int volume)
+        {
+            TriangleCount = 0;
+            triangles = null;
+            GC.AddMemoryPressure(40 * (mesh.Triangles.Count * 3 + volume * 36));
+            GC.Collect();
+
+            VertexPositionColorNormal[] buffer = new VertexPositionColorNormal[mesh.Triangles.Count * 3 + volume * 36];
+
+            for (int i = 0; i < mesh.Triangles.Count; i++)
+            {
+                buffer[3 * i + 0] = new VertexPositionColorNormal(ToVector3(mesh.Triangles[i].v1), Microsoft.Xna.Framework.Color.White, ToVector3(mesh.Triangles[i].Normal));
+                buffer[3 * i + 1] = new VertexPositionColorNormal(ToVector3(mesh.Triangles[i].v2), Microsoft.Xna.Framework.Color.White, ToVector3(mesh.Triangles[i].Normal));
+                buffer[3 * i + 2] = new VertexPositionColorNormal(ToVector3(mesh.Triangles[i].v3), Microsoft.Xna.Framework.Color.White, ToVector3(mesh.Triangles[i].Normal));
+            }
+
+            int pos = mesh.Triangles.Count * 3;
+            Color c = Color.Aqua;
+            c.A = (byte)(256 * 0.8f);
+
+            for (int x = 0; x < voxels.GetLength(0); x++)
+                for (int y = 0; y < voxels.GetLength(1); y++)
+                    for (int z = 0; z < voxels.GetLength(2); z++)
+                        if (voxels[x, y, z] == 1)
+                        {
+                            float xt = (float)x - 1.0f;
+                            float yt = (float)y - 1.0f;
+                            float zt = (float)z - 1.0f;
+
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 0), c, new Vector3(-1, 0, 0));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 1, zt + 0), c, new Vector3(-1, 0, 0));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 1, zt + 1), c, new Vector3(-1, 0, 0));
+
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 0), c, new Vector3(-1, 0, 0));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 1), c, new Vector3(-1, 0, 0));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 1, zt + 1), c, new Vector3(-1, 0, 0));
+
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 0, zt + 0), c, new Vector3(1, 0, 0));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 0), c, new Vector3(1, 0, 0));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 1), c, new Vector3(1, 0, 0));
+
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 0, zt + 0), c, new Vector3(1, 0, 0));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 0, zt + 1), c, new Vector3(1, 0, 0));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 1), c, new Vector3(1, 0, 0));
+
+
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 0), c, new Vector3(0, -1, 0));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 0, zt + 0), c, new Vector3(0, -1, 0));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 0, zt + 1), c, new Vector3(0, -1, 0));
+
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 0), c, new Vector3(0, -1, 0));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 1), c, new Vector3(0, -1, 0));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 0, zt + 1), c, new Vector3(0, -1, 0));
+
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 1, zt + 0), c, new Vector3(0, 1, 0));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 0), c, new Vector3(0, 1, 0));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 1), c, new Vector3(0, 1, 0));
+
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 1, zt + 0), c, new Vector3(0, 1, 0));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 1, zt + 1), c, new Vector3(0, 1, 0));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 1), c, new Vector3(0, 1, 0));
+
+
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 0), c, new Vector3(0, 0, -1));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 0, zt + 0), c, new Vector3(0, 0, -1));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 0), c, new Vector3(0, 0, -1));
+
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 0), c, new Vector3(0, 0, -1));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 1, zt + 0), c, new Vector3(0, 0, -1));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 0), c, new Vector3(0, 0, -1));
+
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 1), c, new Vector3(0, 0, 1));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 0, zt + 1), c, new Vector3(0, 0, 1));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 1), c, new Vector3(0, 0, 1));
+
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 1), c, new Vector3(0, 0, 1));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 1, zt + 1), c, new Vector3(0, 0, 1));
+                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 1), c, new Vector3(0, 0, 1));
+                        }
+
+
+            TriangleCount = buffer.Length / 3;
+            triangles = buffer;
+            BB = ToVector3(mesh.size);
+            Invalidate();
         }
     }
 }

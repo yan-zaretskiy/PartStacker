@@ -1,28 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.IO;
-using System.Runtime.InteropServices;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Content;
+﻿using Microsoft.Xna.Framework;
+using PartStacker.Geometry;
 
 namespace PartStacker
 {
-    public class STLBody : ICloneable
+    public class Mesh : ICloneable
     {
         public List<Triangle> Triangles;
 
         public Tuple<int, int, int> box;
-        public Point3 size;
+        public Vector size;
 
-        public STLBody(int InitialTriangles)
+        public Mesh(int InitialTriangles)
         {
             Triangles = new List<Triangle>(InitialTriangles);
         }
 
-        public STLBody()
+        public Mesh()
         {
             Triangles = new List<Triangle>();
         }
@@ -47,14 +40,14 @@ namespace PartStacker
                 }
             }
 
-            this.Translate(new Point3(-min[0], -min[1], -min[2]));
+            this.Translate(new Vector(-min[0], -min[1], -min[2]));
 
-            size = new Point3(max[0] - min[0], max[1] - min[1], max[2] - min[2]);
+            size = new Vector(max[0] - min[0], max[1] - min[1], max[2] - min[2]);
             box = new Tuple<int, int, int>((int)Math.Ceiling(max[0] - min[0] + 2), (int)Math.Ceiling(max[1] - min[1] + 2), (int)Math.Ceiling(max[2] - min[2] + 2));
             return box;
         }
 
-        public bool TranslateAndAdd(STLBody target, Point3 offset)
+        public bool TranslateAndAdd(Mesh target, Vector offset)
         {
             bool ok = true;
 
@@ -80,9 +73,9 @@ namespace PartStacker
             // First render each part, placing voxels at the position of each triangle
             foreach (Triangle t in Triangles)
             {
-                Point3 a = t.Vertices[0];
-                Point3 b = t.Vertices[1] - t.Vertices[0];
-                Point3 c = t.Vertices[2] - t.Vertices[0];
+                Vector a = t.Vertices[0].Vector;
+                Vector b = t.Vertices[1] - t.Vertices[0];
+                Vector c = t.Vertices[2] - t.Vertices[0];
 
                 // Approximate the step size
                 float db = 0.1f / Math.Max(Math.Abs(b.X), Math.Max(Math.Abs(b.Z), Math.Abs(b.Y)));
@@ -92,7 +85,7 @@ namespace PartStacker
                 for (float p = 0; p < 1; p += db)
                     for (float q = 0; q < 1 - p; q += dc)
                     {
-                        Point3 pos = a + p * b + q * c;
+                        Vector pos = a + p * b + q * c;
                         actualTriangles[(int)Math.Round(pos.X), (int)Math.Round(pos.Y), (int)Math.Round(pos.Z)] = true;
                     }
             }
@@ -222,91 +215,11 @@ namespace PartStacker
             return volume;
         }
 
-        public void ExportSTL(string targetFile)
-        {
-            BinaryWriter bw = new BinaryWriter(new FileStream(targetFile, FileMode.OpenOrCreate));
-
-            for (int i = 0; i < 80; i++)
-                bw.Write((byte)0);
-
-            int test = Marshal.SizeOf(typeof(Triangle));
-
-            bw.Write((uint)Triangles.Count);
-
-            byte[] buff = new byte[50];
-            GCHandle handle = GCHandle.Alloc(buff, GCHandleType.Pinned);
-
-            foreach (Triangle t in Triangles)
-            {
-                Marshal.StructureToPtr(t, handle.AddrOfPinnedObject(), false);
-                bw.Write(buff);
-            }
-
-            handle.Free();
-            bw.Close();
-        }
-
-        public static STLBody FromSTL(string file)
-        {
-            STLBody result = new STLBody();
-
-            result.AppendSTL(file);
-
-            return result;
-        }
-
-        public void AppendSTL(string file)
-        {
-            BinaryReader br = new BinaryReader(new FileStream(file, FileMode.Open));
-            string header = new String(br.ReadChars(80));
-            int tCount = br.ReadInt32();
-
-            //if (header.Trim().StartsWith("solid")) // ASCI STL
-            if (br.BaseStream.Length != 84 + tCount * 50)
-            {
-                br.Close();
-
-                string[] lines = System.IO.File.ReadAllLines(file);
-
-                for (int i = 1; i < lines.Length - 1; i += 7)
-                {
-                    string[] normal = lines[i].Split(' ');
-                    string[] v1 = lines[i + 2].Split(' ');
-                    string[] v2 = lines[i + 3].Split(' ');
-                    string[] v3 = lines[i + 4].Split(' ');
-
-                    var ParsePoint = (string[] s) =>
-                    {
-                        Point3 result = new();
-                        result.X = float.Parse(s[s.Length - 3]);
-                        result.Y = float.Parse(s[s.Length - 2]);
-                        result.Z = float.Parse(s[s.Length - 1]);
-                        return result;
-                    };
-
-                    this.Triangles.Add(new Triangle(ParsePoint(normal), ParsePoint(v1), ParsePoint(v2), ParsePoint(v3)));
-                }
-            }
-            else // Binary STL
-            {
-                IntPtr ptr = Marshal.AllocHGlobal(50);
-
-                while (tCount-- > 0)
-                {
-                    Marshal.Copy(br.ReadBytes(50), 0, ptr, 50);
-                    Triangles.Add((Triangle)Marshal.PtrToStructure(ptr, typeof(Triangle)));
-                }
-
-                Marshal.FreeHGlobal(ptr);
-                br.Close();
-            }
-        }
-
         public float Volume()
         {
             float volume = 0;
             foreach (Triangle t in Triangles)
-                volume += t.v1.Dot(t.v2.Cross(t.v3));
+                volume += t.v1.Vector.Dot(t.v2.Vector.Cross(t.v3.Vector));
 
             return volume / 6;
         }
@@ -317,7 +230,7 @@ namespace PartStacker
                 Triangles[i] = Triangles[i].Mirror();
         }
 
-        public void Rotate(Point3 axis, float angle)
+        public void Rotate(Vector axis, float angle)
         {
             for (int i = 0; i < Triangles.Count; i++)
                 Triangles[i] = Triangles[i].Rotate(axis, angle);
@@ -329,7 +242,7 @@ namespace PartStacker
                 Triangles[i] = Triangles[i].Scale(factor);
         }
 
-        public void Translate(Point3 offset)
+        public void Translate(Vector offset)
         {
             for(int i = 0; i < Triangles.Count; i++)
                 Triangles[i] = Triangles[i].Translate(offset);
@@ -337,122 +250,10 @@ namespace PartStacker
 
         public object Clone()
         {
-            STLBody newBody = new STLBody(this.Triangles.Count);
+            Mesh newBody = new Mesh(this.Triangles.Count);
             foreach (Triangle t in this.Triangles)
                 newBody.Triangles.Add(t);
             return newBody;
-        }
-
-        public void SetAsModel(ModelViewerControl mvc)
-        {
-            mvc.TriangleCount = 0;
-            mvc.triangles = null;
-            GC.AddMemoryPressure(Triangles.Count * 3 * 40 + 1);
-            GC.Collect();
-
-            VertexBuffer[] buffers = new VertexBuffer[Triangles.Count / 500000 + 1];
-            int[] TriangleCounts = new int[Triangles.Count / 500000 + 1];
-
-            VertexPositionColorNormal[] buffer = new VertexPositionColorNormal[Triangles.Count * 3];
-
-            for (int i = 0; i < Triangles.Count; i++)
-            {
-                buffer[3 * i + 0] = new VertexPositionColorNormal(Triangles[i].v1.XNAVector3, Microsoft.Xna.Framework.Color.White, Triangles[i].Normal.XNAVector3);
-                buffer[3 * i + 1] = new VertexPositionColorNormal(Triangles[i].v2.XNAVector3, Microsoft.Xna.Framework.Color.White, Triangles[i].Normal.XNAVector3);
-                buffer[3 * i + 2] = new VertexPositionColorNormal(Triangles[i].v3.XNAVector3, Microsoft.Xna.Framework.Color.White, Triangles[i].Normal.XNAVector3);
-            }
-
-            mvc.triangles = buffer;
-            mvc.TriangleCount = Triangles.Count;
-            mvc.BB = size.XNAVector3;
-            mvc.Invalidate();
-        }
-
-        public void SetAsModel(ModelViewerControl mvc, int[,,] voxels, int volume)
-        {
-            mvc.TriangleCount = 0;
-            mvc.triangles = null;
-            GC.AddMemoryPressure(40 * (Triangles.Count * 3 + volume * 36));
-            GC.Collect();
-
-            VertexPositionColorNormal[] buffer = new VertexPositionColorNormal[Triangles.Count * 3 + volume * 36];
-
-            for (int i = 0; i < Triangles.Count; i++)
-            {
-                buffer[3 * i + 0] = new VertexPositionColorNormal(Triangles[i].v1.XNAVector3, Microsoft.Xna.Framework.Color.White, Triangles[i].Normal.XNAVector3);
-                buffer[3 * i + 1] = new VertexPositionColorNormal(Triangles[i].v2.XNAVector3, Microsoft.Xna.Framework.Color.White, Triangles[i].Normal.XNAVector3);
-                buffer[3 * i + 2] = new VertexPositionColorNormal(Triangles[i].v3.XNAVector3, Microsoft.Xna.Framework.Color.White, Triangles[i].Normal.XNAVector3);
-            }
-
-            int pos = Triangles.Count * 3;
-            Color c = Color.Aqua;
-            c.A = (byte)(256 * 0.8f);
-
-            for(int x = 0; x < voxels.GetLength(0); x++)
-                for (int y = 0; y < voxels.GetLength(1); y++)
-                    for (int z = 0; z < voxels.GetLength(2); z++)
-                        if (voxels[x, y, z] == 1)
-                        {
-                            float xt = (float)x - 1.0f;
-                            float yt = (float)y - 1.0f;
-                            float zt = (float)z - 1.0f;
-
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 0), c, new Vector3(-1, 0, 0));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 1, zt + 0), c, new Vector3(-1, 0, 0));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 1, zt + 1), c, new Vector3(-1, 0, 0));
-
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 0), c, new Vector3(-1, 0, 0));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 1), c, new Vector3(-1, 0, 0));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 1, zt + 1), c, new Vector3(-1, 0, 0));
-
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 0, zt + 0), c, new Vector3(1, 0, 0));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 0), c, new Vector3(1, 0, 0));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 1), c, new Vector3(1, 0, 0));
-
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 0, zt + 0), c, new Vector3(1, 0, 0));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 0, zt + 1), c, new Vector3(1, 0, 0));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 1), c, new Vector3(1, 0, 0));
-
-
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 0), c, new Vector3(0, -1, 0));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 0, zt + 0), c, new Vector3(0, -1, 0));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 0, zt + 1), c, new Vector3(0, -1, 0));
-
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 0), c, new Vector3(0, -1, 0));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 1), c, new Vector3(0, -1, 0));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 0, zt + 1), c, new Vector3(0, -1, 0));
-
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 1, zt + 0), c, new Vector3(0, 1, 0));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 0), c, new Vector3(0, 1, 0));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 1), c, new Vector3(0, 1, 0));
-
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 1, zt + 0), c, new Vector3(0, 1, 0));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 1, zt + 1), c, new Vector3(0, 1, 0));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 1), c, new Vector3(0, 1, 0));
-
-
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 0), c, new Vector3(0, 0, -1));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 0, zt + 0), c, new Vector3(0, 0, -1));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 0), c, new Vector3(0, 0, -1));
-
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 0), c, new Vector3(0, 0, -1));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 1, zt + 0), c, new Vector3(0, 0, -1));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 0), c, new Vector3(0, 0, -1));
-
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 1), c, new Vector3(0, 0, 1));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 0, zt + 1), c, new Vector3(0, 0, 1));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 1), c, new Vector3(0, 0, 1));
-
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 1), c, new Vector3(0, 0, 1));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 1, zt + 1), c, new Vector3(0, 0, 1));
-                            buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 1, yt + 1, zt + 1), c, new Vector3(0, 0, 1));
-                        }
-            
-            
-            mvc.TriangleCount = buffer.Length / 3;
-            mvc.triangles = buffer;
-            mvc.BB = size.XNAVector3;
-            mvc.Invalidate();
         }
 
         private void AddBox(float X, float Y, float Z, float sx, float sy, float sz)
@@ -528,8 +329,8 @@ namespace PartStacker
                     numArray2[2] = Math.Max(triangle.Vertices[i].Z, numArray2[2]);
                 }
             }
-            this.Translate(new Point3(-numArray[0], -numArray[1], -numArray[2]));
-            this.size = new Point3(numArray2[0] - numArray[0], numArray2[1] - numArray[1], numArray2[2] - numArray[2]);
+            this.Translate(new Vector(-numArray[0], -numArray[1], -numArray[2]));
+            this.size = new Vector(numArray2[0] - numArray[0], numArray2[1] - numArray[1], numArray2[2] - numArray[2]);
             return new Tuple<float, float, float>(numArray2[0] - numArray[0], numArray2[1] - numArray[1], numArray2[2] - numArray[2]);
         }
 
@@ -537,25 +338,26 @@ namespace PartStacker
         {
             Triangle[] triangleArray = new Triangle[12];
             int num = 0;
-            triangleArray[num++] = new Triangle(new Point3(-1f, 0f, 0f), new Point3(0f, 0f, 0f), new Point3(0f, 1f, 1f), new Point3(0f, 1f, 0f));
-            triangleArray[num++] = new Triangle(new Point3(-1f, 0f, 0f), new Point3(0f, 0f, 0f), new Point3(0f, 0f, 1f), new Point3(0f, 1f, 1f));
-            triangleArray[num++] = new Triangle(new Point3(1f, 0f, 0f), new Point3(1f, 0f, 0f), new Point3(1f, 1f, 0f), new Point3(1f, 1f, 1f));
-            triangleArray[num++] = new Triangle(new Point3(1f, 0f, 0f), new Point3(1f, 0f, 0f), new Point3(1f, 1f, 1f), new Point3(1f, 0f, 1f));
-            triangleArray[num++] = new Triangle(new Point3(0f, -1f, 0f), new Point3(0f, 0f, 0f), new Point3(1f, 0f, 0f), new Point3(1f, 0f, 1f));
-            triangleArray[num++] = new Triangle(new Point3(0f, -1f, 0f), new Point3(0f, 0f, 0f), new Point3(1f, 0f, 1f), new Point3(0f, 0f, 1f));
-            triangleArray[num++] = new Triangle(new Point3(0f, 1f, 0f), new Point3(0f, 1f, 0f), new Point3(1f, 1f, 1f), new Point3(1f, 1f, 0f));
-            triangleArray[num++] = new Triangle(new Point3(0f, 1f, 0f), new Point3(0f, 1f, 0f), new Point3(0f, 1f, 1f), new Point3(1f, 1f, 1f));
-            triangleArray[num++] = new Triangle(new Point3(0f, 0f, -1f), new Point3(0f, 0f, 0f), new Point3(1f, 1f, 0f), new Point3(1f, 0f, 0f));
-            triangleArray[num++] = new Triangle(new Point3(0f, 0f, -1f), new Point3(0f, 0f, 0f), new Point3(0f, 1f, 0f), new Point3(1f, 1f, 0f));
-            triangleArray[num++] = new Triangle(new Point3(0f, 0f, 1f), new Point3(0f, 0f, 1f), new Point3(1f, 0f, 1f), new Point3(1f, 1f, 1f));
-            triangleArray[num++] = new Triangle(new Point3(0f, 0f, 1f), new Point3(0f, 0f, 1f), new Point3(1f, 1f, 1f), new Point3(0f, 1f, 1f));
+            triangleArray[num++] = new Triangle(new Vector(-1f, 0f, 0f), new Point3(0f, 0f, 0f), new Point3(0f, 1f, 1f), new Point3(0f, 1f, 0f));
+            triangleArray[num++] = new Triangle(new Vector(-1f, 0f, 0f), new Point3(0f, 0f, 0f), new Point3(0f, 0f, 1f), new Point3(0f, 1f, 1f));
+            triangleArray[num++] = new Triangle(new Vector(1f, 0f, 0f), new Point3(1f, 0f, 0f), new Point3(1f, 1f, 0f), new Point3(1f, 1f, 1f));
+            triangleArray[num++] = new Triangle(new Vector(1f, 0f, 0f), new Point3(1f, 0f, 0f), new Point3(1f, 1f, 1f), new Point3(1f, 0f, 1f));
+            triangleArray[num++] = new Triangle(new Vector(0f, -1f, 0f), new Point3(0f, 0f, 0f), new Point3(1f, 0f, 0f), new Point3(1f, 0f, 1f));
+            triangleArray[num++] = new Triangle(new Vector(0f, -1f, 0f), new Point3(0f, 0f, 0f), new Point3(1f, 0f, 1f), new Point3(0f, 0f, 1f));
+            triangleArray[num++] = new Triangle(new Vector(0f, 1f, 0f), new Point3(0f, 1f, 0f), new Point3(1f, 1f, 1f), new Point3(1f, 1f, 0f));
+            triangleArray[num++] = new Triangle(new Vector(0f, 1f, 0f), new Point3(0f, 1f, 0f), new Point3(0f, 1f, 1f), new Point3(1f, 1f, 1f));
+            triangleArray[num++] = new Triangle(new Vector(0f, 0f, -1f), new Point3(0f, 0f, 0f), new Point3(1f, 1f, 0f), new Point3(1f, 0f, 0f));
+            triangleArray[num++] = new Triangle(new Vector(0f, 0f, -1f), new Point3(0f, 0f, 0f), new Point3(0f, 1f, 0f), new Point3(1f, 1f, 0f));
+            triangleArray[num++] = new Triangle(new Vector(0f, 0f, 1f), new Point3(0f, 0f, 1f), new Point3(1f, 0f, 1f), new Point3(1f, 1f, 1f));
+            triangleArray[num++] = new Triangle(new Vector(0f, 0f, 1f), new Point3(0f, 0f, 1f), new Point3(1f, 1f, 1f), new Point3(0f, 1f, 1f));
             for (int i = 0; i < 12; i++)
             {
-                Vector3 p1 = Vector3.Transform(triangleArray[i].v1.XNAVector3, transform);
+                var ToVector3 = (Point3 point) => new Vector3(point.X, point.Y, point.Z);
+                Vector3 p1 = Vector3.Transform(ToVector3(triangleArray[i].v1), transform);
                 Point3 point = new Point3(p1.X, p1.Y, p1.Z);
-                Vector3 p2 = Vector3.Transform(triangleArray[i].v2.XNAVector3, transform);
+                Vector3 p2 = Vector3.Transform(ToVector3(triangleArray[i].v2), transform);
                 Point3 point2 = new Point3(p2.X, p2.Y, p2.Z);
-                Vector3 p3 = Vector3.Transform(triangleArray[i].v3.XNAVector3, transform);
+                Vector3 p3 = Vector3.Transform(ToVector3(triangleArray[i].v3), transform);
                 Point3 point3 = new Point3(p3.X, p3.Y, p3.Z);
                 triangleArray[i] = new Triangle(triangleArray[i].Normal, point, point2, point3);
             }

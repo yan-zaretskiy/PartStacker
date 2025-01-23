@@ -5,15 +5,17 @@ using System.Text;
 using System.Windows.Forms;
 using System.Runtime.Serialization;
 using System.IO;
+using PartStacker.MeshFile;
+using PartStacker.Geometry;
 
 namespace PartStacker
 {
-    delegate void Rotation(STLBody original);
+    delegate void Rotation(Mesh original);
 
     [Serializable]
     class Part : ListViewItem, ISerializable
     {
-        public STLBody BasePart;
+        public Mesh BasePart;
         public string FileName;
         public float Volume;
         public int Quantity;
@@ -24,7 +26,7 @@ namespace PartStacker
         public int RotationIndex;
         public bool Mirrored;
 
-        public Part(string FileName, STLBody BasePart)
+        public Part(string FileName, Mesh BasePart)
             : base()
         {
             this.BasePart = BasePart;
@@ -99,7 +101,7 @@ namespace PartStacker
 
             try
             {
-                BasePart = STLBody.FromSTL(select.FileName);
+                BasePart = STL.From(select.FileName);
                 Mirror();
                 BasePart.CalcBox();
                 this.Volume = BasePart.Volume();
@@ -126,7 +128,7 @@ namespace PartStacker
             
             try
             {
-                BasePart = STLBody.FromSTL(FileName);
+                BasePart = STL.From(FileName);
                 Mirror();
                 BasePart.CalcBox();
                 this.Volume = BasePart.Volume();
