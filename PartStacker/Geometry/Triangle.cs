@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace PartStacker
+﻿namespace PartStacker.Geometry
 {
     public struct Triangle
     {
         public Point3 Normal;
         public Point3 v1, v2, v3;
-        public ushort Attribute;
 
         public Triangle(Point3 normal, Point3 v1, Point3 v2, Point3 v3)
         {
@@ -22,7 +16,7 @@ namespace PartStacker
 
         public Triangle Mirror()
         {
-            return new Triangle(Normal.MirrorIT(), v1.Mirror(), v3.Mirror(), v2.Mirror());
+            return new Triangle(Normal.Mirror(), v1.Mirror(), v3.Mirror(), v2.Mirror());
         }
 
         public Triangle Rotate(Point3 axis, float angle)

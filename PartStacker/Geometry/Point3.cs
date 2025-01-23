@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace PartStacker
+﻿namespace PartStacker.Geometry
 {
     public struct Point3
     {
@@ -48,7 +43,7 @@ namespace PartStacker
 
         public Point3 Normalized
         {
-            get { return this / this.Length; }
+            get { return this / Length; }
         }
 
         public static bool operator ==(Point3 A, Point3 B)
@@ -63,27 +58,22 @@ namespace PartStacker
 
         public float Length
         {
-            get { return (float)Math.Sqrt(this.Dot(this)); }
+            get { return (float)Math.Sqrt(Dot(this)); }
         }
 
         public float Dot(Point3 other)
         {
-            return this.X * other.X + this.Y * other.Y + this.Z * other.Z;
+            return X * other.X + Y * other.Y + Z * other.Z;
         }
 
         public Point3 Cross(Point3 other)
         {
-            return new Point3(this.Y * other.Z - this.Z * other.Y, this.Z * other.X - this.X * other.Z, this.X * other.Y - this.Y * other.X);
+            return new Point3(Y * other.Z - Z * other.Y, Z * other.X - X * other.Z, X * other.Y - Y * other.X);
         }
 
         public Point3 Mirror()
         {
-            return new Point3(-this.X, this.Y, this.Z);
-        }
-
-        public Point3 MirrorIT()
-        {
-            return new Point3(-this.X, this.Y, this.Z);
+            return new Point3(-X, Y, Z);
         }
 
         public Point3 Rotate(Point3 axis, float angle)
@@ -98,9 +88,9 @@ namespace PartStacker
             float cos = c(angle);
             float sin = s(angle);
 
-            result.X = a1(angle, axis, tr, cos) * this.X + a2(angle, axis, tr, sin) * this.Y + a3(angle, axis, tr, sin) * this.Z;
-            result.Y = b1(angle, axis, tr, sin) * this.X + b2(angle, axis, tr, cos) * this.Y + b3(angle, axis, tr, sin) * this.Z;
-            result.Z = c1(angle, axis, tr, sin) * this.X + c2(angle, axis, tr, sin) * this.Y + c3(angle, axis, tr, cos) * this.Z;
+            result.X = a1(angle, axis, tr, cos) * X + a2(angle, axis, tr, sin) * Y + a3(angle, axis, tr, sin) * Z;
+            result.Y = b1(angle, axis, tr, sin) * X + b2(angle, axis, tr, cos) * Y + b3(angle, axis, tr, sin) * Z;
+            result.Z = c1(angle, axis, tr, sin) * X + c2(angle, axis, tr, sin) * Y + c3(angle, axis, tr, cos) * Z;
 
             return result;
         }

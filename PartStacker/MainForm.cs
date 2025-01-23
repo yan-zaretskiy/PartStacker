@@ -10,6 +10,7 @@ using Microsoft.Xna.Framework.Content;
 using WinFormsContentLoading;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using PartStacker.Geometry;
 
 namespace PartStacker
 {
