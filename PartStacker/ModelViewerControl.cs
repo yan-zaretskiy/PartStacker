@@ -130,6 +130,8 @@ namespace PartStacker
             }
         }
 
+        private static Vector3 ToVector3(Point3 point) => new Vector3(point.X, point.Y, point.Z);
+
         public void SetMesh(STLBody mesh)
         {
             TriangleCount = 0;
@@ -141,14 +143,14 @@ namespace PartStacker
 
             for (int i = 0; i < mesh.Triangles.Count; i++)
             {
-                buffer[3 * i + 0] = new VertexPositionColorNormal(mesh.Triangles[i].v1.XNAVector3, Microsoft.Xna.Framework.Color.White, mesh.Triangles[i].Normal.XNAVector3);
-                buffer[3 * i + 1] = new VertexPositionColorNormal(mesh.Triangles[i].v2.XNAVector3, Microsoft.Xna.Framework.Color.White, mesh.Triangles[i].Normal.XNAVector3);
-                buffer[3 * i + 2] = new VertexPositionColorNormal(mesh.Triangles[i].v3.XNAVector3, Microsoft.Xna.Framework.Color.White, mesh.Triangles[i].Normal.XNAVector3);
+                buffer[3 * i + 0] = new VertexPositionColorNormal(ToVector3(mesh.Triangles[i].v1), Microsoft.Xna.Framework.Color.White, ToVector3(mesh.Triangles[i].Normal));
+                buffer[3 * i + 1] = new VertexPositionColorNormal(ToVector3(mesh.Triangles[i].v2), Microsoft.Xna.Framework.Color.White, ToVector3(mesh.Triangles[i].Normal));
+                buffer[3 * i + 2] = new VertexPositionColorNormal(ToVector3(mesh.Triangles[i].v3), Microsoft.Xna.Framework.Color.White, ToVector3(mesh.Triangles[i].Normal));
             }
 
             triangles = buffer;
             TriangleCount = mesh.Triangles.Count;
-            BB = mesh.size.XNAVector3;
+            BB = ToVector3(mesh.size);
             Invalidate();
         }
 
@@ -163,9 +165,9 @@ namespace PartStacker
 
             for (int i = 0; i < mesh.Triangles.Count; i++)
             {
-                buffer[3 * i + 0] = new VertexPositionColorNormal(mesh.Triangles[i].v1.XNAVector3, Microsoft.Xna.Framework.Color.White, mesh.Triangles[i].Normal.XNAVector3);
-                buffer[3 * i + 1] = new VertexPositionColorNormal(mesh.Triangles[i].v2.XNAVector3, Microsoft.Xna.Framework.Color.White, mesh.Triangles[i].Normal.XNAVector3);
-                buffer[3 * i + 2] = new VertexPositionColorNormal(mesh.Triangles[i].v3.XNAVector3, Microsoft.Xna.Framework.Color.White, mesh.Triangles[i].Normal.XNAVector3);
+                buffer[3 * i + 0] = new VertexPositionColorNormal(ToVector3(mesh.Triangles[i].v1), Microsoft.Xna.Framework.Color.White, ToVector3(mesh.Triangles[i].Normal));
+                buffer[3 * i + 1] = new VertexPositionColorNormal(ToVector3(mesh.Triangles[i].v2), Microsoft.Xna.Framework.Color.White, ToVector3(mesh.Triangles[i].Normal));
+                buffer[3 * i + 2] = new VertexPositionColorNormal(ToVector3(mesh.Triangles[i].v3), Microsoft.Xna.Framework.Color.White, ToVector3(mesh.Triangles[i].Normal));
             }
 
             int pos = mesh.Triangles.Count * 3;
@@ -235,7 +237,7 @@ namespace PartStacker
 
             TriangleCount = buffer.Length / 3;
             triangles = buffer;
-            BB = mesh.size.XNAVector3;
+            BB = ToVector3(mesh.size);
             Invalidate();
         }
     }

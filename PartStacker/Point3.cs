@@ -105,11 +105,6 @@ namespace PartStacker
             return result;
         }
 
-        public Microsoft.Xna.Framework.Vector3 XNAVector3
-        {
-            get { return new Microsoft.Xna.Framework.Vector3(X, Y, Z); }
-        }
-
         public float[] Coords
         {
             get { return new float[] { X, Y, Z }; }

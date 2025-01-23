@@ -439,11 +439,12 @@ namespace PartStacker
             triangleArray[num++] = new Triangle(new Point3(0f, 0f, 1f), new Point3(0f, 0f, 1f), new Point3(1f, 1f, 1f), new Point3(0f, 1f, 1f));
             for (int i = 0; i < 12; i++)
             {
-                Vector3 p1 = Vector3.Transform(triangleArray[i].v1.XNAVector3, transform);
+                var ToVector3 = (Point3 point) => new Vector3(point.X, point.Y, point.Z);
+                Vector3 p1 = Vector3.Transform(ToVector3(triangleArray[i].v1), transform);
                 Point3 point = new Point3(p1.X, p1.Y, p1.Z);
-                Vector3 p2 = Vector3.Transform(triangleArray[i].v2.XNAVector3, transform);
+                Vector3 p2 = Vector3.Transform(ToVector3(triangleArray[i].v2), transform);
                 Point3 point2 = new Point3(p2.X, p2.Y, p2.Z);
-                Vector3 p3 = Vector3.Transform(triangleArray[i].v3.XNAVector3, transform);
+                Vector3 p3 = Vector3.Transform(ToVector3(triangleArray[i].v3), transform);
                 Point3 point3 = new Point3(p3.X, p3.Y, p3.Z);
                 triangleArray[i] = new Triangle(triangleArray[i].Normal, point, point2, point3);
             }
