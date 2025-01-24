@@ -50,17 +50,19 @@ namespace PartStacker
 
                 if (baseParts[i].RotateMinBox)
                 {
-                    Mesh original = baseParts[i].BasePart.Clone();
+                    List<Triangle> originalTriangles = baseParts[i].BasePart.Triangles.ToList();
 
                     List<Triangle> toRemove = new List<Triangle>();
-                    for (int j = 0; j < original.Triangles.Count; j++)
+                    for (int j = 0; j < originalTriangles.Count; j++)
                     {
                         if (j % 15 != 0)
-                            toRemove.Add(original.Triangles[j]);
+                            toRemove.Add(originalTriangles[j]);
                     }
 
                     foreach (Triangle t in toRemove)
-                        original.Triangles.Remove(t);
+                        originalTriangles.Remove(t);
+
+                    Mesh original = new(originalTriangles);
 
                     int best = int.MaxValue; int bestA = 0, bestB = 0;
 

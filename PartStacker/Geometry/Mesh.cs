@@ -1,28 +1,28 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.Collections.ObjectModel;
+using Microsoft.Xna.Framework;
 using PartStacker.Geometry;
 
 namespace PartStacker
 {
     public class Mesh
     {
-        public List<Triangle> Triangles;
+        public ReadOnlyCollection<Triangle> Triangles => _triangles.AsReadOnly();
 
         public Tuple<int, int, int> box;
         public Vector size;
 
-        public Mesh(int InitialTriangles)
+        private List<Triangle> _triangles = new();
+
+        public Mesh() { }
+
+        public Mesh(int initialTriangles)
         {
-            Triangles = new List<Triangle>(InitialTriangles);
+            _triangles = new(initialTriangles);
         }
 
         public Mesh(List<Triangle> triangles)
         {
-            Triangles = new List<Triangle>(triangles);
-        }
-
-        public Mesh()
-        {
-            Triangles = new List<Triangle>();
+            _triangles = new(triangles);
         }
 
         public Tuple<int, int, int> CalcBox()
@@ -59,7 +59,7 @@ namespace PartStacker
             int originalCount = target.Triangles.Count;
             foreach (Triangle t in Triangles)
             {
-                target.Triangles.Add(new Triangle(t.Normal, t.Vertices[0] + offset, t.Vertices[1] + offset, t.Vertices[2] + offset));
+                target._triangles.Add(new Triangle(t.Normal, t.Vertices[0] + offset, t.Vertices[1] + offset, t.Vertices[2] + offset));
 
                 //for (int i = 0; i < originalCount; i++)
                     //if (target.Triangles[i].triangle_intersect(target.Triangles[target.Triangles.Count - 1]))
@@ -231,31 +231,31 @@ namespace PartStacker
 
         public void Mirror()
         {
-            for (int i = 0; i < Triangles.Count; i++)
-                Triangles[i] = Triangles[i].Mirror();
+            for (int i = 0; i < _triangles.Count; i++)
+                _triangles[i] = _triangles[i].Mirror();
         }
 
         public void Rotate(Vector axis, float angle)
         {
-            for (int i = 0; i < Triangles.Count; i++)
-                Triangles[i] = Triangles[i].Rotate(axis, angle);
+            for (int i = 0; i < _triangles.Count; i++)
+                _triangles[i] = _triangles[i].Rotate(axis, angle);
         }
 
         public void Scale(float factor)
         {
-            for (int i = 0; i < Triangles.Count; i++)
-                Triangles[i] = Triangles[i].Scale(factor);
+            for (int i = 0; i < _triangles.Count; i++)
+                _triangles[i] = _triangles[i].Scale(factor);
         }
 
         public void Translate(Vector offset)
         {
-            for(int i = 0; i < Triangles.Count; i++)
-                Triangles[i] = Triangles[i].Translate(offset);
+            for (int i = 0; i < _triangles.Count; i++)
+                _triangles[i] = _triangles[i].Translate(offset);
         }
 
         public Mesh Clone()
         {
-            return new(Triangles);
+            return new(_triangles);
         }
 
         private static void AddBox(ref List<Triangle> triangles, float X, float Y, float Z, float sx, float sy, float sz)
@@ -345,9 +345,9 @@ namespace PartStacker
         public void SinterBox(float Clearance, float Thickness, float Width, float Spacing)
         {
             CalcBox();
-            AddPlaneX(ref Triangles, size.X, size.Y, size.Z, Clearance, Thickness, Width, Spacing);
-            AddPlaneY(ref Triangles, size.X, size.Y, size.Z, Clearance, Thickness, Width, Spacing);
-            AddPlaneZ(ref Triangles, size.X, size.Y, size.Z, Clearance, Thickness, Width, Spacing);
+            AddPlaneX(ref _triangles, size.X, size.Y, size.Z, Clearance, Thickness, Width, Spacing);
+            AddPlaneY(ref _triangles, size.X, size.Y, size.Z, Clearance, Thickness, Width, Spacing);
+            AddPlaneZ(ref _triangles, size.X, size.Y, size.Z, Clearance, Thickness, Width, Spacing);
         }
     }
 }

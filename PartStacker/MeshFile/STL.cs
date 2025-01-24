@@ -11,7 +11,7 @@ namespace PartStacker.MeshFile
             string header = new String(br.ReadChars(80));
             int tCount = br.ReadInt32();
 
-            Mesh mesh = new();
+            List<Triangle> triangles = new();
 
             //if (header.Trim().StartsWith("solid")) // ASCI STL
             if (br.BaseStream.Length != 84 + tCount * 50)
@@ -38,7 +38,7 @@ namespace PartStacker.MeshFile
 
                     Point3 normalAsPoint = ParsePoint(normal);
                     Vector norm = new Vector(normalAsPoint.X, normalAsPoint.Y, normalAsPoint.Z);
-                    mesh.Triangles.Add(new Triangle(norm, ParsePoint(v1), ParsePoint(v2), ParsePoint(v3)));
+                    triangles.Add(new Triangle(norm, ParsePoint(v1), ParsePoint(v2), ParsePoint(v3)));
                 }
             }
             else // Binary STL
@@ -48,14 +48,14 @@ namespace PartStacker.MeshFile
                 while (tCount-- > 0)
                 {
                     Marshal.Copy(br.ReadBytes(50), 0, ptr, 50);
-                    mesh.Triangles.Add((Triangle)Marshal.PtrToStructure(ptr, typeof(Triangle)));
+                    triangles.Add((Triangle)Marshal.PtrToStructure(ptr, typeof(Triangle)));
                 }
 
                 Marshal.FreeHGlobal(ptr);
                 br.Close();
             }
 
-            return mesh;
+            return new Mesh(triangles);
         }
 
         public static void To(Mesh mesh, string toFile)
