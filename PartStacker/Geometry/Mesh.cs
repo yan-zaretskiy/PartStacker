@@ -256,60 +256,57 @@ namespace PartStacker
             return newBody;
         }
 
-        private void AddBox(float X, float Y, float Z, float sx, float sy, float sz)
+        private static void AddBox(ref List<Triangle> triangles, float X, float Y, float Z, float sx, float sy, float sz)
         {
             Matrix transform = (Matrix.CreateTranslation(new Vector3(-0.5f, -0.5f, -0.5f)) * Matrix.CreateScale(sx, sy, sz)) * Matrix.CreateTranslation(new Vector3(X + (sx / 2f), Y + (sy / 2f), Z + (sz / 2f)));
-            foreach (Triangle triangle in CreateCube(transform))
-            {
-                this.Triangles.Insert(this.Triangles.Count, triangle);
-            }
+            triangles.AddRange(CreateCube(transform));
         }
 
-        private void AddPlaneX(float sx, float sy, float sz, float Clearance, float Thickness, float Width, float Spacing)
+        private static void AddPlaneX(ref List<Triangle> triangles, float sx, float sy, float sz, float Clearance, float Thickness, float Width, float Spacing)
         {
             int num = (int) (((sy + (2f * (Clearance + Thickness))) - Width) / (Spacing + Width));
             int num2 = (int) (((sz + (2f * (Clearance + Thickness))) - Width) / (Spacing + Width));
             for (int i = 0; i <= num; i++)
             {
-                this.AddBox(-(Thickness + Clearance), -(Thickness + Clearance) + ((i * ((sy + (2f * (Clearance + Thickness))) - Width)) / ((float) num)), -(Thickness + Clearance), Thickness, Width, sz + (2f * (Clearance + Thickness)));
-                this.AddBox(sx + Clearance, -(Thickness + Clearance) + ((i * ((sy + (2f * (Clearance + Thickness))) - Width)) / ((float) num)), -(Thickness + Clearance), Thickness, Width, sz + (2f * (Clearance + Thickness)));
+                AddBox(ref triangles, -(Thickness + Clearance), -(Thickness + Clearance) + ((i * ((sy + (2f * (Clearance + Thickness))) - Width)) / ((float) num)), -(Thickness + Clearance), Thickness, Width, sz + (2f * (Clearance + Thickness)));
+                AddBox(ref triangles, sx + Clearance, -(Thickness + Clearance) + ((i * ((sy + (2f * (Clearance + Thickness))) - Width)) / ((float) num)), -(Thickness + Clearance), Thickness, Width, sz + (2f * (Clearance + Thickness)));
             }
             for (int j = 0; j <= num2; j++)
             {
-                this.AddBox(-(Thickness + Clearance), -(Thickness + Clearance), -(Thickness + Clearance) + ((j * ((sz + (2f * (Clearance + Thickness))) - Width)) / ((float) num2)), Thickness, sy + (2f * (Clearance + Thickness)), Width);
-                this.AddBox(sx + Clearance, -(Thickness + Clearance), -(Thickness + Clearance) + ((j * ((sz + (2f * (Clearance + Thickness))) - Width)) / ((float) num2)), Thickness, sy + (2f * (Clearance + Thickness)), Width);
+                AddBox(ref triangles, -(Thickness + Clearance), -(Thickness + Clearance), -(Thickness + Clearance) + ((j * ((sz + (2f * (Clearance + Thickness))) - Width)) / ((float) num2)), Thickness, sy + (2f * (Clearance + Thickness)), Width);
+                AddBox(ref triangles, sx + Clearance, -(Thickness + Clearance), -(Thickness + Clearance) + ((j * ((sz + (2f * (Clearance + Thickness))) - Width)) / ((float) num2)), Thickness, sy + (2f * (Clearance + Thickness)), Width);
             }
         }
 
-        private void AddPlaneY(float sx, float sy, float sz, float Clearance, float Thickness, float Width, float Spacing)
+        private static void AddPlaneY(ref List<Triangle> triangles, float sx, float sy, float sz, float Clearance, float Thickness, float Width, float Spacing)
         {
             int num = (int) (((sx + (2f * (Clearance + Thickness))) - Width) / (Spacing + Width));
             int num2 = (int) (((sz + (2f * (Clearance + Thickness))) - Width) / (Spacing + Width));
             for (int i = 0; i <= num; i++)
             {
-                this.AddBox(-(Thickness + Clearance) + ((i * ((sx + (2f * (Clearance + Thickness))) - Width)) / ((float) num)), -(Thickness + Clearance), -(Thickness + Clearance), Width, Thickness, sz + (2f * (Clearance + Thickness)));
-                this.AddBox(-(Thickness + Clearance) + ((i * ((sx + (2f * (Clearance + Thickness))) - Width)) / ((float) num)), sy + Clearance, -(Thickness + Clearance), Width, Thickness, sz + (2f * (Clearance + Thickness)));
+                AddBox(ref triangles, -(Thickness + Clearance) + ((i * ((sx + (2f * (Clearance + Thickness))) - Width)) / ((float) num)), -(Thickness + Clearance), -(Thickness + Clearance), Width, Thickness, sz + (2f * (Clearance + Thickness)));
+                AddBox(ref triangles, -(Thickness + Clearance) + ((i * ((sx + (2f * (Clearance + Thickness))) - Width)) / ((float) num)), sy + Clearance, -(Thickness + Clearance), Width, Thickness, sz + (2f * (Clearance + Thickness)));
             }
             for (int j = 0; j <= num2; j++)
             {
-                this.AddBox(-(Thickness + Clearance), -(Thickness + Clearance), -(Thickness + Clearance) + ((j * ((sz + (2f * (Clearance + Thickness))) - Width)) / ((float) num2)), sx + (2f * (Clearance + Thickness)), Thickness, Width);
-                this.AddBox(-(Thickness + Clearance), sy + Clearance, -(Thickness + Clearance) + ((j * ((sz + (2f * (Clearance + Thickness))) - Width)) / ((float) num2)), sx + (2f * (Clearance + Thickness)), Thickness, Width);
+                AddBox(ref triangles, -(Thickness + Clearance), -(Thickness + Clearance), -(Thickness + Clearance) + ((j * ((sz + (2f * (Clearance + Thickness))) - Width)) / ((float) num2)), sx + (2f * (Clearance + Thickness)), Thickness, Width);
+                AddBox(ref triangles, -(Thickness + Clearance), sy + Clearance, -(Thickness + Clearance) + ((j * ((sz + (2f * (Clearance + Thickness))) - Width)) / ((float) num2)), sx + (2f * (Clearance + Thickness)), Thickness, Width);
             }
         }
 
-        private void AddPlaneZ(float sx, float sy, float sz, float Clearance, float Thickness, float Width, float Spacing)
+        private static void AddPlaneZ(ref List<Triangle> triangles, float sx, float sy, float sz, float Clearance, float Thickness, float Width, float Spacing)
         {
             int num = (int) (((sx + (2f * (Clearance + Thickness))) - Width) / (Spacing + Width));
             int num2 = (int) (((sy + (2f * (Clearance + Thickness))) - Width) / (Spacing + Width));
             for (int i = 0; i <= num; i++)
             {
-                this.AddBox(-(Thickness + Clearance) + ((i * ((sx + (2f * (Clearance + Thickness))) - Width)) / ((float) num)), -(Thickness + Clearance), -(Thickness + Clearance), Width, sy + (2f * (Clearance + Thickness)), Thickness);
-                this.AddBox(-(Thickness + Clearance) + ((i * ((sx + (2f * (Clearance + Thickness))) - Width)) / ((float) num)), -(Thickness + Clearance), sz + Clearance, Width, sy + (2f * (Clearance + Thickness)), Thickness);
+                AddBox(ref triangles, -(Thickness + Clearance) + ((i * ((sx + (2f * (Clearance + Thickness))) - Width)) / ((float) num)), -(Thickness + Clearance), -(Thickness + Clearance), Width, sy + (2f * (Clearance + Thickness)), Thickness);
+                AddBox(ref triangles, -(Thickness + Clearance) + ((i * ((sx + (2f * (Clearance + Thickness))) - Width)) / ((float) num)), -(Thickness + Clearance), sz + Clearance, Width, sy + (2f * (Clearance + Thickness)), Thickness);
             }
             for (int j = 0; j <= num2; j++)
             {
-                this.AddBox(-(Thickness + Clearance), -(Thickness + Clearance) + ((j * ((sy + (2f * (Clearance + Thickness))) - Width)) / ((float) num2)), -(Thickness + Clearance), sx + (2f * (Clearance + Thickness)), Width, Thickness);
-                this.AddBox(-(Thickness + Clearance), -(Thickness + Clearance) + ((j * ((sy + (2f * (Clearance + Thickness))) - Width)) / ((float) num2)), sz + Clearance, sx + (2f * (Clearance + Thickness)), Width, Thickness);
+                AddBox(ref triangles, -(Thickness + Clearance), -(Thickness + Clearance) + ((j * ((sy + (2f * (Clearance + Thickness))) - Width)) / ((float) num2)), -(Thickness + Clearance), sx + (2f * (Clearance + Thickness)), Width, Thickness);
+                AddBox(ref triangles, -(Thickness + Clearance), -(Thickness + Clearance) + ((j * ((sy + (2f * (Clearance + Thickness))) - Width)) / ((float) num2)), sz + Clearance, sx + (2f * (Clearance + Thickness)), Width, Thickness);
             }
         }
 
@@ -346,9 +343,9 @@ namespace PartStacker
         public void SinterBox(float Clearance, float Thickness, float Width, float Spacing)
         {
             CalcBox();
-            this.AddPlaneX(size.X, size.Y, size.Z, Clearance, Thickness, Width, Spacing);
-            this.AddPlaneY(size.X, size.Y, size.Z, Clearance, Thickness, Width, Spacing);
-            this.AddPlaneZ(size.X, size.Y, size.Z, Clearance, Thickness, Width, Spacing);
+            AddPlaneX(ref Triangles, size.X, size.Y, size.Z, Clearance, Thickness, Width, Spacing);
+            AddPlaneY(ref Triangles, size.X, size.Y, size.Z, Clearance, Thickness, Width, Spacing);
+            AddPlaneZ(ref Triangles, size.X, size.Y, size.Z, Clearance, Thickness, Width, Spacing);
         }
     }
 }
