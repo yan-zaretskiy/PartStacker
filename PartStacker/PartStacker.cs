@@ -50,7 +50,7 @@ namespace PartStacker
 
                 if (baseParts[i].RotateMinBox)
                 {
-                    Mesh original = (Mesh)baseParts[i].BasePart.Clone();
+                    Mesh original = baseParts[i].BasePart.Clone();
 
                     List<Triangle> toRemove = new List<Triangle>();
                     for (int j = 0; j < original.Triangles.Count; j++)
@@ -95,7 +95,7 @@ namespace PartStacker
                     if (!StackerThreadRunning)
                         return null;
 
-                    Mesh thisPart = (Mesh)baseParts[i].BasePart.Clone();
+                    Mesh thisPart = baseParts[i].BasePart.Clone();
                     thisPart.Scale(scale);
                     RotationSets[baseParts[i].RotationIndex][j](thisPart);
                     baseRotation(thisPart);

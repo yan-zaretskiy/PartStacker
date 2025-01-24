@@ -3,7 +3,7 @@ using PartStacker.Geometry;
 
 namespace PartStacker
 {
-    public class Mesh : ICloneable
+    public class Mesh
     {
         public List<Triangle> Triangles;
 
@@ -13,6 +13,11 @@ namespace PartStacker
         public Mesh(int InitialTriangles)
         {
             Triangles = new List<Triangle>(InitialTriangles);
+        }
+
+        public Mesh(List<Triangle> triangles)
+        {
+            Triangles = new List<Triangle>(triangles);
         }
 
         public Mesh()
@@ -248,12 +253,9 @@ namespace PartStacker
                 Triangles[i] = Triangles[i].Translate(offset);
         }
 
-        public object Clone()
+        public Mesh Clone()
         {
-            Mesh newBody = new Mesh(this.Triangles.Count);
-            foreach (Triangle t in this.Triangles)
-                newBody.Triangles.Add(t);
-            return newBody;
+            return new(Triangles);
         }
 
         private static void AddBox(ref List<Triangle> triangles, float X, float Y, float Z, float sx, float sy, float sz)
