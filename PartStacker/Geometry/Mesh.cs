@@ -313,27 +313,6 @@ namespace PartStacker
             }
         }
 
-        private Tuple<float, float, float> CalcBoxExact()
-        {
-            float[] numArray = new float[] { float.MaxValue, float.MaxValue, float.MaxValue };
-            float[] numArray2 = new float[] { float.MinValue, float.MinValue, float.MinValue };
-            foreach (Triangle triangle in this.Triangles)
-            {
-                for (int i = 0; i < 3; i++)
-                {
-                    numArray[0] = Math.Min(triangle.Vertices[i].X, numArray[0]);
-                    numArray2[0] = Math.Max(triangle.Vertices[i].X, numArray2[0]);
-                    numArray[1] = Math.Min(triangle.Vertices[i].Y, numArray[1]);
-                    numArray2[1] = Math.Max(triangle.Vertices[i].Y, numArray2[1]);
-                    numArray[2] = Math.Min(triangle.Vertices[i].Z, numArray[2]);
-                    numArray2[2] = Math.Max(triangle.Vertices[i].Z, numArray2[2]);
-                }
-            }
-            this.Translate(new Vector(-numArray[0], -numArray[1], -numArray[2]));
-            this.size = new Vector(numArray2[0] - numArray[0], numArray2[1] - numArray[1], numArray2[2] - numArray[2]);
-            return new Tuple<float, float, float>(numArray2[0] - numArray[0], numArray2[1] - numArray[1], numArray2[2] - numArray[2]);
-        }
-
         private Triangle[] CreateCube(Matrix transform)
         {
             Triangle[] triangleArray = new Triangle[12];
@@ -366,10 +345,10 @@ namespace PartStacker
 
         public void SinterBox(float Clearance, float Thickness, float Width, float Spacing)
         {
-            Tuple<float, float, float> tuple = this.CalcBoxExact();
-            this.AddPlaneX(tuple.Item1, tuple.Item2, tuple.Item3, Clearance, Thickness, Width, Spacing);
-            this.AddPlaneY(tuple.Item1, tuple.Item2, tuple.Item3, Clearance, Thickness, Width, Spacing);
-            this.AddPlaneZ(tuple.Item1, tuple.Item2, tuple.Item3, Clearance, Thickness, Width, Spacing);
+            CalcBox();
+            this.AddPlaneX(size.X, size.Y, size.Z, Clearance, Thickness, Width, Spacing);
+            this.AddPlaneY(size.X, size.Y, size.Z, Clearance, Thickness, Width, Spacing);
+            this.AddPlaneZ(size.X, size.Y, size.Z, Clearance, Thickness, Width, Spacing);
         }
     }
 }
