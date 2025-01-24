@@ -259,7 +259,7 @@ namespace PartStacker
         private void AddBox(float X, float Y, float Z, float sx, float sy, float sz)
         {
             Matrix transform = (Matrix.CreateTranslation(new Vector3(-0.5f, -0.5f, -0.5f)) * Matrix.CreateScale(sx, sy, sz)) * Matrix.CreateTranslation(new Vector3(X + (sx / 2f), Y + (sy / 2f), Z + (sz / 2f)));
-            foreach (Triangle triangle in this.CreateCube(transform))
+            foreach (Triangle triangle in CreateCube(transform))
             {
                 this.Triangles.Insert(this.Triangles.Count, triangle);
             }
@@ -313,7 +313,7 @@ namespace PartStacker
             }
         }
 
-        private Triangle[] CreateCube(Matrix transform)
+        private static Triangle[] CreateCube(Matrix transform)
         {
             Triangle[] triangleArray = new Triangle[12];
             int num = 0;
