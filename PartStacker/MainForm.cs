@@ -579,7 +579,7 @@ namespace PartStacker
             if (((Part)PartsList.SelectedItems[0]).BasePart == null)
                 return;
 
-            Part copy = new Part(((Part)PartsList.SelectedItems[0]).FileName, (Mesh)((Part)PartsList.SelectedItems[0]).BasePart.Clone());
+            Part copy = new Part(((Part)PartsList.SelectedItems[0]).FileName, ((Part)PartsList.SelectedItems[0]).BasePart.Clone());
 
             copy.Quantity = ((Part)PartsList.SelectedItems[0]).Quantity;
             copy.RotateMinBox = ((Part)PartsList.SelectedItems[0]).RotateMinBox;
@@ -769,7 +769,7 @@ namespace PartStacker
 
         public void GenerateBoxHandler(object o, EventArgs ea)
         {
-            Mesh mesh = (Mesh) ((Part)PartsList.SelectedItems[0]).BasePart.Clone();
+            Mesh mesh = ((Part)PartsList.SelectedItems[0]).BasePart.Clone();
             mesh.SinterBox((float)Clearance.Value, (float)Thickness.Value, (float)BWidth.Value, ((float)Spacing.Value) + 0.00013759f);
 
             SaveFileDialog select = new SaveFileDialog()

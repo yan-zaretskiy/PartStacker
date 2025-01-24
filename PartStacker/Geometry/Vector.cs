@@ -22,9 +22,9 @@
 
         public float Dot(Vector other) => X * other.X + Y * other.Y + Z * other.Z;
         public Vector Cross(Vector other) => new Vector(Y * other.Z - Z * other.Y, Z * other.X - X * other.Z, X * other.Y - Y * other.X);
-        public Vector MirrorX() => new Vector(-X, Y, Z);
+        public Vector MirroredX() => new Vector(-X, Y, Z);
 
-        public Vector Rotate(Vector axis, float angle)
+        public Vector Rotated(Vector axis, float angle)
         {
             Vector result = new Vector(0, 0, 0);
 

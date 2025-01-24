@@ -14,24 +14,24 @@
             this.v3 = v3;
         }
 
-        public Triangle Mirror()
+        public Triangle Mirrored()
         {
-            return new Triangle(Normal.MirrorX(), v1.MirrorX(), v3.MirrorX(), v2.MirrorX());
+            return new Triangle(Normal.MirroredX(), v1.MirroredX(), v3.MirroredX(), v2.MirroredX());
         }
 
-        public Triangle Rotate(Vector axis, float angle)
+        public Triangle Rotated(Vector axis, float angle)
         {
-            return new Triangle(Normal.Rotate(axis, angle), v1.Rotate(axis, angle, Point3.Origin), v2.Rotate(axis, angle, Point3.Origin), v3.Rotate(axis, angle, Point3.Origin));
+            return new Triangle(Normal.Rotated(axis, angle), v1.Rotated(axis, angle, Point3.Origin), v2.Rotated(axis, angle, Point3.Origin), v3.Rotated(axis, angle, Point3.Origin));
         }
 
-        public Triangle Translate(Vector offset)
+        public Triangle Translated(Vector offset)
         {
             return new Triangle(Normal, v1 + offset, v2 + offset, v3 + offset);
         }
 
-        public Triangle Scale(float factor)
+        public Triangle Scaled(float factor)
         {
-            return new Triangle(Normal, v1.Scale(factor), v2.Scale(factor), v3.Scale(factor));
+            return new Triangle(Normal, v1.Scaled(factor), v2.Scaled(factor), v3.Scaled(factor));
         }
 
         public Point3[] Vertices => [v1, v2, v3];
