@@ -6,6 +6,13 @@
 
         public readonly static Point3 Origin = new Point3(0, 0, 0);
 
+        public Point3(float val)
+        {
+            X = val;
+            Y = val;
+            Z = val;
+        }
+
         public Point3(float X, float Y, float Z)
         {
             this.X = X;

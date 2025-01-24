@@ -27,28 +27,26 @@ namespace PartStacker
 
         public Tuple<int, int, int> CalcBox()
         {
-            float[] min = new float[] { float.MaxValue, float.MaxValue, float.MaxValue };
-            float[] max = new float[] { float.MinValue, float.MinValue, float.MinValue };
+            Point3 min = new(float.MaxValue);
+            Point3 max = new(float.MinValue);
 
-            foreach (Triangle t in Triangles)
+            var allVertices = Triangles.SelectMany(t => t.Vertices);
+            foreach (Point3 p in allVertices)
             {
-                for (int j = 0; j < 3; j++)
-                {
-                    min[0] = (float)Math.Min(t.Vertices[j].X, min[0]);
-                    max[0] = (float)Math.Max(t.Vertices[j].X, max[0]);
+                min.X = Math.Min(p.X, min.X);
+                max.X = Math.Max(p.X, max.X);
 
-                    min[1] = (float)Math.Min(t.Vertices[j].Y, min[1]);
-                    max[1] = (float)Math.Max(t.Vertices[j].Y, max[1]);
+                min.Y = Math.Min(p.Y, min.Y);
+                max.Y = Math.Max(p.Y, max.Y);
 
-                    min[2] = (float)Math.Min(t.Vertices[j].Z, min[2]);
-                    max[2] = (float)Math.Max(t.Vertices[j].Z, max[2]);
-                }
+                min.Z = Math.Min(p.Z, min.Z);
+                max.Z = Math.Max(p.Z, max.Z);
             }
 
-            this.Translate(new Vector(-min[0], -min[1], -min[2]));
+            Translate(Point3.Origin - min);
 
-            size = new Vector(max[0] - min[0], max[1] - min[1], max[2] - min[2]);
-            box = new Tuple<int, int, int>((int)Math.Ceiling(max[0] - min[0] + 2), (int)Math.Ceiling(max[1] - min[1] + 2), (int)Math.Ceiling(max[2] - min[2] + 2));
+            size = max - min;
+            box = new Tuple<int, int, int>((int)Math.Ceiling(size.X + 2), (int)Math.Ceiling(size.Y + 2), (int)Math.Ceiling(size.Z + 2));
             return box;
         }
 
