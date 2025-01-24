@@ -232,25 +232,25 @@ namespace PartStacker
         public void Mirror()
         {
             for (int i = 0; i < _triangles.Count; i++)
-                _triangles[i] = _triangles[i].Mirror();
+                _triangles[i] = _triangles[i].Mirrored();
         }
 
         public void Rotate(Vector axis, float angle)
         {
             for (int i = 0; i < _triangles.Count; i++)
-                _triangles[i] = _triangles[i].Rotate(axis, angle);
+                _triangles[i] = _triangles[i].Rotated(axis, angle);
         }
 
         public void Scale(float factor)
         {
             for (int i = 0; i < _triangles.Count; i++)
-                _triangles[i] = _triangles[i].Scale(factor);
+                _triangles[i] = _triangles[i].Scaled(factor);
         }
 
         public void Translate(Vector offset)
         {
             for (int i = 0; i < _triangles.Count; i++)
-                _triangles[i] = _triangles[i].Translate(offset);
+                _triangles[i] = _triangles[i].Translated(offset);
         }
 
         public Mesh Clone()
