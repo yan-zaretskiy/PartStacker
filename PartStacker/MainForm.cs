@@ -19,7 +19,7 @@ namespace PartStacker
     {
         ModelViewerControl Display3D;
         ListView PartsList;
-        Button Import, Delete, Change, Reload, Start, Preview, Export, CopyMirror, GenerateBox;
+        Button Import, Delete, Change, Reload, Start, Preview, Export, CopyMirror;
         NumericUpDown PartQuantity, MinHole, MinimumClearance;
         CheckBox RotateMinBox, EnableSinterbox;
         ProgressBar Progress;
@@ -438,15 +438,6 @@ namespace PartStacker
                 Checked = true
             };
             SinterboxTab.Controls.Add(EnableSinterbox);
-            GenerateBox = new Button()
-            {
-                Location = new Point(180, 47) - new Size(5, 15),
-                Text = "Box+Export current part",
-                Width = 135,
-                Enabled = false
-            };
-            GenerateBox.Click += GenerateBoxHandler;
-            SinterboxTab.Controls.Add(GenerateBox);
             
             Tabs.TabPages.Add("Bounding Box");
             TabPage BBTab = Tabs.TabPages[2];
@@ -767,31 +758,6 @@ namespace PartStacker
             Display3D.SetMeshWithVoxels(mesh, voxels_temp, volume);
         }
 
-        public void GenerateBoxHandler(object o, EventArgs ea)
-        {
-            Mesh mesh = ((Part)PartsList.SelectedItems[0]).BasePart.Clone();
-            mesh.SinterBox((float)Clearance.Value, (float)Thickness.Value, (float)BWidth.Value, ((float)Spacing.Value) + 0.00013759f);
-
-            SaveFileDialog select = new SaveFileDialog()
-            {
-                Title = "Select file to save result to",
-                Filter = "STL files (*.stl)|*.stl"
-            };
-            DialogResult dr = select.ShowDialog();
-
-            if (dr != DialogResult.OK)
-                return;
-
-            try
-            {
-                STL.To(result, select.FileName);
-            }
-            catch
-            {
-                MessageBox.Show("Error writing to file " + select.FileName + "!", "File error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
         public void loadBBPreset(object o, EventArgs ea)
         {
             ComboBox box = (ComboBox) o;
@@ -903,7 +869,6 @@ namespace PartStacker
             this.Reload.Enabled = false;
             this.PartsList.Enabled = false;
             this.MinimumClearance.Enabled = false;
-            this.GenerateBox.Enabled = false;
         }
         private void EnableButtons()
         {
@@ -992,7 +957,6 @@ namespace PartStacker
             RotateMinBox.Enabled = false;
             Preview.Enabled = false;
             CopyMirror.Enabled = false;
-            GenerateBox.Enabled = false;
 
             None.Enabled = false;
             Cubic.Enabled = false;
@@ -1014,7 +978,6 @@ namespace PartStacker
                 RotateMinBox.Enabled = true;
 
                 CopyMirror.Enabled = true;
-                GenerateBox.Enabled = true;
 
                 if(((Part)PartsList.SelectedItems[0]).BasePart != null)
                     Preview.Enabled = true;
