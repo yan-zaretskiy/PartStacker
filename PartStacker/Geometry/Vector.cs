@@ -18,8 +18,15 @@
             z = Z;
         }
 
+        public readonly static Vector UnitX = new(1, 0, 0);
+        public readonly static Vector UnitY = new(0, 1, 0);
+        public readonly static Vector UnitZ = new(0, 0, 1);
+
         public static Vector operator+(Vector A, Vector B) => new Vector(A.X + B.X, A.Y + B.Y, A.Z + B.Z);
+        public static Vector operator+(Vector A, float l) => new Vector(A.X + l, A.Y + l, A.Z + l);
         public static Vector operator-(Vector A, Vector B) => new Vector(A.X - B.X, A.Y - B.Y, A.Z - B.Z);
+        public static Vector operator-(Vector A, float l) => new Vector(A.X - l, A.Y - l, A.Z - l);
+        public static Vector operator-(Vector A) => new Vector(-A.X, -A.Y, -A.Z);
         public static Vector operator*(Vector A, float l) => new Vector(A.X * l, A.Y * l, A.Z * l);
         public static Vector operator*(float l, Vector A) => new Vector(A.X * l, A.Y * l, A.Z * l);
         public static Vector operator/(Vector A, float l) => new Vector(A.X / l, A.Y / l, A.Z / l);

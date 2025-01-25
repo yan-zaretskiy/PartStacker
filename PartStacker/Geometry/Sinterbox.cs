@@ -1,16 +1,7 @@
-﻿using Microsoft.Xna.Framework;
-
-namespace PartStacker.Geometry
+﻿namespace PartStacker.Geometry
 {
     public class Sinterbox
     {
-        public static void GenerateInto(ref List<Triangle> triangles, Vector size, Parameters parameters)
-        {
-            AddPlaneX(ref triangles, size, parameters);
-            AddPlaneY(ref triangles, size, parameters);
-            AddPlaneZ(ref triangles, size, parameters);
-        }
-
         public struct Parameters
         {
             public float Clearance;
@@ -26,94 +17,141 @@ namespace PartStacker.Geometry
             }
         }
 
-        private static void AddBox(ref List<Triangle> triangles, float X, float Y, float Z, float sx, float sy, float sz)
+        public static void GenerateInto(ref List<Triangle> triangles, Vector size, Parameters parameters)
         {
-            Matrix transform = (Matrix.CreateTranslation(new Vector3(-0.5f, -0.5f, -0.5f)) * Matrix.CreateScale(sx, sy, sz)) * Matrix.CreateTranslation(new Vector3(X + (sx / 2f), Y + (sy / 2f), Z + (sz / 2f)));
-            triangles.AddRange(CreateCube(transform));
-        }
+            MakePositions(size, parameters, out List<float> positionsX, out List<float> positionsY, out List<float> positionsZ);
+            Point3 lowerBound = new(positionsX[1], positionsY[1], positionsZ[1]);
+            Point3 upperBound = new(positionsX[positionsX.Count - 2], positionsY[positionsY.Count - 2], positionsZ[positionsZ.Count - 2]);
+            float thickness = parameters.Thickness;
 
-        private static void AddPlaneX(ref List<Triangle> triangles, Vector size, Parameters parameters)
-        {
-            var (sx, sy, sz) = size;
-            var (Clearance, Thickness, Width, Spacing) = parameters;
-            int num = (int)(((sy + (2f * (Clearance + Thickness))) - Width) / (Spacing + Width));
-            int num2 = (int)(((sz + (2f * (Clearance + Thickness))) - Width) / (Spacing + Width));
-            for (int i = 0; i <= num; i++)
+            // XY sides
             {
-                AddBox(ref triangles, -(Thickness + Clearance), -(Thickness + Clearance) + ((i * ((sy + (2f * (Clearance + Thickness))) - Width)) / ((float)num)), -(Thickness + Clearance), Thickness, Width, sz + (2f * (Clearance + Thickness)));
-                AddBox(ref triangles, sx + Clearance, -(Thickness + Clearance) + ((i * ((sy + (2f * (Clearance + Thickness))) - Width)) / ((float)num)), -(Thickness + Clearance), Thickness, Width, sz + (2f * (Clearance + Thickness)));
+                Point3[,] lowerXY = new Point3[positionsX.Count, positionsY.Count];
+                Point3[,] upperXY = new Point3[positionsX.Count, positionsY.Count];
+                for (int x = 0; x < positionsX.Count; ++x)
+                {
+                    for (int y = 0; y < positionsY.Count; ++y)
+                    {
+                        lowerXY[x, y] = new(positionsX[x], positionsY[y], lowerBound.Z);
+                        upperXY[x, y] = new(positionsX[x], positionsY[y], upperBound.Z);
+                    }
+                }
+                AddSide(ref triangles, lowerXY, (Vector.UnitZ, Vector.UnitX, Vector.UnitY), thickness);
+                AddSide(ref triangles, upperXY, (-Vector.UnitZ, Vector.UnitX, Vector.UnitY), thickness);
             }
-            for (int j = 0; j <= num2; j++)
-            {
-                AddBox(ref triangles, -(Thickness + Clearance), -(Thickness + Clearance), -(Thickness + Clearance) + ((j * ((sz + (2f * (Clearance + Thickness))) - Width)) / ((float)num2)), Thickness, sy + (2f * (Clearance + Thickness)), Width);
-                AddBox(ref triangles, sx + Clearance, -(Thickness + Clearance), -(Thickness + Clearance) + ((j * ((sz + (2f * (Clearance + Thickness))) - Width)) / ((float)num2)), Thickness, sy + (2f * (Clearance + Thickness)), Width);
-            }
-        }
 
-        private static void AddPlaneY(ref List<Triangle> triangles, Vector size, Parameters parameters)
-        {
-            var (sx, sy, sz) = size;
-            var (Clearance, Thickness, Width, Spacing) = parameters;
-            int num = (int)(((sx + (2f * (Clearance + Thickness))) - Width) / (Spacing + Width));
-            int num2 = (int)(((sz + (2f * (Clearance + Thickness))) - Width) / (Spacing + Width));
-            for (int i = 0; i <= num; i++)
+            // XZ sides
             {
-                AddBox(ref triangles, -(Thickness + Clearance) + ((i * ((sx + (2f * (Clearance + Thickness))) - Width)) / ((float)num)), -(Thickness + Clearance), -(Thickness + Clearance), Width, Thickness, sz + (2f * (Clearance + Thickness)));
-                AddBox(ref triangles, -(Thickness + Clearance) + ((i * ((sx + (2f * (Clearance + Thickness))) - Width)) / ((float)num)), sy + Clearance, -(Thickness + Clearance), Width, Thickness, sz + (2f * (Clearance + Thickness)));
+                Point3[,] lowerXZ = new Point3[positionsX.Count, positionsZ.Count];
+                Point3[,] upperXZ = new Point3[positionsX.Count, positionsZ.Count];
+                for (int x = 0; x < positionsX.Count; ++x)
+                {
+                    for (int z = 0; z < positionsZ.Count; ++z)
+                    {
+                        lowerXZ[x, z] = new(positionsX[x], lowerBound.Y, positionsZ[z]);
+                        upperXZ[x, z] = new(positionsX[x], upperBound.Y, positionsZ[z]);
+                    }
+                }
+                AddSide(ref triangles, lowerXZ, (Vector.UnitY, Vector.UnitX, Vector.UnitZ), thickness);
+                AddSide(ref triangles, upperXZ, (-Vector.UnitY, Vector.UnitX, Vector.UnitZ), thickness);
             }
-            for (int j = 0; j <= num2; j++)
-            {
-                AddBox(ref triangles, -(Thickness + Clearance), -(Thickness + Clearance), -(Thickness + Clearance) + ((j * ((sz + (2f * (Clearance + Thickness))) - Width)) / ((float)num2)), sx + (2f * (Clearance + Thickness)), Thickness, Width);
-                AddBox(ref triangles, -(Thickness + Clearance), sy + Clearance, -(Thickness + Clearance) + ((j * ((sz + (2f * (Clearance + Thickness))) - Width)) / ((float)num2)), sx + (2f * (Clearance + Thickness)), Thickness, Width);
-            }
-        }
 
-        private static void AddPlaneZ(ref List<Triangle> triangles, Vector size, Parameters parameters)
-        {
-            var (sx, sy, sz) = size;
-            var (Clearance, Thickness, Width, Spacing) = parameters;
-            int num = (int)(((sx + (2f * (Clearance + Thickness))) - Width) / (Spacing + Width));
-            int num2 = (int)(((sy + (2f * (Clearance + Thickness))) - Width) / (Spacing + Width));
-            for (int i = 0; i <= num; i++)
+            // YZ sides
             {
-                AddBox(ref triangles, -(Thickness + Clearance) + ((i * ((sx + (2f * (Clearance + Thickness))) - Width)) / ((float)num)), -(Thickness + Clearance), -(Thickness + Clearance), Width, sy + (2f * (Clearance + Thickness)), Thickness);
-                AddBox(ref triangles, -(Thickness + Clearance) + ((i * ((sx + (2f * (Clearance + Thickness))) - Width)) / ((float)num)), -(Thickness + Clearance), sz + Clearance, Width, sy + (2f * (Clearance + Thickness)), Thickness);
-            }
-            for (int j = 0; j <= num2; j++)
-            {
-                AddBox(ref triangles, -(Thickness + Clearance), -(Thickness + Clearance) + ((j * ((sy + (2f * (Clearance + Thickness))) - Width)) / ((float)num2)), -(Thickness + Clearance), sx + (2f * (Clearance + Thickness)), Width, Thickness);
-                AddBox(ref triangles, -(Thickness + Clearance), -(Thickness + Clearance) + ((j * ((sy + (2f * (Clearance + Thickness))) - Width)) / ((float)num2)), sz + Clearance, sx + (2f * (Clearance + Thickness)), Width, Thickness);
+                Point3[,] lowerYZ = new Point3[positionsY.Count, positionsZ.Count];
+                Point3[,] upperYZ = new Point3[positionsY.Count, positionsZ.Count];
+                for (int y = 0; y < positionsY.Count; ++y)
+                {
+                    for (int z = 0; z < positionsZ.Count; ++z)
+                    {
+                        lowerYZ[y, z] = new(lowerBound.X, positionsY[y], positionsZ[z]);
+                        upperYZ[y, z] = new(upperBound.X, positionsY[y], positionsZ[z]);
+                    }
+                }
+                AddSide(ref triangles, lowerYZ, (Vector.UnitX, Vector.UnitY, Vector.UnitZ), thickness);
+                AddSide(ref triangles, upperYZ, (-Vector.UnitX, Vector.UnitY, Vector.UnitZ), thickness);
             }
         }
 
-        private static Triangle[] CreateCube(Matrix transform)
+        private static void AddSide(ref List<Triangle> triangles, Point3[,] points, ValueTuple<Vector, Vector, Vector> directions, float thicknessFloat)
         {
-            Triangle[] triangleArray = new Triangle[12];
-            int num = 0;
-            triangleArray[num++] = new Triangle(new Vector(-1f, 0f, 0f), new Point3(0f, 0f, 0f), new Point3(0f, 1f, 1f), new Point3(0f, 1f, 0f));
-            triangleArray[num++] = new Triangle(new Vector(-1f, 0f, 0f), new Point3(0f, 0f, 0f), new Point3(0f, 0f, 1f), new Point3(0f, 1f, 1f));
-            triangleArray[num++] = new Triangle(new Vector(1f, 0f, 0f), new Point3(1f, 0f, 0f), new Point3(1f, 1f, 0f), new Point3(1f, 1f, 1f));
-            triangleArray[num++] = new Triangle(new Vector(1f, 0f, 0f), new Point3(1f, 0f, 0f), new Point3(1f, 1f, 1f), new Point3(1f, 0f, 1f));
-            triangleArray[num++] = new Triangle(new Vector(0f, -1f, 0f), new Point3(0f, 0f, 0f), new Point3(1f, 0f, 0f), new Point3(1f, 0f, 1f));
-            triangleArray[num++] = new Triangle(new Vector(0f, -1f, 0f), new Point3(0f, 0f, 0f), new Point3(1f, 0f, 1f), new Point3(0f, 0f, 1f));
-            triangleArray[num++] = new Triangle(new Vector(0f, 1f, 0f), new Point3(0f, 1f, 0f), new Point3(1f, 1f, 1f), new Point3(1f, 1f, 0f));
-            triangleArray[num++] = new Triangle(new Vector(0f, 1f, 0f), new Point3(0f, 1f, 0f), new Point3(0f, 1f, 1f), new Point3(1f, 1f, 1f));
-            triangleArray[num++] = new Triangle(new Vector(0f, 0f, -1f), new Point3(0f, 0f, 0f), new Point3(1f, 1f, 0f), new Point3(1f, 0f, 0f));
-            triangleArray[num++] = new Triangle(new Vector(0f, 0f, -1f), new Point3(0f, 0f, 0f), new Point3(0f, 1f, 0f), new Point3(1f, 1f, 0f));
-            triangleArray[num++] = new Triangle(new Vector(0f, 0f, 1f), new Point3(0f, 0f, 1f), new Point3(1f, 0f, 1f), new Point3(1f, 1f, 1f));
-            triangleArray[num++] = new Triangle(new Vector(0f, 0f, 1f), new Point3(0f, 0f, 1f), new Point3(1f, 1f, 1f), new Point3(0f, 1f, 1f));
-            for (int i = 0; i < 12; i++)
+            var (normal, dir1, dir2) = directions;
+            Vector thickness = normal * -thicknessFloat;
+
+            Func<Vector, Point3, Point3, Point3, Triangle> triangle = (normal.X + normal.Y + normal.Z > 0)
+                ? ((Vector n, Point3 v1, Point3 v2, Point3 v3) => new Triangle(n, v1, v2, v3))
+                : ((Vector n, Point3 v1, Point3 v2, Point3 v3) => new Triangle(n, v1, v3, v2));
+
+            for (int i = 0; i < points.GetLength(0) - 1; ++i)
             {
-                var ToVector3 = (Point3 point) => new Vector3(point.X, point.Y, point.Z);
-                Vector3 p1 = Vector3.Transform(ToVector3(triangleArray[i].v1), transform);
-                Point3 point = new Point3(p1.X, p1.Y, p1.Z);
-                Vector3 p2 = Vector3.Transform(ToVector3(triangleArray[i].v2), transform);
-                Point3 point2 = new Point3(p2.X, p2.Y, p2.Z);
-                Vector3 p3 = Vector3.Transform(ToVector3(triangleArray[i].v3), transform);
-                Point3 point3 = new Point3(p3.X, p3.Y, p3.Z);
-                triangleArray[i] = new Triangle(triangleArray[i].Normal, point, point2, point3);
+                for (int j = 0; j < points.GetLength(1) - 1; ++j)
+                {
+                    var p00 = points[i, j];
+                    var p01 = points[i, j + 1];
+                    var p10 = points[i + 1, j];
+                    var p11 = points[i + 1, j + 1];
+                    if (i % 2 == 1 && j % 2 == 1)
+                    {
+                        triangles.Add(triangle(dir2, p00, p10, p00 + thickness));
+                        triangles.Add(triangle(dir2, p10 + thickness, p00 + thickness, p10));
+                        triangles.Add(triangle(-dir2, p01, p01 + thickness, p11));
+                        triangles.Add(triangle(-dir2, p11 + thickness, p11, p01 + thickness));
+                        triangles.Add(triangle(dir1, p00, p01, p00 + thickness));
+                        triangles.Add(triangle(dir1, p01 + thickness, p00 + thickness, p01));
+                        triangles.Add(triangle(-dir1, p10, p10 + thickness, p11));
+                        triangles.Add(triangle(-dir1, p11 + thickness, p11, p10 + thickness));
+                    }
+                    else
+                    {
+                        if (i != 0 && j != 0 && i != points.GetLength(0) - 2 && j != points.GetLength(1) - 2)
+                        {
+                            triangles.Add(triangle(normal, p00, p01, p10));
+                            triangles.Add(triangle(normal, p11, p10, p01));
+                        }
+                        triangles.Add(triangle(-normal, p00 + thickness, p01 + thickness, p10 + thickness));
+                        triangles.Add(triangle(-normal, p11 + thickness, p10 + thickness, p01 + thickness));
+                    }
+                }
             }
-            return triangleArray;
+        }
+
+        private static void MakePositions(Vector size, Parameters parameters, out List<float> xs, out List<float> ys, out List<float> zs)
+        {
+            var (Clearance, Thickness, Width, DesiredSpacing) = parameters;
+
+            // Number of bars in the given direction
+            Vector N = (size + (2 * Clearance) - DesiredSpacing) / (Width + DesiredSpacing);
+            N = new((int)N.X, (int)N.Y, (int)N.Z); // Round down
+
+            Vector _numerators = size + (2 * Clearance) - (N * Width);
+            Vector RealSpacing = new(
+                _numerators.X / (N.X + 1),
+                _numerators.Y / (N.Y + 1),
+                _numerators.Z / (N.Z + 1)
+            );
+
+            Point3 lowerBound = new(-Clearance);
+            Point3 upperBound = new(
+                -Clearance + N.X * (RealSpacing.X + Width) + RealSpacing.X,
+                -Clearance + N.Y * (RealSpacing.Y + Width) + RealSpacing.Y,
+                -Clearance + N.Z * (RealSpacing.Z + Width) + RealSpacing.Z
+            );
+
+            var makePositions = (out List<float> ps, Func<Point3, float> pElem, Func<Vector, float> vElem) =>
+            {
+                ps = new(4 + ((int)vElem(N) * 2));
+                ps.Add(pElem(lowerBound) - Thickness);
+                for (float pos = pElem(lowerBound); pos <= pElem(upperBound); pos += (vElem(RealSpacing) + Width))
+                {
+                    ps.Add(pos);
+                    ps.Add(pos + vElem(RealSpacing));
+                }
+                ps.Add(pElem(upperBound) + Thickness);
+            };
+
+            makePositions(out xs, (p) => p.X, (v) => v.X);
+            makePositions(out ys, (p) => p.Y, (v) => v.Y);
+            makePositions(out zs, (p) => p.Z, (v) => v.Z);
         }
     }
 }
