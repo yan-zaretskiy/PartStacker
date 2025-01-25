@@ -4,11 +4,11 @@
     {
         public struct Parameters
         {
-            public float Clearance;
-            public float Thickness;
-            public float Width;
-            public float Spacing;
-            public void Deconstruct(out float clearance, out float thickness, out float width, out float spacing)
+            public double Clearance;
+            public double Thickness;
+            public double Width;
+            public double Spacing;
+            public void Deconstruct(out double clearance, out double thickness, out double width, out double spacing)
             {
                 clearance = Clearance;
                 thickness = Thickness;
@@ -19,10 +19,10 @@
 
         public static void GenerateInto(ref List<Triangle> triangles, Vector size, Parameters parameters)
         {
-            MakePositions(size, parameters, out List<float> positionsX, out List<float> positionsY, out List<float> positionsZ);
+            MakePositions(size, parameters, out List<double> positionsX, out List<double> positionsY, out List<double> positionsZ);
             Point3 lowerBound = new(positionsX[1], positionsY[1], positionsZ[1]);
             Point3 upperBound = new(positionsX[positionsX.Count - 2], positionsY[positionsY.Count - 2], positionsZ[positionsZ.Count - 2]);
-            float thickness = parameters.Thickness;
+            double thickness = parameters.Thickness;
 
             // XY sides
             {
@@ -74,10 +74,10 @@
             }
         }
 
-        private static void AddSide(ref List<Triangle> triangles, Point3[,] points, ValueTuple<Vector, Vector, Vector> directions, float thicknessFloat)
+        private static void AddSide(ref List<Triangle> triangles, Point3[,] points, ValueTuple<Vector, Vector, Vector> directions, double thicknessValue)
         {
             var (normal, dir1, dir2) = directions;
-            Vector thickness = normal * -thicknessFloat;
+            Vector thickness = normal * -thicknessValue;
 
             Func<Vector, Point3, Point3, Point3, Triangle> triangle = (normal.X + normal.Y + normal.Z > 0)
                 ? ((Vector n, Point3 v1, Point3 v2, Point3 v3) => new Triangle(n, v1, v2, v3))
@@ -117,7 +117,7 @@
             }
         }
 
-        private static void MakePositions(Vector size, Parameters parameters, out List<float> xs, out List<float> ys, out List<float> zs)
+        private static void MakePositions(Vector size, Parameters parameters, out List<double> xs, out List<double> ys, out List<double> zs)
         {
             var (Clearance, Thickness, Width, DesiredSpacing) = parameters;
 
@@ -139,11 +139,11 @@
                 -Clearance + N.Z * (RealSpacing.Z + Width) + RealSpacing.Z
             );
 
-            var makePositions = (out List<float> ps, Func<Point3, float> pElem, Func<Vector, float> vElem) =>
+            var makePositions = (out List<double> ps, Func<Point3, double> pElem, Func<Vector, double> vElem) =>
             {
                 ps = new(4 + ((int)vElem(N) * 2));
                 ps.Add(pElem(lowerBound) - Thickness);
-                for (float pos = pElem(lowerBound); pos <= pElem(upperBound); pos += (vElem(RealSpacing) + Width))
+                for (double pos = pElem(lowerBound); pos <= pElem(upperBound); pos += (vElem(RealSpacing) + Width))
                 {
                     ps.Add(pos);
                     ps.Add(pos + vElem(RealSpacing));

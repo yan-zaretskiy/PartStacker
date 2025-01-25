@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -688,24 +688,50 @@ namespace PartStacker
             RotationSets[0] = new Rotation[] { (Mesh m) => { } };
 
             // Cubic rotations
-            RotationSets[1] = new Rotation[] { (Mesh m) => { }, (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 90.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 270.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 90.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 270.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 90.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 270.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 1, 0), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(1, -1, 0), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 1, 1), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(0, -1, 1), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 0, 1), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 0, -1), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 120.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 240.0f); }, (Mesh m) => { m.Rotate(new Vector(-1, 1, 1), 120.0f); }, (Mesh m) => { m.Rotate(new Vector(-1, 1, 1), 240.0f); }, (Mesh m) => { m.Rotate(new Vector(1, -1, 1), 120.0f); }, (Mesh m) => { m.Rotate(new Vector(1, -1, 1), 240.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 1, -1), 120.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 1, -1), 240.0f); } };
+            RotationSets[1] = new Rotation[]
+            {
+                (Mesh m) => { },
+                (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 90); },
+                (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 180); },
+                (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 270); },
+                (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 90); },
+                (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 180); },
+                (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 270); },
+                (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 90); },
+                (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 180); },
+                (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 270); },
+                (Mesh m) => { m.Rotate(new Vector(1, 1, 0), 180); },
+                (Mesh m) => { m.Rotate(new Vector(1, -1, 0), 180); },
+                (Mesh m) => { m.Rotate(new Vector(0, 1, 1), 180); },
+                (Mesh m) => { m.Rotate(new Vector(0, -1, 1), 180); },
+                (Mesh m) => { m.Rotate(new Vector(1, 0, 1), 180); },
+                (Mesh m) => { m.Rotate(new Vector(1, 0, -1), 180); },
+                (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 120); },
+                (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 240); },
+                (Mesh m) => { m.Rotate(new Vector(-1, 1, 1), 120); },
+                (Mesh m) => { m.Rotate(new Vector(-1, 1, 1), 240); },
+                (Mesh m) => { m.Rotate(new Vector(1, -1, 1), 120); },
+                (Mesh m) => { m.Rotate(new Vector(1, -1, 1), 240); },
+                (Mesh m) => { m.Rotate(new Vector(1, 1, -1), 120); },
+                (Mesh m) => { m.Rotate(new Vector(1, 1, -1), 240); }
+            };
             
             //TODO: arbitrary rotations
             RotationSets[2] = new Rotation[32];
 
             RotationSets[2][0] = (Mesh m) => { };
-            RotationSets[2][1] = (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 120.0f); };
-            RotationSets[2][2] = (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 240.0f); };
-            RotationSets[2][3] = (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 180.0f); };
-            RotationSets[2][4] = (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 180.0f); };
-            RotationSets[2][5] = (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 180.0f); };
+            RotationSets[2][1] = (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 120); };
+            RotationSets[2][2] = (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 240); };
+            RotationSets[2][3] = (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 180); };
+            RotationSets[2][4] = (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 180); };
+            RotationSets[2][5] = (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 180); };
 
             Random r = new Random();
             for (int i = 6; i < 32; i++)
             {
-                float rx = (float)(r.NextDouble() * 360.0);
-                float ry = (float)(r.NextDouble() * 360.0);
-                float rz = (float)(r.NextDouble() * 360.0);
+                double rx = r.NextDouble() * 360;
+                double ry = r.NextDouble() * 360;
+                double rz = r.NextDouble() * 360;
                 RotationSets[2][i] = (Mesh m) => { m.Rotate(new Vector(1, 0, 0), rx); m.Rotate(new Vector(0, 1, 0), ry); m.Rotate(new Vector(0, 0, 1), rz); };
             }
         }
@@ -770,7 +796,7 @@ namespace PartStacker
                 yMin.Value = num2 - 7;
                 xMax.Value = num - 4;
                 yMax.Value = num2 - 4;
-                float num3 = 0f;
+                double num3 = 0;
                 int minimum = (int) zMin.Minimum;
                 foreach (Part part in PartsList.Items)
                 {
@@ -778,9 +804,9 @@ namespace PartStacker
                     Tuple<int, int, int> tuple = part.BasePart.CalcBox();
                     minimum = Math.Max(minimum, 1 + Math.Min(tuple.Item1, Math.Min(tuple.Item2, tuple.Item3)));
                 }
-                if (num3 == 0f)
+                if (num3 == 0)
                 {
-                    num3 = 1000f;
+                    num3 = 1000;
                 }
                 zMin.Value = Math.Min(zMin.Maximum, Math.Max(minimum, (decimal) ((((double) num3) / 0.135) / ((double) (num * num2)))));
                 zMax.Value = Math.Max(zMax.Minimum, Math.Min(zMax.Maximum, 2M * ((decimal) ((((double) num3) / 0.15) / ((double) (num * num2))))));
@@ -934,10 +960,10 @@ namespace PartStacker
                 {
                     Sinterbox.Parameters parameters = new()
                     {
-                        Clearance = (float)Clearance.Value,
-                        Thickness = (float)Thickness.Value,
-                        Width = (float)BWidth.Value,
-                        Spacing = ((float)Spacing.Value) + 0.00013759f,
+                        Clearance = (double)Clearance.Value,
+                        Thickness = (double)Thickness.Value,
+                        Width = (double)BWidth.Value,
+                        Spacing = ((double)Spacing.Value) + 0.00013759,
                     };
                     result.AddSinterbox(parameters);
                     result.CalcBox();
@@ -1011,7 +1037,7 @@ namespace PartStacker
         {
             int parts = 0;
             int triangles = 0;
-            float volume = 0;
+            double volume = 0;
 
             foreach (Part p in PartsList.Items)
             {

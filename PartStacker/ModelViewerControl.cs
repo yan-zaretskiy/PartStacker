@@ -32,7 +32,7 @@ namespace PartStacker
         public Vector3 BB;
         bool section = false;
 
-        float zoom = 100;
+        double zoom = 100;
         Quaternion modelRotation = Quaternion.Identity;
         System.Drawing.Point oldPos;
 
@@ -54,11 +54,11 @@ namespace PartStacker
         {
             if (mea.Button == MouseButtons.Left && TriangleCount > 0)
             {
-                float dx = mea.Location.X - oldPos.X;
-                float dy = mea.Location.Y - oldPos.Y;
+                double dx = mea.Location.X - oldPos.X;
+                double dy = mea.Location.Y - oldPos.Y;
 
-                modelRotation = Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), dy / 150) * modelRotation;
-                modelRotation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), dx / 150) * modelRotation;
+                modelRotation = Quaternion.CreateFromAxisAngle(new Vector3(1, 0, 0), (float)(dy / 150)) * modelRotation;
+                modelRotation = Quaternion.CreateFromAxisAngle(new Vector3(0, 1, 0), (float)(dx / 150)) * modelRotation;
 
                 Invalidate();
             }
@@ -69,8 +69,8 @@ namespace PartStacker
         {
             if (mea.Delta != 0)
             {
-                zoom *= (float)Math.Pow(1.0017, mea.Delta);
-                zoom = (float)Math.Max(Math.Min(zoom, 275), 7);
+                zoom *= Math.Pow(1.0017, mea.Delta);
+                zoom = Math.Max(Math.Min(zoom, 275), 7);
 
                 Invalidate();
             }
@@ -81,7 +81,7 @@ namespace PartStacker
             Color backColor = new Color(BackColor.R, BackColor.G, BackColor.B);
             GraphicsDevice.Clear(backColor);
             effect.World = Matrix.CreateTranslation(-0.5f * BB) * Matrix.CreateFromQuaternion(modelRotation);
-            effect.View = Matrix.CreateLookAt(new Vector3(0, 0, zoom), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+            effect.View = Matrix.CreateLookAt(new Vector3(0, 0, (float)zoom), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
 
             if (TriangleCount > 0)
             {
@@ -130,8 +130,8 @@ namespace PartStacker
             }
         }
 
-        private static Vector3 ToVector3(Vector vec) => new Vector3(vec.X, vec.Y, vec.Z);
-        private static Vector3 ToVector3(Point3 point) => new Vector3(point.X, point.Y, point.Z);
+        private static Vector3 ToVector3(Vector vec) => new Vector3((float)vec.X, (float)vec.Y, (float)vec.Z);
+        private static Vector3 ToVector3(Point3 point) => new Vector3((float)point.X, (float)point.Y, (float)point.Z);
 
         public void SetMesh(Mesh mesh)
         {
@@ -180,9 +180,9 @@ namespace PartStacker
                     for (int z = 0; z < voxels.GetLength(2); z++)
                         if (voxels[x, y, z] == 1)
                         {
-                            float xt = (float)x - 1.0f;
-                            float yt = (float)y - 1.0f;
-                            float zt = (float)z - 1.0f;
+                            float xt = x - 1.0f;
+                            float yt = y - 1.0f;
+                            float zt = z - 1.0f;
 
                             buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 0, zt + 0), c, new Vector3(-1, 0, 0));
                             buffer[pos++] = new VertexPositionColorNormal(new Vector3(xt + 0, yt + 1, zt + 0), c, new Vector3(-1, 0, 0));
