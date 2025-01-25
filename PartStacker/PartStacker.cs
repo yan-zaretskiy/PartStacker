@@ -30,8 +30,8 @@ namespace PartStacker
 
         public bool? Stacker_Sub()
         {
-            float triangles = 0;
-            float scale = (float)(1 / MinimumClearance.Value);
+            double triangles = 0;
+            double scale = (double)(1 / MinimumClearance.Value);
             int totalParts = 0;
 
             foreach (Part p in baseParts)
@@ -43,7 +43,7 @@ namespace PartStacker
             parts = new Mesh[baseParts.Length][];
             voxels = new int[baseParts.Length][, ,];
 
-            float progress = 0;
+            double progress = 0;
             for (int i = 0; i < baseParts.Length; i++)
             {
                 Rotation baseRotation = (Mesh m) => { };
@@ -68,10 +68,10 @@ namespace PartStacker
 
                     for (int a = 0; a < 360; a += 9)
                     {
-                        original.Rotate(new Vector(1, 0, 0), 9.0f);
+                        original.Rotate(new Vector(1, 0, 0), 9);
                         for (int b = 0; b < 360; b += 9)
                         {
-                            original.Rotate(new Vector(0, 1, 0), 9.0f);
+                            original.Rotate(new Vector(0, 1, 0), 9);
                             Tuple<int, int, int> box = original.CalcBox();
                             int volume = box.Item1 * box.Item2 * box.Item3;
                             if (volume < best)
@@ -107,7 +107,7 @@ namespace PartStacker
 
                     parts[i][j] = thisPart;
 
-                    progress += (float)baseParts[i].Triangles / 2;
+                    progress += baseParts[i].Triangles / 2;
                     SetProgress(progress, triangles);
                 }
 
@@ -124,7 +124,7 @@ namespace PartStacker
                     parts[i][j].Voxelize(voxels[i], index, baseParts[i].MinHole);
                     index *= 2;
 
-                    progress += (float)baseParts[i].Triangles / 2;
+                    progress += baseParts[i].Triangles / 2;
                     SetProgress(progress, triangles);
                 }
             }
@@ -152,10 +152,10 @@ namespace PartStacker
                 }
             }
 
-            int maxX = (int)(scale * (float)xMin.Value);
-            int maxY = (int)(scale * (float)yMin.Value);
-            int maxZ = (int)(scale * (float)zMin.Value);
-            space = new bool[(int)Math.Max(maxX, (scale * (float)xMax.Value)), (int)Math.Max(maxY, (scale * (float)yMax.Value)), (int)Math.Max(maxZ, (scale * (float)zMax.Value))];
+            int maxX = (int)(scale * (double)xMin.Value);
+            int maxY = (int)(scale * (double)yMin.Value);
+            int maxZ = (int)(scale * (double)zMin.Value);
+            space = new bool[(int)Math.Max(maxX, (scale * (double)xMax.Value)), (int)Math.Max(maxY, (scale * (double)yMax.Value)), (int)Math.Max(maxZ, (scale * (double)zMax.Value))];
 
             SetProgress(0, 1);
 
@@ -337,7 +337,7 @@ namespace PartStacker
                         space[i, j, k] |= (obj[i - x, j - y, k - z] & index) != 0;
         }
 
-        public void SetProgress(float progress, float total)
+        public void SetProgress(double progress, double total)
         {
             if (!StackerThreadRunning)
                 return;

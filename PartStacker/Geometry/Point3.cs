@@ -2,18 +2,18 @@
 {
     public struct Point3
     {
-        public float X, Y, Z;
+        public double X, Y, Z;
 
         public readonly static Point3 Origin = new Point3(0, 0, 0);
 
-        public Point3(float val)
+        public Point3(double val)
         {
             X = val;
             Y = val;
             Z = val;
         }
 
-        public Point3(float X, float Y, float Z)
+        public Point3(double X, double Y, double Z)
         {
             this.X = X;
             this.Y = Y;
@@ -27,7 +27,7 @@
         public static Vector operator-(Point3 A, Point3 B) => new Vector(A.X - B.X, A.Y - B.Y, A.Z - B.Z);
 
         public Point3 MirroredX() => new Point3(-X, Y, Z);
-        public Point3 Scaled(float factor) => new Point3(X * factor, Y * factor, Z * factor);
-        public Point3 Rotated(Vector axis, float angle, Point3 about) => (this - about).Rotated(axis, angle) + about;
+        public Point3 Scaled(double factor) => new Point3(X * factor, Y * factor, Z * factor);
+        public Point3 Rotated(Vector axis, double angle, Point3 about) => (this - about).Rotated(axis, angle) + about;
     }
 }

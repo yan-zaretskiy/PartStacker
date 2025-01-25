@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -17,7 +17,7 @@ namespace PartStacker
     {
         public Mesh BasePart;
         public string FileName;
-        public float Volume;
+        public double Volume;
         public int Quantity;
         public int Remaining;
         public int Triangles;

@@ -30,9 +30,9 @@ namespace PartStacker.MeshFile
                     var ParsePoint = (string[] s) =>
                     {
                         Point3 result = new();
-                        result.X = float.Parse(s[s.Length - 3]);
-                        result.Y = float.Parse(s[s.Length - 2]);
-                        result.Z = float.Parse(s[s.Length - 1]);
+                        result.X = double.Parse(s[s.Length - 3]);
+                        result.Y = double.Parse(s[s.Length - 2]);
+                        result.Z = double.Parse(s[s.Length - 1]);
                         return result;
                     };
 

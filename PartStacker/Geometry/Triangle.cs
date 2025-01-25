@@ -19,7 +19,7 @@
             return new Triangle(Normal.MirroredX(), v1.MirroredX(), v3.MirroredX(), v2.MirroredX());
         }
 
-        public Triangle Rotated(Vector axis, float angle)
+        public Triangle Rotated(Vector axis, double angle)
         {
             return new Triangle(Normal.Rotated(axis, angle), v1.Rotated(axis, angle, Point3.Origin), v2.Rotated(axis, angle, Point3.Origin), v3.Rotated(axis, angle, Point3.Origin));
         }
@@ -29,7 +29,7 @@
             return new Triangle(Normal, v1 + offset, v2 + offset, v3 + offset);
         }
 
-        public Triangle Scaled(float factor)
+        public Triangle Scaled(double factor)
         {
             return new Triangle(Normal, v1.Scaled(factor), v2.Scaled(factor), v3.Scaled(factor));
         }

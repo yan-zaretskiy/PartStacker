@@ -26,8 +26,8 @@ namespace PartStacker
 
         public Tuple<int, int, int> CalcBox()
         {
-            Point3 min = new(float.MaxValue);
-            Point3 max = new(float.MinValue);
+            Point3 min = new(double.MaxValue);
+            Point3 max = new(double.MinValue);
 
             var allVertices = Triangles.SelectMany(t => t.Vertices);
             foreach (Point3 p in allVertices)
@@ -80,12 +80,12 @@ namespace PartStacker
                 Vector c = t.Vertices[2] - t.Vertices[0];
 
                 // Approximate the step size
-                float db = 0.1f / Math.Max(Math.Abs(b.X), Math.Max(Math.Abs(b.Z), Math.Abs(b.Y)));
-                float dc = 0.1f / Math.Max(Math.Abs(c.X), Math.Max(Math.Abs(c.Z), Math.Abs(c.Y)));
+                double db = 0.1 / Math.Max(Math.Abs(b.X), Math.Max(Math.Abs(b.Z), Math.Abs(b.Y)));
+                double dc = 0.1 / Math.Max(Math.Abs(c.X), Math.Max(Math.Abs(c.Z), Math.Abs(c.Y)));
 
                 // Voxelize
-                for (float p = 0; p < 1; p += db)
-                    for (float q = 0; q < 1 - p; q += dc)
+                for (double p = 0; p < 1; p += db)
+                    for (double q = 0; q < 1 - p; q += dc)
                     {
                         Vector pos = a + p * b + q * c;
                         actualTriangles[(int)Math.Round(pos.X), (int)Math.Round(pos.Y), (int)Math.Round(pos.Z)] = true;
@@ -217,9 +217,9 @@ namespace PartStacker
             return volume;
         }
 
-        public float Volume()
+        public double Volume()
         {
-            float volume = 0;
+            double volume = 0;
             foreach (Triangle t in Triangles)
                 volume += t.v1.Vector.Dot(t.v2.Vector.Cross(t.v3.Vector));
 
@@ -232,13 +232,13 @@ namespace PartStacker
                 _triangles[i] = _triangles[i].Mirrored();
         }
 
-        public void Rotate(Vector axis, float angle)
+        public void Rotate(Vector axis, double angle)
         {
             for (int i = 0; i < _triangles.Count; i++)
                 _triangles[i] = _triangles[i].Rotated(axis, angle);
         }
 
-        public void Scale(float factor)
+        public void Scale(double factor)
         {
             for (int i = 0; i < _triangles.Count; i++)
                 _triangles[i] = _triangles[i].Scaled(factor);
