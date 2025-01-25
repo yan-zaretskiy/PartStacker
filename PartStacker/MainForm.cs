@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -688,7 +688,33 @@ namespace PartStacker
             RotationSets[0] = new Rotation[] { (Mesh m) => { } };
 
             // Cubic rotations
-            RotationSets[1] = new Rotation[] { (Mesh m) => { }, (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 90.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 270.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 90.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 270.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 90.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 270.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 1, 0), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(1, -1, 0), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(0, 1, 1), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(0, -1, 1), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 0, 1), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 0, -1), 180.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 120.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 240.0f); }, (Mesh m) => { m.Rotate(new Vector(-1, 1, 1), 120.0f); }, (Mesh m) => { m.Rotate(new Vector(-1, 1, 1), 240.0f); }, (Mesh m) => { m.Rotate(new Vector(1, -1, 1), 120.0f); }, (Mesh m) => { m.Rotate(new Vector(1, -1, 1), 240.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 1, -1), 120.0f); }, (Mesh m) => { m.Rotate(new Vector(1, 1, -1), 240.0f); } };
+            RotationSets[1] = new Rotation[]
+            {
+                (Mesh m) => { },
+                (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 90.0f); },
+                (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 180.0f); },
+                (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 270.0f); },
+                (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 90.0f); },
+                (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 180.0f); },
+                (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 270.0f); },
+                (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 90.0f); },
+                (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 180.0f); },
+                (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 270.0f); },
+                (Mesh m) => { m.Rotate(new Vector(1, 1, 0), 180.0f); },
+                (Mesh m) => { m.Rotate(new Vector(1, -1, 0), 180.0f); },
+                (Mesh m) => { m.Rotate(new Vector(0, 1, 1), 180.0f); },
+                (Mesh m) => { m.Rotate(new Vector(0, -1, 1), 180.0f); },
+                (Mesh m) => { m.Rotate(new Vector(1, 0, 1), 180.0f); },
+                (Mesh m) => { m.Rotate(new Vector(1, 0, -1), 180.0f); },
+                (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 120.0f); },
+                (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 240.0f); },
+                (Mesh m) => { m.Rotate(new Vector(-1, 1, 1), 120.0f); },
+                (Mesh m) => { m.Rotate(new Vector(-1, 1, 1), 240.0f); },
+                (Mesh m) => { m.Rotate(new Vector(1, -1, 1), 120.0f); },
+                (Mesh m) => { m.Rotate(new Vector(1, -1, 1), 240.0f); },
+                (Mesh m) => { m.Rotate(new Vector(1, 1, -1), 120.0f); },
+                (Mesh m) => { m.Rotate(new Vector(1, 1, -1), 240.0f); }
+            };
             
             //TODO: arbitrary rotations
             RotationSets[2] = new Rotation[32];
