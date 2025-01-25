@@ -11,6 +11,13 @@
             this.Z = Z;
         }
 
+        public void Deconstruct(out float x, out float y, out float z)
+        {
+            x = X;
+            y = Y;
+            z = Z;
+        }
+
         public static Vector operator+(Vector A, Vector B) => new Vector(A.X + B.X, A.Y + B.Y, A.Z + B.Z);
         public static Vector operator-(Vector A, Vector B) => new Vector(A.X - B.X, A.Y - B.Y, A.Z - B.Z);
         public static Vector operator*(Vector A, float l) => new Vector(A.X * l, A.Y * l, A.Z * l);

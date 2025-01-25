@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -929,9 +929,19 @@ namespace PartStacker
         {
             if (succeeded)
             {
-                if (EnableSinterbox.Checked)
-                    result.SinterBox((float)Clearance.Value, (float)Thickness.Value, (float)BWidth.Value, ((float)Spacing.Value) + 0.00013759f);
                 result.CalcBox();
+                if (EnableSinterbox.Checked)
+                {
+                    Sinterbox.Parameters parameters = new()
+                    {
+                        Clearance = (float)Clearance.Value,
+                        Thickness = (float)Thickness.Value,
+                        Width = (float)BWidth.Value,
+                        Spacing = ((float)Spacing.Value) + 0.00013759f,
+                    };
+                    result.AddSinterbox(parameters);
+                    result.CalcBox();
+                }
                 Display3D.SetMesh(result);
                 this.Export.Enabled = true;
                 this.ExportMenu.Enabled = true;
