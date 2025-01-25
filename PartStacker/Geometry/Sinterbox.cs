@@ -40,20 +40,21 @@
                 AddSide(ref triangles, upperXY, (-Vector.UnitZ, Vector.UnitX, Vector.UnitY), thickness);
             }
 
-            // XZ sides
+            // ZX sides
+            // Note, doing "XZ" instead of "ZX" makes the triangles face the wrong way
             {
-                Point3[,] lowerXZ = new Point3[positionsX.Count, positionsZ.Count];
-                Point3[,] upperXZ = new Point3[positionsX.Count, positionsZ.Count];
-                for (int x = 0; x < positionsX.Count; ++x)
+                Point3[,] lowerZX = new Point3[positionsZ.Count, positionsX.Count];
+                Point3[,] upperZX = new Point3[positionsZ.Count, positionsX.Count];
+                for (int z = 0; z < positionsZ.Count; ++z)
                 {
-                    for (int z = 0; z < positionsZ.Count; ++z)
+                    for (int x = 0; x < positionsX.Count; ++x)
                     {
-                        lowerXZ[x, z] = new(positionsX[x], lowerBound.Y, positionsZ[z]);
-                        upperXZ[x, z] = new(positionsX[x], upperBound.Y, positionsZ[z]);
+                        lowerZX[z, x] = new(positionsX[x], lowerBound.Y, positionsZ[z]);
+                        upperZX[z, x] = new(positionsX[x], upperBound.Y, positionsZ[z]);
                     }
                 }
-                AddSide(ref triangles, lowerXZ, (Vector.UnitY, Vector.UnitX, Vector.UnitZ), thickness);
-                AddSide(ref triangles, upperXZ, (-Vector.UnitY, Vector.UnitX, Vector.UnitZ), thickness);
+                AddSide(ref triangles, lowerZX, (Vector.UnitY, Vector.UnitZ, Vector.UnitX), thickness);
+                AddSide(ref triangles, upperZX, (-Vector.UnitY, Vector.UnitZ, Vector.UnitX), thickness);
             }
 
             // YZ sides
@@ -96,17 +97,18 @@
                         triangles.Add(triangle(dir2, p10 + thickness, p00 + thickness, p10));
                         triangles.Add(triangle(-dir2, p01, p01 + thickness, p11));
                         triangles.Add(triangle(-dir2, p11 + thickness, p11, p01 + thickness));
-                        triangles.Add(triangle(dir1, p00, p01, p00 + thickness));
-                        triangles.Add(triangle(dir1, p01 + thickness, p00 + thickness, p01));
-                        triangles.Add(triangle(-dir1, p10, p10 + thickness, p11));
-                        triangles.Add(triangle(-dir1, p11 + thickness, p11, p10 + thickness));
+                        // Flip i and j, and reverse the order
+                        triangles.Add(triangle(dir1, p00, p00 + thickness, p01));
+                        triangles.Add(triangle(dir1, p01 + thickness, p01, p00 + thickness));
+                        triangles.Add(triangle(-dir1, p10, p11, p10 + thickness));
+                        triangles.Add(triangle(-dir1, p11 + thickness, p10 + thickness, p11));
                     }
                     else
                     {
                         if (i != 0 && j != 0 && i != points.GetLength(0) - 2 && j != points.GetLength(1) - 2)
                         {
-                            triangles.Add(triangle(normal, p00, p01, p10));
-                            triangles.Add(triangle(normal, p11, p10, p01));
+                            triangles.Add(triangle(normal, p00, p10, p01));
+                            triangles.Add(triangle(normal, p11, p01, p10));
                         }
                         triangles.Add(triangle(-normal, p00 + thickness, p01 + thickness, p10 + thickness));
                         triangles.Add(triangle(-normal, p11 + thickness, p10 + thickness, p01 + thickness));
