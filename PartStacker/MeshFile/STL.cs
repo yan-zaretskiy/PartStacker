@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
 using PartStacker.Geometry;
 
 namespace PartStacker.MeshFile
@@ -43,15 +43,34 @@ namespace PartStacker.MeshFile
             }
             else // Binary STL
             {
-                IntPtr ptr = Marshal.AllocHGlobal(50);
-
+                byte[] buff = new byte[50];
                 while (tCount-- > 0)
                 {
-                    Marshal.Copy(br.ReadBytes(50), 0, ptr, 50);
-                    triangles.Add((Triangle)Marshal.PtrToStructure(ptr, typeof(Triangle)));
+                    br.Read(buff, 0, 50);
+                    // This is very verbose, but it's fast
+                    triangles.Add(new Triangle(
+                        new Vector(
+                            Unsafe.As<byte, float>(ref buff[4 * 0]),
+                            Unsafe.As<byte, float>(ref buff[4 * 1]),
+                            Unsafe.As<byte, float>(ref buff[4 * 2])
+                        ),
+                        new Point3(
+                            Unsafe.As<byte, float>(ref buff[4 * 3]),
+                            Unsafe.As<byte, float>(ref buff[4 * 4]),
+                            Unsafe.As<byte, float>(ref buff[4 * 5])
+                        ),
+                        new Point3(
+                            Unsafe.As<byte, float>(ref buff[4 * 6]),
+                            Unsafe.As<byte, float>(ref buff[4 * 7]),
+                            Unsafe.As<byte, float>(ref buff[4 * 8])
+                        ),
+                        new Point3(
+                            Unsafe.As<byte, float>(ref buff[4 * 9]),
+                            Unsafe.As<byte, float>(ref buff[4 * 10]),
+                            Unsafe.As<byte, float>(ref buff[4 * 11])
+                        )
+                    ));
                 }
-
-                Marshal.FreeHGlobal(ptr);
                 br.Close();
             }
 
@@ -60,26 +79,29 @@ namespace PartStacker.MeshFile
 
         public static void To(Mesh mesh, string toFile)
         {
-            BinaryWriter bw = new BinaryWriter(new FileStream(toFile, FileMode.OpenOrCreate));
-
-            for (int i = 0; i < 80; i++)
-                bw.Write((byte)0);
-
-            int test = Marshal.SizeOf(typeof(Triangle));
-
-            bw.Write((uint)mesh.Triangles.Count);
-
-            byte[] buff = new byte[50];
-            GCHandle handle = GCHandle.Alloc(buff, GCHandleType.Pinned);
-
-            foreach (Triangle t in mesh.Triangles)
+            using (BinaryWriter bw = new BinaryWriter(new FileStream(toFile, FileMode.OpenOrCreate)))
             {
-                Marshal.StructureToPtr(t, handle.AddrOfPinnedObject(), false);
-                bw.Write(buff);
+                for (int i = 0; i < 80; i++)
+                    bw.Write((byte)0);
+                bw.Write((uint)mesh.Triangles.Count);
+                byte[] buff = new byte[50];
+                foreach (Triangle t in mesh.Triangles)
+                {
+                    Unsafe.As<byte, float>(ref buff[4 * 0]) = (float)t.Normal.X;
+                    Unsafe.As<byte, float>(ref buff[4 * 1]) = (float)t.Normal.Y;
+                    Unsafe.As<byte, float>(ref buff[4 * 2]) = (float)t.Normal.Z;
+                    Unsafe.As<byte, float>(ref buff[4 * 3]) = (float)t.v1.X;
+                    Unsafe.As<byte, float>(ref buff[4 * 4]) = (float)t.v1.Y;
+                    Unsafe.As<byte, float>(ref buff[4 * 5]) = (float)t.v1.Z;
+                    Unsafe.As<byte, float>(ref buff[4 * 6]) = (float)t.v2.X;
+                    Unsafe.As<byte, float>(ref buff[4 * 7]) = (float)t.v2.Y;
+                    Unsafe.As<byte, float>(ref buff[4 * 8]) = (float)t.v2.Z;
+                    Unsafe.As<byte, float>(ref buff[4 * 9]) = (float)t.v3.X;
+                    Unsafe.As<byte, float>(ref buff[4 * 10]) = (float)t.v3.Y;
+                    Unsafe.As<byte, float>(ref buff[4 * 11]) = (float)t.v3.Z;
+                    bw.Write(buff);
+                }
             }
-
-            handle.Free();
-            bw.Close();
         }
     }
 }
