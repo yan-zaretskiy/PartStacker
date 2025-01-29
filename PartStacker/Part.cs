@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,8 +10,6 @@ using PartStacker.Geometry;
 
 namespace PartStacker
 {
-    delegate void Rotation(Mesh original);
-
     [Serializable]
     public class Part : ListViewItem, ISerializable
     {

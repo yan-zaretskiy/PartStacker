@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -29,12 +29,8 @@ namespace PartStacker
         NumericUpDown Clearance, Spacing, Thickness, BWidth;
         NumericUpDown xMin, xMax, yMin, yMax, zMin, zMax;
 
-        Thread StackerThread;
-        bool StackerThreadRunning = false;
-
-        Mesh result;
-
-        Rotation[][] RotationSets = new Rotation[3][];
+        PartStacker? Stacker;
+        Mesh? LastResult;
 
         ToolStripMenuItem ImportMenu, ExportMenu;
 
@@ -53,16 +49,7 @@ namespace PartStacker
             Text = "PartStacker 1.0 - Tom van der Zanden";
 
             // Abort stacking when program is closed
-            this.FormClosing += (o, e) => {
-                if (StackerThreadRunning)
-                {
-                    StackerThreadRunning = false;
-                    StackerThread.Join();
-                }
-            };
-
-            // Set up the array containing rotations
-            LoadRotations();
+            this.FormClosing += (o, e) => { Stacker?.Stop(); };
 
             // Menustrip for saving etc.
             MenuStrip menu = new MenuStrip();
@@ -647,65 +634,11 @@ namespace PartStacker
 
             try
             {
-                STL.To(result, select.FileName);
+                STL.To(LastResult, select.FileName);
             }
             catch
             {
                 MessageBox.Show("Error writing to file " + select.FileName + "!", "File error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        public void LoadRotations()
-        {
-            // No rotation
-            RotationSets[0] = new Rotation[] { (Mesh m) => { } };
-
-            // Cubic rotations
-            RotationSets[1] = new Rotation[]
-            {
-                (Mesh m) => { },
-                (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 90); },
-                (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 180); },
-                (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 270); },
-                (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 90); },
-                (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 180); },
-                (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 270); },
-                (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 90); },
-                (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 180); },
-                (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 270); },
-                (Mesh m) => { m.Rotate(new Vector(1, 1, 0), 180); },
-                (Mesh m) => { m.Rotate(new Vector(1, -1, 0), 180); },
-                (Mesh m) => { m.Rotate(new Vector(0, 1, 1), 180); },
-                (Mesh m) => { m.Rotate(new Vector(0, -1, 1), 180); },
-                (Mesh m) => { m.Rotate(new Vector(1, 0, 1), 180); },
-                (Mesh m) => { m.Rotate(new Vector(1, 0, -1), 180); },
-                (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 120); },
-                (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 240); },
-                (Mesh m) => { m.Rotate(new Vector(-1, 1, 1), 120); },
-                (Mesh m) => { m.Rotate(new Vector(-1, 1, 1), 240); },
-                (Mesh m) => { m.Rotate(new Vector(1, -1, 1), 120); },
-                (Mesh m) => { m.Rotate(new Vector(1, -1, 1), 240); },
-                (Mesh m) => { m.Rotate(new Vector(1, 1, -1), 120); },
-                (Mesh m) => { m.Rotate(new Vector(1, 1, -1), 240); }
-            };
-            
-            //TODO: arbitrary rotations
-            RotationSets[2] = new Rotation[32];
-
-            RotationSets[2][0] = (Mesh m) => { };
-            RotationSets[2][1] = (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 120); };
-            RotationSets[2][2] = (Mesh m) => { m.Rotate(new Vector(1, 1, 1), 240); };
-            RotationSets[2][3] = (Mesh m) => { m.Rotate(new Vector(1, 0, 0), 180); };
-            RotationSets[2][4] = (Mesh m) => { m.Rotate(new Vector(0, 1, 0), 180); };
-            RotationSets[2][5] = (Mesh m) => { m.Rotate(new Vector(0, 0, 1), 180); };
-
-            Random r = new Random();
-            for (int i = 6; i < 32; i++)
-            {
-                double rx = r.NextDouble() * 360;
-                double ry = r.NextDouble() * 360;
-                double rz = r.NextDouble() * 360;
-                RotationSets[2][i] = (Mesh m) => { m.Rotate(new Vector(1, 0, 0), rx); m.Rotate(new Vector(0, 1, 0), ry); m.Rotate(new Vector(0, 0, 1), rz); };
             }
         }
 
@@ -867,9 +800,18 @@ namespace PartStacker
             this.MinimumClearance.Enabled = true;
         }
 
+        public void SetProgress(double progress, double total)
+        {
+            var func = () => Progress.Value = (int)(100 * progress / total);
+            if (Progress.InvokeRequired)
+                Invoke(func);
+            else
+                func();
+        }
         public void StartHandler(object o, EventArgs ea)
         {
-            if (!StackerThreadRunning)
+            bool running = Stacker?.Running ?? false;
+            if (!running)
             {
                 var (_, modelTriangles, _) = PartsList.Totals();
 
@@ -884,17 +826,28 @@ namespace PartStacker
 
                 DisableButtons();
 
-                result = new Mesh(modelTriangles + 2);
-
-                baseParts = PartsList.AllParts().ToArray();
+                var baseParts = PartsList.AllParts().ToArray();
                 foreach (Part part in baseParts)
                 {
                     part.Remaining = part.Quantity;
                 }
 
-                StackerThread = new Thread(Stacker);
-                StackerThreadRunning = true;
-                StackerThread.Start();
+                PartStacker.Parameters parameters = new()
+                {
+                    InitialTriangles = modelTriangles + 2,
+                    BaseParts = baseParts,
+
+                    SetProgress = SetProgress,
+                    FinishStacking = (bool b, Mesh m) => this.Invoke(() => FinishStacking(b, m)),
+                    DisplayMesh = (Mesh m, int x, int y, int z) => this.Invoke(() => { Display3D.SetMesh(m); Display3D.BB = new Microsoft.Xna.Framework.Vector3(x, y, z); }),
+                    Resolution = (double)MinimumClearance.Value,
+
+                    xMin = (double)xMin.Value, xMax = (double)xMax.Value,
+                    yMin = (double)yMin.Value, yMax = (double)yMax.Value,
+                    zMin = (double)zMin.Value, zMax = (double)zMax.Value,
+                };
+
+                Stacker = new(parameters);
             }
             else
             {
@@ -902,17 +855,18 @@ namespace PartStacker
                 if (confirm != DialogResult.Yes)
                     return;
 
-                StackerThreadRunning = false;
-                StackerThread.Join();
+                Stacker?.Stop();
+                Stacker = null;
 
                 EnableButtons();
                 Progress.Value = 0;
             }
         }
-        public void FinishStacking(bool succeeded)
+        public void FinishStacking(bool succeeded, Mesh result)
         {
             if (succeeded)
             {
+                LastResult = result;
                 result.CalcBox();
                 if (EnableSinterbox.Checked)
                 {
