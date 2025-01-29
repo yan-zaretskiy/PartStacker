@@ -828,7 +828,7 @@ namespace PartStacker
                 PartStacker.Parameters parameters = new()
                 {
                     InitialTriangles = modelTriangles + 2,
-                    Parts = PartsList.AllParts().Select(part => part.Properties).ToArray(),
+                    Parts = PartsList.AllParts().Select(part => part.Properties.Clone()).ToArray(),
 
                     SetProgress = SetProgress,
                     FinishStacking = (bool b, Mesh m) => this.Invoke(() => FinishStacking(b, m)),
