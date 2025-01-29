@@ -10,8 +10,7 @@ using PartStacker.Geometry;
 
 namespace PartStacker
 {
-    [Serializable]
-    public class Part : ListViewItem, ISerializable
+    public class Part : ListViewItem
     {
         public Mesh BasePart;
         public string FileName;
@@ -139,32 +138,6 @@ namespace PartStacker
             }
 
             SetItems();
-        }
-
-        public void GetObjectData(SerializationInfo info, StreamingContext context)
-        {
-            info.AddValue("FileName", FileName);
-            info.AddValue("Quantity", Quantity);
-            info.AddValue("MinHole", MinHole);
-            info.AddValue("RotateMinBox", RotateMinBox);
-            info.AddValue("RotationIndex", RotationIndex);
-            info.AddValue("Mirrored", Mirrored);
-        }
-
-        public Part(SerializationInfo info, StreamingContext context)
-            : base()
-        {
-            if (info == null)
-                throw new ArgumentNullException("info");
-
-            FileName = info.GetString("FileName");
-            Quantity = info.GetInt32("Quantity");
-            MinHole = info.GetInt32("MinHole");
-            RotateMinBox = info.GetBoolean("RotateMinBox");
-            RotationIndex = info.GetInt32("RotationIndex");
-            Mirrored = info.GetBoolean("Mirrored");
-
-            ReloadFile();
         }
     }
 }
