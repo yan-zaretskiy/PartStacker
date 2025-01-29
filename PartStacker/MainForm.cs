@@ -331,90 +331,10 @@ namespace PartStacker
             };
             Arbitrary.Click += RotationHandler;
             rotations.Controls.Add(Arbitrary);
-            
-            Tabs.TabPages.Add("Sinterbox");
-            TabPage SinterboxTab = Tabs.TabPages[1];
-            caption = new Label()
-            {
-                Text = "Clearance: ",
-                Location = new Point(10, 25) - new Size(5, 15)
-            };
-            SinterboxTab.Controls.Add(caption);
-            Clearance = new NumericUpDown()
-            {
-                Minimum = (decimal)0.1,
-                Maximum = 4,
-                Location = new Point(120, 22) - new Size(5, 15),
-                Width = 50,
-                Value = (decimal)0.8,
-                Increment = (decimal)0.1,
-                DecimalPlaces = 1
-            };
-            SinterboxTab.Controls.Add(Clearance);
-            caption = new Label()
-            {
-                Text = "Spacing: ",
-                Location = new Point(10, 50) - new Size(5, 15)
-            };
-            SinterboxTab.Controls.Add(caption);
-            Spacing = new NumericUpDown()
-            {
-                Minimum = 1,
-                Maximum = 20,
-                Location = new Point(120, 47) - new Size(5, 15),
-                Width = 50,
-                Value = 6,
-                Increment = (decimal)0.5,
-                DecimalPlaces = 1
-            };
-            SinterboxTab.Controls.Add(Spacing);
-            caption = new Label()
-            {
-                Text = "Thickness: ",
-                Location = new Point(10, 75) - new Size(5, 15)
-            };
-            SinterboxTab.Controls.Add(caption);
-            Thickness = new NumericUpDown()
-            {
-                Minimum = (decimal)0.1,
-                Maximum = 4,
-                Location = new Point(120, 72) - new Size(5, 15),
-                Width = 50,
-                Value = (decimal)0.8,
-                Increment = (decimal)0.1,
-                DecimalPlaces = 1
-            };
-            SinterboxTab.Controls.Add(Thickness);
-            caption = new Label()
-            {
-                Text = "Width: ",
-                Location = new Point(10, 100) - new Size(5, 15)
-            };
-            SinterboxTab.Controls.Add(caption);
-            BWidth = new NumericUpDown()
-            {
-                Minimum = (decimal)0.1,
-                Maximum = 4,
-                Location = new Point(120, 97) - new Size(5, 15),
-                Width = 50,
-                Value = (decimal)1.1,
-                Increment = (decimal)0.1,
-                DecimalPlaces = 1
-            };
-            SinterboxTab.Controls.Add(BWidth);
-            caption = new Label()
-            {
-                Text = "Generate sinterbox: ",
-                Location = new Point(180, 22) - new Size(5, 15)
-            };
-            SinterboxTab.Controls.Add(caption);
-            EnableSinterbox = new CheckBox()
-            {
-                Location = new Point(300, 18) - new Size(5, 15),
-                Checked = true
-            };
-            SinterboxTab.Controls.Add(EnableSinterbox);
-            
+
+            TabPage sinterboxTab = MakeSinterboxTab(out Clearance, out Spacing, out Thickness, out BWidth, out EnableSinterbox);
+            Tabs.TabPages.Add(sinterboxTab);
+
             Tabs.TabPages.Add("Bounding Box");
             TabPage BBTab = Tabs.TabPages[2];
             caption = new Label()
@@ -539,6 +459,82 @@ namespace PartStacker
             PresetBox.Items.Add("P2 110x110");
             PresetBox.SelectedIndex = 0;
             PresetBox.SelectedIndexChanged += loadBBPreset;
+        }
+
+        private static TabPage MakeSinterboxTab(out NumericUpDown Clearance, out NumericUpDown Spacing, out NumericUpDown Thickness, out NumericUpDown Width, out CheckBox EnableSinterbox)
+        {
+            TabPage tab = new TabPage("Sinterbox");
+
+            TableLayoutPanel panel = new TableLayoutPanel()
+            {
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                AutoSize = true,
+                Dock = DockStyle.Fill,
+                RowCount = 4,
+                ColumnCount = 4,
+                Margin = new Padding(0),
+                Padding = new Padding(0, 6, 0, 6),
+            };
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            tab.Controls.Add(panel);
+
+            var makeLabel = (string text) => new Label()
+            {
+                Text = text,
+                Anchor = AnchorStyles.Left,
+                Padding = new Padding(3),
+            };
+            var makeNumericUpDown = (double minimum, double maximum, double value, double increment) => new NumericUpDown()
+            {
+                Minimum = (decimal)minimum,
+                Maximum = (decimal)maximum,
+                Width = 50,
+                Value = (decimal)value,
+                Increment = (decimal)increment,
+                DecimalPlaces = 1,
+                Anchor = AnchorStyles.Right,
+                Margin = new Padding(9, 1, 0, 0),
+            };
+
+            panel.Controls.Add(makeLabel("Clearance:"), 0, 0);
+            Clearance = makeNumericUpDown(0.1, 4, 0.8, 0.1);
+            panel.Controls.Add(Clearance, 1, 0);
+
+            panel.Controls.Add(makeLabel("Spacing:"), 0, 1);
+            Spacing = makeNumericUpDown(1, 20, 6, 0.5);
+            panel.Controls.Add(Spacing, 1, 1);
+
+            panel.Controls.Add(makeLabel("Thickness:"), 0, 2);
+            Thickness = makeNumericUpDown(0.1, 4, 0.8, 0.1);
+            panel.Controls.Add(Thickness, 1, 2);
+
+            panel.Controls.Add(makeLabel("Width:"), 0, 3);
+            Width = makeNumericUpDown(0.1, 4, 1.1, 0.1);
+            panel.Controls.Add(Width, 1, 3);
+
+            var caption = new Label()
+            {
+                Text = "Generate sinterbox:",
+                Anchor = AnchorStyles.Left,
+                Padding = new Padding(10, 3, 0, 3),
+                Width = 120,
+            };
+            panel.Controls.Add(caption, 2, 0);
+            EnableSinterbox = new CheckBox()
+            {
+                Anchor = AnchorStyles.Left,
+                Checked = true
+            };
+            panel.Controls.Add(EnableSinterbox, 3, 0);
+
+            return tab;
         }
 
         public void CopyHandler(object o, EventArgs ea)
