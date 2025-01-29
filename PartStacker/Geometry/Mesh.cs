@@ -1,7 +1,7 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using PartStacker.Geometry;
 
-namespace PartStacker
+namespace PartStacker.Geometry
 {
     public class Mesh
     {
@@ -49,21 +49,11 @@ namespace PartStacker
             return box;
         }
 
-        public bool TranslateAndAdd(Mesh target, Vector offset)
+        public bool Add(Mesh source, Vector offset)
         {
-            bool ok = true;
-
-            int originalCount = target.Triangles.Count;
-            foreach (Triangle t in Triangles)
-            {
-                target._triangles.Add(new Triangle(t.Normal, t.Vertices[0] + offset, t.Vertices[1] + offset, t.Vertices[2] + offset));
-
-                //for (int i = 0; i < originalCount; i++)
-                    //if (target.Triangles[i].triangle_intersect(target.Triangles[target.Triangles.Count - 1]))
-                        //ok = false;
-            }
-
-            return ok;
+            var toAdd = source._triangles.Select(t => t.Translated(offset));
+            _triangles.AddRange(toAdd);
+            return true;
         }
 
         public int Voxelize(int[, ,] voxels, int index, int carverSize)
