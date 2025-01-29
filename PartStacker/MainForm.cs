@@ -661,8 +661,7 @@ namespace PartStacker
             if (!PartQuantity.Enabled)
                 return;
 
-            PartsList.SelectedItem.Properties.Quantity = (int)PartQuantity.Value;
-            PartsList.SelectedItem.SetItems();
+            PartsList.SelectedItem.SetQuantity((int)PartQuantity.Value);
 
             SetText();
         }
