@@ -441,24 +441,6 @@ namespace PartStacker
                 DecimalPlaces = 0
             };
             BBTab.Controls.Add(zMax);
-            
-            ComboBox PresetBox = new ComboBox()
-            {
-                Location = new Point(10, 85),
-                Width = 200,
-                DropDownStyle = ComboBoxStyle.DropDownList
-            };
-            BBTab.Controls.Add(PresetBox);
-            PresetBox.Items.Add("Load Preset");
-            PresetBox.Items.Add("P1 130x105");
-            PresetBox.Items.Add("P1 65x105");
-            PresetBox.Items.Add("P1 86x105");
-            PresetBox.Items.Add("P2 165x165");
-            PresetBox.Items.Add("P2 82x165");
-            PresetBox.Items.Add("P2 82x82");
-            PresetBox.Items.Add("P2 110x110");
-            PresetBox.SelectedIndex = 0;
-            PresetBox.SelectedIndexChanged += loadBBPreset;
         }
 
         private static TabPage MakeSinterboxTab(out NumericUpDown Clearance, out NumericUpDown Spacing, out NumericUpDown Thickness, out NumericUpDown Width, out CheckBox EnableSinterbox)
@@ -684,34 +666,6 @@ namespace PartStacker
             int[,,] voxels_temp = new int[mesh.box.Item1, mesh.box.Item2, mesh.box.Item3];
             int volume = mesh.Voxelize(voxels_temp, 1, (int)MinHole.Value);
             Display3D.SetMeshWithVoxels(mesh, voxels_temp, volume);
-        }
-
-        public void loadBBPreset(object o, EventArgs ea)
-        {
-            ComboBox box = (ComboBox) o;
-            if (box.SelectedIndex != 0)
-            {
-                string[] strArray = box.GetItemText(box.SelectedItem).Split(new char[] { ' ', 'x' });
-                int num = int.Parse(strArray[1]);
-                int num2 = int.Parse(strArray[2]);
-                xMin.Value = num - 7;
-                yMin.Value = num2 - 7;
-                xMax.Value = num - 4;
-                yMax.Value = num2 - 4;
-                int minimum = (int) zMin.Minimum;
-                PartsList.ForEachItem(part =>
-                {
-                    Tuple<int, int, int> tuple = part.Properties.BaseMesh.CalcBox();
-                    minimum = Math.Max(minimum, 1 + Math.Min(tuple.Item1, Math.Min(tuple.Item2, tuple.Item3)));
-                });
-                var (_, _, volume) = PartsList.Totals();
-                if (volume == 0)
-                {
-                    volume = 1000;
-                }
-                zMin.Value = Math.Min(zMin.Maximum, Math.Max(minimum, (decimal) ((((double) volume) / 0.135) / ((double) (num * num2)))));
-                zMax.Value = Math.Max(zMax.Minimum, Math.Min(zMax.Maximum, 2M * ((decimal) ((((double) volume) / 0.15) / ((double) (num * num2))))));
-            }
         }
 
         public void ImportHandler(object o, EventArgs ea)
