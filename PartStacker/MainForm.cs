@@ -647,7 +647,7 @@ namespace PartStacker
             if (!None.Enabled || !Cubic.Enabled || !Arbitrary.Enabled)
                 return;
 
-            ref int index = ref PartsList.SelectedItem.RotationIndex;
+            ref int index = ref PartsList.SelectedItem.Properties.RotationIndex;
             if (None.Checked)
                 index = 0;
             else if (Cubic.Checked)
@@ -661,7 +661,7 @@ namespace PartStacker
             if (!PartQuantity.Enabled)
                 return;
 
-            PartsList.SelectedItem.Quantity = (int)PartQuantity.Value;
+            PartsList.SelectedItem.Properties.Quantity = (int)PartQuantity.Value;
             PartsList.SelectedItem.SetItems();
 
             SetText();
@@ -672,7 +672,7 @@ namespace PartStacker
             if (!MinHole.Enabled)
                 return;
 
-            PartsList.SelectedItem.MinHole = (int)MinHole.Value;
+            PartsList.SelectedItem.Properties.MinHole = (int)MinHole.Value;
         }
 
         public void RotateMinBoxHandler(object o, EventArgs ea)
@@ -680,12 +680,12 @@ namespace PartStacker
             if (!RotateMinBox.Enabled)
                 return;
 
-            PartsList.SelectedItem.RotateMinBox = RotateMinBox.Checked;
+            PartsList.SelectedItem.Properties.RotateMinBox = RotateMinBox.Checked;
         }
 
         public void PreviewHandler(object o, EventArgs ea)
         {
-            Mesh mesh = PartsList.SelectedItem.BasePart;
+            Mesh mesh = PartsList.SelectedItem.Properties.BaseMesh;
             int[,,] voxels_temp = new int[mesh.box.Item1, mesh.box.Item2, mesh.box.Item3];
             int volume = mesh.Voxelize(voxels_temp, 1, (int)MinHole.Value);
             Display3D.SetMeshWithVoxels(mesh, voxels_temp, volume);
@@ -706,7 +706,7 @@ namespace PartStacker
                 int minimum = (int) zMin.Minimum;
                 PartsList.ForEachItem(part =>
                 {
-                    Tuple<int, int, int> tuple = part.BasePart.CalcBox();
+                    Tuple<int, int, int> tuple = part.Properties.BaseMesh.CalcBox();
                     minimum = Math.Max(minimum, 1 + Math.Min(tuple.Item1, Math.Min(tuple.Item2, tuple.Item3)));
                 });
                 var (_, _, volume) = PartsList.Totals();
@@ -826,16 +826,10 @@ namespace PartStacker
 
                 DisableButtons();
 
-                var baseParts = PartsList.AllParts().ToArray();
-                foreach (PartsListItem part in baseParts)
-                {
-                    part.Remaining = part.Quantity;
-                }
-
                 PartStacker.Parameters parameters = new()
                 {
                     InitialTriangles = modelTriangles + 2,
-                    BaseParts = baseParts,
+                    Parts = PartsList.AllParts().Select(part => part.Properties).ToArray(),
 
                     SetProgress = SetProgress,
                     FinishStacking = (bool b, Mesh m) => this.Invoke(() => FinishStacking(b, m)),
@@ -912,27 +906,29 @@ namespace PartStacker
 
             if (PartsList.SelectedItemCount == 1)
             {
-                Change.Enabled = true;
-                if(PartsList.SelectedItem.BasePart != null)
-                    Display3D.SetMesh(PartsList.SelectedItem.BasePart);
+                PartsListItem part = PartsList.SelectedItem;
 
-                MinHole.Value = PartsList.SelectedItem.MinHole;
+                Change.Enabled = true;
+                if(part.Properties.BaseMesh != null)
+                    Display3D.SetMesh(part.Properties.BaseMesh);
+
+                MinHole.Value = part.Properties.MinHole;
                 MinHole.Enabled = true;
 
-                PartQuantity.Value = PartsList.SelectedItem.Quantity;
+                PartQuantity.Value = part.Properties.Quantity;
                 PartQuantity.Enabled = true;
 
-                RotateMinBox.Checked = PartsList.SelectedItem.RotateMinBox;
+                RotateMinBox.Checked = part.Properties.RotateMinBox;
                 RotateMinBox.Enabled = true;
 
                 CopyMirror.Enabled = true;
 
-                if(PartsList.SelectedItem.BasePart != null)
+                if(part.Properties.BaseMesh != null)
                     Preview.Enabled = true;
 
-                if (PartsList.SelectedItem.RotationIndex == 0)
+                if (part.Properties.RotationIndex == 0)
                     None.Checked = true;
-                else if (PartsList.SelectedItem.RotationIndex == 1)
+                else if (part.Properties.RotationIndex == 1)
                     Cubic.Checked = true;
                 else
                     Arbitrary.Checked = true;

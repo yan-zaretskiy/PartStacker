@@ -1,5 +1,3 @@
-using System.Windows.Forms;
-using PartStacker.FormComponents;
 using PartStacker.Geometry;
 
 namespace PartStacker
@@ -15,7 +13,7 @@ namespace PartStacker
             // `Parameters` must be a class, not a struct, because of reference semantics
 
             public required int InitialTriangles;
-            public required PartsListItem[] BaseParts;
+            public required PartProperties[] Parts;
 
             public required Action<double, double> SetProgress;
             public required Action<bool, Mesh> FinishStacking;
@@ -67,30 +65,30 @@ namespace PartStacker
 
         private bool? Stacker_Sub()
         {
-            Params.BaseParts = Params.BaseParts.OrderBy(p => p.Volume).ToArray();
+            Params.Parts = Params.Parts.OrderBy(p => p.Volume).ToArray();
             Result = new Mesh(Params.InitialTriangles);
 
             double triangles = 0;
             double scale = 1 / Params.Resolution;
             int totalParts = 0;
 
-            foreach (PartsListItem p in Params.BaseParts)
+            foreach (var p in Params.Parts)
             {
-                triangles += p.Triangles * RotationSets[p.RotationIndex].Length;
+                triangles += p.TriangleCount * RotationSets[p.RotationIndex].Length;
                 totalParts += p.Quantity;
             }
 
-            Meshes = new Mesh[Params.BaseParts.Length][];
-            Voxels = new int[Params.BaseParts.Length][, ,];
+            Meshes = new Mesh[Params.Parts.Length][];
+            Voxels = new int[Params.Parts.Length][, ,];
 
             double progress = 0;
-            for (int i = 0; i < Params.BaseParts.Length; i++)
+            for (int i = 0; i < Params.Parts.Length; i++)
             {
                 Rotation baseRotation = (Mesh m) => { };
 
-                if (Params.BaseParts[i].RotateMinBox)
+                if (Params.Parts[i].RotateMinBox)
                 {
-                    List<Triangle> originalTriangles = Params.BaseParts[i].BasePart.Triangles.ToList();
+                    List<Triangle> originalTriangles = Params.Parts[i].BaseMesh.Triangles.ToList();
 
                     List<Triangle> toRemove = new List<Triangle>();
                     for (int j = 0; j < originalTriangles.Count; j++)
@@ -126,7 +124,7 @@ namespace PartStacker
                 }
 
                 // Set up array of parts
-                Meshes[i] = new Mesh[RotationSets[Params.BaseParts[i].RotationIndex].Length];
+                Meshes[i] = new Mesh[RotationSets[Params.Parts[i].RotationIndex].Length];
 
                 // Track bounding box size
                 int maxBX = 1, maxBY = 1, maxBZ = 1;
@@ -137,9 +135,9 @@ namespace PartStacker
                     if (!Running)
                         return null;
 
-                    Mesh thisPart = Params.BaseParts[i].BasePart.Clone();
+                    Mesh thisPart = Params.Parts[i].BaseMesh.Clone();
                     thisPart.Scale(scale);
-                    RotationSets[Params.BaseParts[i].RotationIndex][j](thisPart);
+                    RotationSets[Params.Parts[i].RotationIndex][j](thisPart);
                     baseRotation(thisPart);
 
                     Tuple<int, int, int> max = thisPart.CalcBox();
@@ -147,7 +145,7 @@ namespace PartStacker
 
                     Meshes[i][j] = thisPart;
 
-                    progress += Params.BaseParts[i].Triangles / 2;
+                    progress += Params.Parts[i].TriangleCount / 2;
                     SetProgress(progress, triangles);
                 }
 
@@ -161,10 +159,10 @@ namespace PartStacker
                     if (!Running)
                         return null;
 
-                    Meshes[i][j].Voxelize(Voxels[i], index, Params.BaseParts[i].MinHole);
+                    Meshes[i][j].Voxelize(Voxels[i], index, Params.Parts[i].MinHole);
                     index *= 2;
 
-                    progress += Params.BaseParts[i].Triangles / 2;
+                    progress += Params.Parts[i].TriangleCount / 2;
                     SetProgress(progress, triangles);
                 }
             }
@@ -213,7 +211,7 @@ namespace PartStacker
                                 if (Math.Max(x + minBX, maxX) * Math.Max(y + minBY, maxY) * Math.Max(z + minBZ, maxZ) > best)
                                     continue;
 
-                                Rotation[] rotations = RotationSets[Params.BaseParts[pIndex].RotationIndex];
+                                Rotation[] rotations = RotationSets[Params.Parts[pIndex].RotationIndex];
 
                                 // Calculate which orientations fit in bounding box
                                 int index = 1;
@@ -275,7 +273,7 @@ namespace PartStacker
                     for (int x = Math.Max(0, r - maxY); x <= Math.Min(r, maxX); x++)
                     {
                         int y = r - x;
-                        Rotation[] rotations = RotationSets[Params.BaseParts[p].RotationIndex];
+                        Rotation[] rotations = RotationSets[Params.Parts[p].RotationIndex];
 
                         // Calculate which orientations fit in bounding box
                         int index = 1;
@@ -297,7 +295,8 @@ namespace PartStacker
                                 {
                                     if (!Result.Add(Meshes[p][i], new Vector(x, y, z))) // Add to result
                                     {
-                                        MessageBox.Show("Intersecting triangles error!");
+                                        // Todo: Currently this `if` condition can't be hit
+                                        System.Windows.Forms.MessageBox.Show("Intersecting triangles error!");
                                     }
                                     Place(index, Voxels[p], x, y, z); // Mark voxels as occupied
 
@@ -305,8 +304,8 @@ namespace PartStacker
                                     SetProgress(currentCount, totalParts);
                                     Params.DisplayMesh(Result, maxX, maxY, maxZ);
 
-                                    Params.BaseParts[p].Remaining--; // Move to next instance of part
-                                    if (Params.BaseParts[p].Remaining == 0) // All instances placed, try next part
+                                    Params.Parts[p].Quantity--; // Move to next instance of part
+                                    if (Params.Parts[p].Quantity == 0) // All instances placed, try next part
                                     {
                                         p--;
                                         if (p < 0)

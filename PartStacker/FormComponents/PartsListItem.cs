@@ -6,32 +6,54 @@ namespace PartStacker.FormComponents
 {
     public class PartsListItem : ListViewItem
     {
-        public Mesh BasePart;
+        public PartProperties Properties;
         public string FileName;
-        public double Volume;
-        public int Quantity;
-        public int Remaining;
-        public int Triangles;
-        public int MinHole;
-        public bool RotateMinBox;
-        public int RotationIndex;
-        public bool Mirrored;
+        private bool Mirrored;
 
-        public PartsListItem(string FileName, Mesh BasePart)
+        public PartsListItem(string FileName, Mesh BaseMesh)
             : base()
         {
-            this.BasePart = BasePart;
-            BasePart.CalcBox();
             this.FileName = FileName;
-            this.Volume = BasePart.Volume();
-            this.Triangles = BasePart.Triangles.Count;
-            this.Quantity = 1;
-            this.MinHole = 1;
-            this.RotationIndex = 1;
-            this.RotateMinBox = false;
+            this.Mirrored = false;
+            Initialize(BaseMesh);
+            ExtractCount();
+        }
+
+        private void Initialize(Mesh baseMesh)
+        {
+            Properties = new PartProperties()
+            {
+                BaseMesh = baseMesh.Clone(),
+                Volume = baseMesh.Volume(),
+                TriangleCount = baseMesh.Triangles.Count,
+                Quantity = 1,
+                MinHole = 1,
+                RotationIndex = 1,
+                RotateMinBox = false,
+            };
+
+            if (Mirrored)
+            {
+                Properties.BaseMesh.Mirror();
+            }
+            Properties.BaseMesh.CalcBox();
 
             SetItems();
-            ExtractCount();
+        }
+
+        private void Initialize(string fileName)
+        {
+            Mesh baseMesh;
+            try
+            {
+                baseMesh = STL.From(fileName);
+            }
+            catch
+            {
+                MessageBox.Show($"Error reading file {fileName}!", "File error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            Initialize(baseMesh);
         }
 
         public void SetItems()
@@ -43,13 +65,11 @@ namespace PartStacker.FormComponents
             if(Text.EndsWith(".stl", true, System.Globalization.CultureInfo.CurrentCulture))
                 Text = Text.Substring(0, Text.Length - 4);
 
-            SubItems.Add(Quantity.ToString());
-            SubItems.Add(Math.Round(Volume / 1000, 2).ToString());
-            SubItems.Add(Triangles.ToString());
+            SubItems.Add(Properties.Quantity.ToString());
+            SubItems.Add(Math.Round(Properties.Volume / 1000, 2).ToString());
+            SubItems.Add(Properties.TriangleCount.ToString());
 
-            if (BasePart == null)
-                SubItems.Add("FILE UNREADABLE");
-            else if (Mirrored)
+            if (Mirrored)
                 SubItems.Add("Mirrored");
             else
                 SubItems.Add("");
@@ -60,14 +80,14 @@ namespace PartStacker.FormComponents
             string[] ct = this.Text.Split(new char[] { '(', ')', '.' });
             try
             {
-                this.Quantity = int.Parse(ct[ct.Length - 1]);
+                Properties.Quantity = int.Parse(ct[ct.Length - 1]);
                 SetItems();
             }
             catch
             {
                 try
                 {
-                    this.Quantity = int.Parse(ct[ct.Length - 2]);
+                    Properties.Quantity = int.Parse(ct[ct.Length - 2]);
                     SetItems();
                 }
                 catch
@@ -90,48 +110,23 @@ namespace PartStacker.FormComponents
             if (result != DialogResult.OK)
                 return;
 
-            try
-            {
-                BasePart = STL.From(select.FileName);
-                Mirror();
-                BasePart.CalcBox();
-                this.Volume = BasePart.Volume();
-                this.Triangles = BasePart.Triangles.Count;
-                this.FileName = select.FileName;
-            }
-            catch
-            {
-                MessageBox.Show("Error reading file " + select.FileName + "!", "File error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-
-            SetItems();
-        }
-
-        public void Mirror()
-        {
-            if (!Mirrored) return;
-            BasePart.Mirror();
+            Initialize(select.FileName);
         }
 
         public void ReloadFile()
         {
-            if (!File.Exists(FileName) && File.Exists(Path.GetFileName(FileName))) FileName = Path.GetFullPath(Path.GetFileName(FileName)); // If parts cannot be found in original location, maybe they're in the working directory?
+            // If parts cannot be found in original location, maybe they're in the working directory?
+            if (!File.Exists(FileName) && File.Exists(Path.GetFileName(FileName)))
+                FileName = Path.GetFullPath(Path.GetFileName(FileName));
             
-            try
-            {
-                BasePart = STL.From(FileName);
-                Mirror();
-                BasePart.CalcBox();
-                this.Volume = BasePart.Volume();
-                this.Triangles = BasePart.Triangles.Count;
-            }
-            catch
-            {
-                BasePart = null;
-                MessageBox.Show("Error reading file " + FileName + "! Perhaps it has been moved or renamed?", "File error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+            Initialize(FileName);
+        }
 
-            SetItems();
+        public void Mirror()
+        {
+            Mirrored = !Mirrored;
+            Properties.BaseMesh.Mirror();
+            Properties.BaseMesh.CalcBox();
         }
     }
 }

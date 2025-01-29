@@ -54,10 +54,11 @@ namespace PartStacker.FormComponents
             int parts = 0;
             int triangles = 0;
             double volume = 0;
-            foreach (PartsListItem p in List.Items)
+            foreach (PartsListItem item in List.Items)
             {
+                var p = item.Properties;
                 parts += p.Quantity;
-                triangles += p.Quantity * p.Triangles;
+                triangles += p.Quantity * p.TriangleCount;
                 volume += p.Quantity * p.Volume;
             }
             return (parts, triangles, volume);
@@ -82,19 +83,11 @@ namespace PartStacker.FormComponents
         public void MirrorCopySelectedItem()
         {
             PartsListItem part = SelectedItem;
-            if (part.BasePart == null)
+            if (part.Properties.BaseMesh == null)
                 return;
 
-            PartsListItem copy = new PartsListItem(part.FileName, part.BasePart.Clone());
-
-            copy.Quantity = part.Quantity;
-            copy.RotateMinBox = part.RotateMinBox;
-            copy.RotationIndex = part.RotationIndex;
-            copy.MinHole = part.MinHole;
-            copy.Mirrored = !part.Mirrored;
-
-            copy.SetItems();
-            copy.ReloadFile();
+            PartsListItem copy = new PartsListItem(part.FileName, part.Properties.BaseMesh.Clone());
+            copy.Mirror();
             List.Items.Add(copy);
         }
 
