@@ -13,7 +13,7 @@ namespace PartStacker
     delegate void Rotation(Mesh original);
 
     [Serializable]
-    class Part : ListViewItem, ISerializable
+    public class Part : ListViewItem, ISerializable
     {
         public Mesh BasePart;
         public string FileName;

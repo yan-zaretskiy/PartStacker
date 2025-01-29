@@ -10,6 +10,7 @@ using Microsoft.Xna.Framework.Content;
 using WinFormsContentLoading;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
+using PartStacker.FormComponents;
 using PartStacker.Geometry;
 using PartStacker.MeshFile;
 
@@ -18,7 +19,7 @@ namespace PartStacker
     partial class MainForm : Form
     {
         ModelViewerControl Display3D;
-        ListView PartsList;
+        PartsList PartsList;
         Button Import, Delete, Change, Reload, Start, Preview, Export, CopyMirror;
         NumericUpDown PartQuantity, MinHole, MinimumClearance;
         CheckBox RotateMinBox, EnableSinterbox;
@@ -112,20 +113,8 @@ namespace PartStacker
             Controls.Add(Display3D);
 
             // ListView showing the base STL files
-            PartsList = new ListView()
-            {
-                Location = new Point(ClientSize.Width - 400, 20 + menu.Height),
-                Size = new Size(380, 240),
-                View = View.Details,
-                AllowColumnReorder = true,
-            };
-            PartsList.SelectedIndexChanged += PartSelectHandler;
-            PartsList.Columns.Add("Name", 105);
-            PartsList.Columns.Add("Quantity", 60);
-            PartsList.Columns.Add("Volume", 60);
-            PartsList.Columns.Add("Triangles", 60);
-            PartsList.Columns.Add("Comment", 90);
-            Controls.Add(PartsList);
+            PartsList = new(this, ClientSize.Width, menu.Height);
+            PartsList.SelectedIndexChanged += PartSelectHandler; // Todo, make List not visible
 
             // Buttons for interacting with the list view
             Import = new Button()
@@ -567,25 +556,12 @@ namespace PartStacker
 
         public void CopyHandler(object o, EventArgs ea)
         {
-            if (((Part)PartsList.SelectedItems[0]).BasePart == null)
-                return;
-
-            Part copy = new Part(((Part)PartsList.SelectedItems[0]).FileName, ((Part)PartsList.SelectedItems[0]).BasePart.Clone());
-
-            copy.Quantity = ((Part)PartsList.SelectedItems[0]).Quantity;
-            copy.RotateMinBox = ((Part)PartsList.SelectedItems[0]).RotateMinBox;
-            copy.RotationIndex = ((Part)PartsList.SelectedItems[0]).RotationIndex;
-            copy.MinHole = ((Part)PartsList.SelectedItems[0]).MinHole;
-            copy.Mirrored = !((Part)PartsList.SelectedItems[0]).Mirrored;
-
-            copy.SetItems();
-            copy.ReloadFile();
-            PartsList.Items.Add(copy);
+            PartsList.MirrorCopySelectedItem();
         }
 
         public void NewHandler(object o, EventArgs ea)
         {
-            PartsList.Items.Clear();
+            PartsList.RemoveAll();
         }
 
         public void OpenHandler(object o, EventArgs ea)
@@ -610,10 +586,10 @@ namespace PartStacker
                 List<Part> items = (List<Part>)bformatter.Deserialize(stream);
                 stream.Close();
 
-                PartsList.Items.Clear();
+                PartsList.RemoveAll();
 
                 foreach (Part item in items)
-                    PartsList.Items.Add(item);
+                    PartsList.Add(item);
 
                 SetText();
             }
@@ -642,10 +618,7 @@ namespace PartStacker
                 BinaryFormatter bformatter = new BinaryFormatter();
 #pragma warning restore SYSLIB0011
 
-                List<Part> temp = new List<Part>(PartsList.Items.Count);
-                foreach (Part p in PartsList.Items)
-                    temp.Add(p);
-
+                List<Part> temp = PartsList.AllParts();
                 bformatter.Serialize(stream, temp);
                 stream.Close();
             }
@@ -741,12 +714,13 @@ namespace PartStacker
             if (!None.Enabled || !Cubic.Enabled || !Arbitrary.Enabled)
                 return;
 
+            ref int index = ref PartsList.SelectedItem.RotationIndex;
             if (None.Checked)
-                ((Part)PartsList.SelectedItems[0]).RotationIndex = 0;
-            else if(Cubic.Checked)
-                ((Part)PartsList.SelectedItems[0]).RotationIndex = 1;
+                index = 0;
+            else if (Cubic.Checked)
+                index = 1;
             else
-                ((Part)PartsList.SelectedItems[0]).RotationIndex = 2;
+                index = 2;
         }
 
         public void PartQuantityHandler(object o, EventArgs ea)
@@ -754,8 +728,8 @@ namespace PartStacker
             if (!PartQuantity.Enabled)
                 return;
 
-            ((Part)PartsList.SelectedItems[0]).Quantity = (int)PartQuantity.Value;
-            ((Part)PartsList.SelectedItems[0]).SetItems();
+            PartsList.SelectedItem.Quantity = (int)PartQuantity.Value;
+            PartsList.SelectedItem.SetItems();
 
             SetText();
         }
@@ -765,7 +739,7 @@ namespace PartStacker
             if (!MinHole.Enabled)
                 return;
 
-            ((Part)PartsList.SelectedItems[0]).MinHole = (int)MinHole.Value;
+            PartsList.SelectedItem.MinHole = (int)MinHole.Value;
         }
 
         public void RotateMinBoxHandler(object o, EventArgs ea)
@@ -773,12 +747,12 @@ namespace PartStacker
             if (!RotateMinBox.Enabled)
                 return;
 
-            ((Part)PartsList.SelectedItems[0]).RotateMinBox = RotateMinBox.Checked;
+            PartsList.SelectedItem.RotateMinBox = RotateMinBox.Checked;
         }
 
         public void PreviewHandler(object o, EventArgs ea)
         {
-            Mesh mesh = ((Part)PartsList.SelectedItems[0]).BasePart;
+            Mesh mesh = PartsList.SelectedItem.BasePart;
             int[,,] voxels_temp = new int[mesh.box.Item1, mesh.box.Item2, mesh.box.Item3];
             int volume = mesh.Voxelize(voxels_temp, 1, (int)MinHole.Value);
             Display3D.SetMeshWithVoxels(mesh, voxels_temp, volume);
@@ -796,20 +770,19 @@ namespace PartStacker
                 yMin.Value = num2 - 7;
                 xMax.Value = num - 4;
                 yMax.Value = num2 - 4;
-                double num3 = 0;
                 int minimum = (int) zMin.Minimum;
-                foreach (Part part in PartsList.Items)
+                PartsList.ForEachItem(part =>
                 {
-                    num3 += part.Quantity * part.Volume;
                     Tuple<int, int, int> tuple = part.BasePart.CalcBox();
                     minimum = Math.Max(minimum, 1 + Math.Min(tuple.Item1, Math.Min(tuple.Item2, tuple.Item3)));
-                }
-                if (num3 == 0)
+                });
+                var (_, _, volume) = PartsList.Totals();
+                if (volume == 0)
                 {
-                    num3 = 1000;
+                    volume = 1000;
                 }
-                zMin.Value = Math.Min(zMin.Maximum, Math.Max(minimum, (decimal) ((((double) num3) / 0.135) / ((double) (num * num2)))));
-                zMax.Value = Math.Max(zMax.Minimum, Math.Min(zMax.Maximum, 2M * ((decimal) ((((double) num3) / 0.15) / ((double) (num * num2))))));
+                zMin.Value = Math.Min(zMin.Maximum, Math.Max(minimum, (decimal) ((((double) volume) / 0.135) / ((double) (num * num2)))));
+                zMax.Value = Math.Max(zMax.Minimum, Math.Min(zMax.Maximum, 2M * ((decimal) ((((double) volume) / 0.15) / ((double) (num * num2))))));
             }
         }
 
@@ -832,12 +805,11 @@ namespace PartStacker
                 {
                     Part p = new Part(select.FileNames[i], STL.From(select.FileNames[i]));
                     
-                    PartsList.Items.Add(p);
+                    PartsList.Add(p);
                     if (select.FileNames.Length == 1)
                     {
-                        PartsList.SelectedItems.Clear();
+                        PartsList.ClearSelection();
                         p.Selected = true;
-                        PartsList.Select();
                     }
                 }
                 catch
@@ -850,50 +822,39 @@ namespace PartStacker
         }
         public void DeleteHandler(object o, EventArgs ea)
         {
-            DialogResult confirm = MessageBox.Show("Are you sure you want to remove these " + PartsList.SelectedIndices.Count + " parts?", "Confirm delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            int selectedCount = PartsList.SelectedItemCount;
+            string messageFragment = selectedCount == 1 ? "this part" : $"these {selectedCount} parts";
+            DialogResult confirm = MessageBox.Show($"Are you sure you want to remove {messageFragment}?", "Confirm delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
             if (confirm != DialogResult.Yes)
                 return;
 
-            int[] toRemove = new int[PartsList.SelectedIndices.Count];
-            int i = 0;
-            foreach (int index in PartsList.SelectedIndices)
-                toRemove[i++] = index;
-            Array.Sort(toRemove);
-            for (i = toRemove.Length - 1; i >= 0; i--)
-                PartsList.Items.RemoveAt(toRemove[i]);
+            PartsList.RemoveSelectedItems();
 
             SetText();
         }
         public void ChangeHandler(object o, EventArgs ea)
         {
-            ((Part)PartsList.SelectedItems[0]).ChangeFile();
+            PartsList.SelectedItem.ChangeFile();
             PartSelectHandler(null, null);
 
             SetText();
         }
         public void ReloadHandler(object o, EventArgs ea)
         {
-            if (PartsList.SelectedItems.Count > 0)
-                foreach (Part p in PartsList.SelectedItems)
-                    p.ReloadFile();
-            else
-                foreach (Part p in PartsList.Items)
-                    p.ReloadFile();
-
+            PartsList.ReloadSelectedItems();
             SetText();
         }
 
         private void DisableButtons()
         {
             Start.Text = "Stop";
-            PartsList.SelectedItems.Clear();
-            PartsList.Select();
+            PartsList.ClearSelection();
             this.Import.Enabled = false;
             this.ImportMenu.Enabled = false;
             this.Export.Enabled = false;
             this.ExportMenu.Enabled = false;
             this.Reload.Enabled = false;
-            this.PartsList.Enabled = false;
+            this.PartsList.Enable(false);
             this.MinimumClearance.Enabled = false;
         }
         private void EnableButtons()
@@ -902,7 +863,7 @@ namespace PartStacker
             this.Import.Enabled = true;
             this.ImportMenu.Enabled = true;
             this.Reload.Enabled = true;
-            this.PartsList.Enabled = true;
+            this.PartsList.Enable(true);
             this.MinimumClearance.Enabled = true;
         }
 
@@ -910,9 +871,7 @@ namespace PartStacker
         {
             if (!StackerThreadRunning)
             {
-                int modelTriangles = 0;
-                foreach(Part p in PartsList.Items)
-                    modelTriangles += p.Quantity * p.Triangles;
+                var (_, modelTriangles, _) = PartsList.Totals();
 
                 if (modelTriangles == 0)
                     return;
@@ -927,11 +886,10 @@ namespace PartStacker
 
                 result = new Mesh(modelTriangles + 2);
 
-                baseParts = new Part[PartsList.Items.Count];
-                for (int i = 0; i < baseParts.Length; i++)
+                baseParts = PartsList.AllParts().ToArray();
+                foreach (Part part in baseParts)
                 {
-                    baseParts[i] = (Part)(PartsList.Items[i]);
-                    baseParts[i].Remaining = baseParts[i].Quantity;
+                    part.Remaining = part.Quantity;
                 }
 
                 StackerThread = new Thread(Stacker);
@@ -998,29 +956,29 @@ namespace PartStacker
             Cubic.Enabled = false;
             Arbitrary.Enabled = false;
 
-            if (PartsList.SelectedIndices.Count == 1)
+            if (PartsList.SelectedItemCount == 1)
             {
                 Change.Enabled = true;
-                if(((Part)PartsList.SelectedItems[0]).BasePart != null)
-                    Display3D.SetMesh(((Part)PartsList.SelectedItems[0]).BasePart);
+                if(PartsList.SelectedItem.BasePart != null)
+                    Display3D.SetMesh(PartsList.SelectedItem.BasePart);
 
-                MinHole.Value = ((Part)PartsList.SelectedItems[0]).MinHole;
+                MinHole.Value = PartsList.SelectedItem.MinHole;
                 MinHole.Enabled = true;
 
-                PartQuantity.Value = ((Part)PartsList.SelectedItems[0]).Quantity;
+                PartQuantity.Value = PartsList.SelectedItem.Quantity;
                 PartQuantity.Enabled = true;
 
-                RotateMinBox.Checked = ((Part)PartsList.SelectedItems[0]).RotateMinBox;
+                RotateMinBox.Checked = PartsList.SelectedItem.RotateMinBox;
                 RotateMinBox.Enabled = true;
 
                 CopyMirror.Enabled = true;
 
-                if(((Part)PartsList.SelectedItems[0]).BasePart != null)
+                if(PartsList.SelectedItem.BasePart != null)
                     Preview.Enabled = true;
 
-                if (((Part)PartsList.SelectedItems[0]).RotationIndex == 0)
+                if (PartsList.SelectedItem.RotationIndex == 0)
                     None.Checked = true;
-                else if (((Part)PartsList.SelectedItems[0]).RotationIndex == 1)
+                else if (PartsList.SelectedItem.RotationIndex == 1)
                     Cubic.Checked = true;
                 else
                     Arbitrary.Checked = true;
@@ -1029,23 +987,13 @@ namespace PartStacker
                 Cubic.Enabled = true;
                 Arbitrary.Enabled = true;
             }
-            if (PartsList.SelectedIndices.Count > 0)
+            if (PartsList.SelectedItemCount > 0)
                 Delete.Enabled = true;
         }
 
         public void SetText()
         {
-            int parts = 0;
-            int triangles = 0;
-            double volume = 0;
-
-            foreach (Part p in PartsList.Items)
-            {
-                parts += p.Quantity;
-                triangles += p.Quantity * p.Triangles;
-                volume += p.Quantity * p.Volume;
-            }
-
+            var (parts, triangles, volume) = PartsList.Totals();
             InfoLabel.Text = "Parts: " + parts + " - Volume: " + Math.Round(volume / 1000, 1) + " - Triangles: " + triangles;
         }
     }
