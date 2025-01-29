@@ -1,7 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using PartStacker.Geometry;
 
-namespace PartStacker
+namespace PartStacker.Geometry
 {
     public class Mesh
     {
