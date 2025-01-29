@@ -10,13 +10,12 @@ namespace PartStacker.FormComponents
         public string FileName;
         private bool Mirrored;
 
-        public PartsListItem(string FileName, Mesh BaseMesh)
+        public PartsListItem(string fileName, Mesh baseMesh)
             : base()
         {
-            this.FileName = FileName;
-            this.Mirrored = false;
-            Initialize(BaseMesh);
-            ExtractCount();
+            FileName = fileName;
+            Mirrored = false;
+            Initialize(baseMesh);
         }
 
         private void Initialize(Mesh baseMesh)
@@ -43,6 +42,8 @@ namespace PartStacker.FormComponents
 
         private void Initialize(string fileName)
         {
+            FileName = fileName;
+            Mirrored = false;
             Mesh baseMesh;
             try
             {
@@ -56,7 +57,7 @@ namespace PartStacker.FormComponents
             Initialize(baseMesh);
         }
 
-        public void SetItems()
+        private void SetItems()
         {
             string[] fp = FileName.Split(new char[] { '/', '\\' });
 
@@ -64,6 +65,16 @@ namespace PartStacker.FormComponents
             Text = fp[fp.Length - 1];
             if(Text.EndsWith(".stl", true, System.Globalization.CultureInfo.CurrentCulture))
                 Text = Text.Substring(0, Text.Length - 4);
+
+            // Check the last 2 split sections to see if they are an integer
+            var sections = Text.Split(['(', ')', '.']).Reverse().Take(2);
+            foreach (string s in sections)
+            {
+                if (int.TryParse(s, out Properties.Quantity))
+                {
+                    break;
+                }
+            }
 
             SubItems.Add(Properties.Quantity.ToString());
             SubItems.Add(Math.Round(Properties.Volume / 1000, 2).ToString());
@@ -75,27 +86,12 @@ namespace PartStacker.FormComponents
                 SubItems.Add("");
         }
 
-        private void ExtractCount()
+        public void SetQuantity(int quantity)
         {
-            string[] ct = this.Text.Split(new char[] { '(', ')', '.' });
-            try
-            {
-                Properties.Quantity = int.Parse(ct[ct.Length - 1]);
-                SetItems();
-            }
-            catch
-            {
-                try
-                {
-                    Properties.Quantity = int.Parse(ct[ct.Length - 2]);
-                    SetItems();
-                }
-                catch
-                {
-
-                }
-            }
+            Properties.Quantity = quantity;
+            SubItems[1].Text = quantity.ToString();
         }
+
 
         public void ChangeFile()
         {
