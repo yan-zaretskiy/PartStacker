@@ -335,112 +335,8 @@ namespace PartStacker
             TabPage sinterboxTab = MakeSinterboxTab(out Clearance, out Spacing, out Thickness, out BWidth, out EnableSinterbox);
             Tabs.TabPages.Add(sinterboxTab);
 
-            Tabs.TabPages.Add("Bounding Box");
-            TabPage BBTab = Tabs.TabPages[2];
-            caption = new Label()
-            {
-                Text = "Initial X: ",
-                Location = new Point(10, 25) - new Size(5, 15)
-            };
-            BBTab.Controls.Add(caption);
-            xMin = new NumericUpDown()
-            {
-                Minimum = 10,
-                Maximum = 250,
-                Location = new Point(120, 22) - new Size(5, 15),
-                Width = 50,
-                Value = 150,
-                Increment = 1,
-                DecimalPlaces = 0
-            };
-            BBTab.Controls.Add(xMin);
-            caption = new Label()
-            {
-                Text = "Initial Y: ",
-                Location = new Point(10, 50) - new Size(5, 15)
-            };
-            BBTab.Controls.Add(caption);
-            yMin = new NumericUpDown()
-            {
-                Minimum = 10,
-                Maximum = 250,
-                Location = new Point(120, 47) - new Size(5, 15),
-                Width = 50,
-                Value = 150,
-                Increment = 1,
-                DecimalPlaces = 0
-            };
-            BBTab.Controls.Add(yMin);
-            caption = new Label()
-            {
-                Text = "Initial Z: ",
-                Location = new Point(10, 75) - new Size(5, 15)
-            };
-            BBTab.Controls.Add(caption);
-            zMin = new NumericUpDown()
-            {
-                Minimum = 10,
-                Maximum = 250,
-                Location = new Point(120, 72) - new Size(5, 15),
-                Width = 50,
-                Value = 30,
-                Increment = 1,
-                DecimalPlaces = 0
-            };
-            BBTab.Controls.Add(zMin);
-            //
-            //
-            caption = new Label()
-            {
-                Text = "Maximum X: ",
-                Location = new Point(10, 25) - new Size(5, 15) + new Size(170, 0)
-            };
-            BBTab.Controls.Add(caption);
-            xMax = new NumericUpDown()
-            {
-                Minimum = 10,
-                Maximum = 250,
-                Location = new Point(120, 22) - new Size(5, 15) + new Size(170, 0),
-                Width = 50,
-                Value = 156,
-                Increment = 1,
-                DecimalPlaces = 0
-            };
-            BBTab.Controls.Add(xMax);
-            caption = new Label()
-            {
-                Text = "Maximum Y: ",
-                Location = new Point(10, 50) - new Size(5, 15) + new Size(170, 0)
-            };
-            BBTab.Controls.Add(caption);
-            yMax = new NumericUpDown()
-            {
-                Minimum = 10,
-                Maximum = 250,
-                Location = new Point(120, 47) - new Size(5, 15) + new Size(170, 0),
-                Width = 50,
-                Value = 156,
-                Increment = 1,
-                DecimalPlaces = 0
-            };
-            BBTab.Controls.Add(yMax);
-            caption = new Label()
-            {
-                Text = "Maximum Z: ",
-                Location = new Point(10, 75) - new Size(5, 15) + new Size(170, 0)
-            };
-            BBTab.Controls.Add(caption);
-            zMax = new NumericUpDown()
-            {
-                Minimum = 10,
-                Maximum = 250,
-                Location = new Point(120, 72) - new Size(5, 15) + new Size(170, 0),
-                Width = 50,
-                Value = 90,
-                Increment = 1,
-                DecimalPlaces = 0
-            };
-            BBTab.Controls.Add(zMax);
+            TabPage boundingBoxTab = MakeBoundingBoxTab(out xMin, out yMin, out zMin, out xMax, out yMax, out zMax);
+            Tabs.TabPages.Add(boundingBoxTab);
         }
 
         private static TabPage MakeSinterboxTab(out NumericUpDown Clearance, out NumericUpDown Spacing, out NumericUpDown Thickness, out NumericUpDown Width, out CheckBox EnableSinterbox)
@@ -515,6 +411,75 @@ namespace PartStacker
                 Checked = true
             };
             panel.Controls.Add(EnableSinterbox, 3, 0);
+
+            return tab;
+        }
+
+        private static TabPage MakeBoundingBoxTab(out NumericUpDown xMin, out NumericUpDown yMin, out NumericUpDown zMin, out NumericUpDown xMax, out NumericUpDown yMax, out NumericUpDown zMax)
+        {
+            TabPage tab = new TabPage("Bounding Box");
+
+            TableLayoutPanel panel = new TableLayoutPanel()
+            {
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                AutoSize = true,
+                Dock = DockStyle.Fill,
+                RowCount = 4,
+                ColumnCount = 4,
+                Margin = new Padding(0),
+                Padding = new Padding(0, 6, 0, 6),
+            };
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            tab.Controls.Add(panel);
+
+            var makeLabel = (string text, int leftPadding) => new Label()
+            {
+                Text = text,
+                Anchor = AnchorStyles.Left,
+                Padding = new Padding(leftPadding, 3, 3, 3),
+            };
+            var makeNumericUpDown = (double value, AnchorStyles anchor) => new NumericUpDown()
+            {
+                Minimum = 10,
+                Maximum = 250,
+                Width = 50,
+                Value = (decimal)value,
+                Increment = 1,
+                DecimalPlaces = 0,
+                Anchor = anchor,
+                Margin = new Padding(9, 1, 0, 0),
+            };
+
+            panel.Controls.Add(makeLabel("Initial X:", 3), 0, 0);
+            xMin = makeNumericUpDown(150, AnchorStyles.Right);
+            panel.Controls.Add(xMin, 1, 0);
+
+            panel.Controls.Add(makeLabel("Initial Y:", 3), 0, 1);
+            yMin = makeNumericUpDown(150, AnchorStyles.Right);
+            panel.Controls.Add(yMin, 1, 1);
+
+            panel.Controls.Add(makeLabel("Initial Z:", 3), 0, 2);
+            zMin = makeNumericUpDown(30, AnchorStyles.Right);
+            panel.Controls.Add(zMin, 1, 2);
+
+            panel.Controls.Add(makeLabel("Maximum X:", 20), 2, 0);
+            xMax = makeNumericUpDown(156, AnchorStyles.None);
+            panel.Controls.Add(xMax, 3, 0);
+
+            panel.Controls.Add(makeLabel("Maximum Y:", 20), 2, 1);
+            yMax = makeNumericUpDown(156, AnchorStyles.None);
+            panel.Controls.Add(yMax, 3, 1);
+
+            panel.Controls.Add(makeLabel("Maximum Z:", 20), 2, 2);
+            zMax = makeNumericUpDown(90, AnchorStyles.None);
+            panel.Controls.Add(zMax, 3, 2);
 
             return tab;
         }
