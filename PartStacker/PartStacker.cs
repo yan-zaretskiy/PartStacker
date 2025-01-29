@@ -1,4 +1,4 @@
-﻿using System.Windows.Forms;
+using System.Windows.Forms;
 using PartStacker.FormComponents;
 using PartStacker.Geometry;
 
@@ -317,7 +317,7 @@ namespace PartStacker
                             for (int i = 0; i < rotations.Length; i++)
                                 if ((possible & index) != 0)
                                 {
-                                    if (!Meshes[p][i].TranslateAndAdd(Result, new Vector(x, y, z))) // Add to result
+                                    if (!Result.Add(Meshes[p][i], new Vector(x, y, z))) // Add to result
                                     {
                                         MessageBox.Show("Intersecting triangles error!");
                                     }
