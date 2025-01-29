@@ -296,47 +296,65 @@ namespace PartStacker
             CopyMirror.Click += CopyHandler;
             PartsTab.Controls.Add(CopyMirror);
 
-            GroupBox rotations = new GroupBox()
-            {
-                Location = new Point(180, 20) - new Size(5, 15),
-                Text = "Part rotations",
-                Size = new Size(190, 61)
-            };
-            PartsTab.Controls.Add(rotations);
-
-            None = new RadioButton()
-            {
-                Location = new Point(10, 15),
-                Text = "None",
-                Enabled = false,
-                Width = 80
-            };
+            GroupBox rotations = MakeRotationSelectionBox(out None, out Cubic, out Arbitrary);
             None.Click += RotationHandler;
-            rotations.Controls.Add(None);
-            Cubic = new RadioButton()
-            {
-                Location = new Point(10, 35),
-                Text = "Cubic",
-                Checked = true,
-                Enabled = false
-            };
             Cubic.Click += RotationHandler;
-            rotations.Controls.Add(Cubic);
-            Arbitrary = new RadioButton()
-            {
-                Location = new Point(100, 15),
-                Text = "Arbitrary",
-                Enabled = false,
-                Width = 80
-            };
             Arbitrary.Click += RotationHandler;
-            rotations.Controls.Add(Arbitrary);
+            PartsTab.Controls.Add(rotations);
 
             TabPage sinterboxTab = MakeSinterboxTab(out Clearance, out Spacing, out Thickness, out BWidth, out EnableSinterbox);
             Tabs.TabPages.Add(sinterboxTab);
 
             TabPage boundingBoxTab = MakeBoundingBoxTab(out xMin, out yMin, out zMin, out xMax, out yMax, out zMax);
             Tabs.TabPages.Add(boundingBoxTab);
+        }
+
+        private static GroupBox MakeRotationSelectionBox(out RadioButton None, out RadioButton Cubic, out RadioButton Arbitrary)
+        {
+            GroupBox box = new GroupBox()
+            {
+                Location = new Point(180, 20) - new Size(5, 15),
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                AutoSize = true,
+                Text = "Part rotations",
+            };
+
+            TableLayoutPanel panel = new TableLayoutPanel()
+            {
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                AutoSize = true,
+                Dock = DockStyle.Fill,
+                RowCount = 2,
+                ColumnCount = 2,
+                Margin = new Padding(0),
+                Padding = new Padding(0, 0, 0, 3),
+            };
+            panel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            panel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            box.Controls.Add(panel);
+
+            var makeButton = (string text) => new RadioButton()
+            {
+                Text = text,
+                Enabled = false,
+                Padding = new Padding(9, 0, 0, 0),
+                Margin = new Padding(0),
+                Width = 92,
+                Height = 19,
+            };
+
+            None = makeButton("None");
+            panel.Controls.Add(None, 0, 0);
+
+            Cubic = makeButton("Cubic");
+            panel.Controls.Add(Cubic, 0, 1);
+
+            Arbitrary = makeButton("Arbitrary");
+            panel.Controls.Add(Arbitrary, 1, 0);
+
+            return box;
         }
 
         private static TabPage MakeSinterboxTab(out NumericUpDown Clearance, out NumericUpDown Spacing, out NumericUpDown Thickness, out NumericUpDown Width, out CheckBox EnableSinterbox)
