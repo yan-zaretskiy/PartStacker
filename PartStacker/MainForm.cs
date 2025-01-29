@@ -570,12 +570,12 @@ namespace PartStacker
                 BinaryFormatter bformatter = new BinaryFormatter();
 #pragma warning restore SYSLIB0011
 
-                List<Part> items = (List<Part>)bformatter.Deserialize(stream);
+                List<PartsListItem> items = (List<PartsListItem>)bformatter.Deserialize(stream);
                 stream.Close();
 
                 PartsList.RemoveAll();
 
-                foreach (Part item in items)
+                foreach (PartsListItem item in items)
                     PartsList.Add(item);
 
                 SetText();
@@ -605,7 +605,7 @@ namespace PartStacker
                 BinaryFormatter bformatter = new BinaryFormatter();
 #pragma warning restore SYSLIB0011
 
-                List<Part> temp = PartsList.AllParts();
+                List<PartsListItem> temp = PartsList.AllParts();
                 bformatter.Serialize(stream, temp);
                 stream.Close();
             }
@@ -736,7 +736,7 @@ namespace PartStacker
             {
                 try
                 {
-                    Part p = new Part(select.FileNames[i], STL.From(select.FileNames[i]));
+                    PartsListItem p = new PartsListItem(select.FileNames[i], STL.From(select.FileNames[i]));
                     
                     PartsList.Add(p);
                     if (select.FileNames.Length == 1)
@@ -827,7 +827,7 @@ namespace PartStacker
                 DisableButtons();
 
                 var baseParts = PartsList.AllParts().ToArray();
-                foreach (Part part in baseParts)
+                foreach (PartsListItem part in baseParts)
                 {
                     part.Remaining = part.Quantity;
                 }

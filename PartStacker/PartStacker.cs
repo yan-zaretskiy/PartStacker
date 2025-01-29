@@ -1,4 +1,5 @@
 ﻿using System.Windows.Forms;
+using PartStacker.FormComponents;
 using PartStacker.Geometry;
 
 namespace PartStacker
@@ -14,7 +15,7 @@ namespace PartStacker
             // `Parameters` must be a class, not a struct, because of reference semantics
 
             public required int InitialTriangles;
-            public required Part[] BaseParts;
+            public required PartsListItem[] BaseParts;
 
             public required Action<double, double> SetProgress;
             public required Action<bool, Mesh> FinishStacking;
@@ -72,7 +73,7 @@ namespace PartStacker
             double scale = 1 / Params.Resolution;
             int totalParts = 0;
 
-            foreach (Part p in Params.BaseParts)
+            foreach (PartsListItem p in Params.BaseParts)
             {
                 triangles += p.Triangles * RotationSets[p.RotationIndex].Length;
                 totalParts += p.Quantity;
@@ -175,7 +176,7 @@ namespace PartStacker
                 {
                     Mesh[] tempBD = Meshes[j];
                     int[, ,] tempVX = Voxels[j];
-                    Part tempPT = Params.BaseParts[j];
+                    PartsListItem tempPT = Params.BaseParts[j];
 
                     Meshes[j] = Meshes[j - 1];
                     Voxels[j] = Voxels[j - 1];

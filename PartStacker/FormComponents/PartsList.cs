@@ -26,7 +26,7 @@ namespace PartStacker.FormComponents
 
         public int ItemCount => List.Items.Count;
         public int SelectedItemCount => List.SelectedItems.Count; // make sure this works, not needing SelectedIndices
-        public Part SelectedItem => (Part)List.SelectedItems[0];
+        public PartsListItem SelectedItem => (PartsListItem)List.SelectedItems[0];
 
         public event EventHandler? SelectedIndexChanged
         {
@@ -39,10 +39,10 @@ namespace PartStacker.FormComponents
             List.Enabled = enable;
         }
         
-        public List<Part> AllParts()
+        public List<PartsListItem> AllParts()
         {
-            List<Part> parts = new();
-            foreach (Part part in List.Items)
+            List<PartsListItem> parts = new();
+            foreach (PartsListItem part in List.Items)
             {
                 parts.Add(part);
             }
@@ -54,7 +54,7 @@ namespace PartStacker.FormComponents
             int parts = 0;
             int triangles = 0;
             double volume = 0;
-            foreach (Part p in List.Items)
+            foreach (PartsListItem p in List.Items)
             {
                 parts += p.Quantity;
                 triangles += p.Quantity * p.Triangles;
@@ -63,12 +63,12 @@ namespace PartStacker.FormComponents
             return (parts, triangles, volume);
         }
 
-        public void Add(Part part) => List.Items.Add(part);
+        public void Add(PartsListItem part) => List.Items.Add(part);
         public void RemoveAll() => List.Clear();
 
-        public void ForEachItem(Action<Part> action)
+        public void ForEachItem(Action<PartsListItem> action)
         {
-            foreach (Part part in List.Items)
+            foreach (PartsListItem part in List.Items)
             {
                 action(part);
             }
@@ -81,11 +81,11 @@ namespace PartStacker.FormComponents
 
         public void MirrorCopySelectedItem()
         {
-            Part part = SelectedItem;
+            PartsListItem part = SelectedItem;
             if (part.BasePart == null)
                 return;
 
-            Part copy = new Part(part.FileName, part.BasePart.Clone());
+            PartsListItem copy = new PartsListItem(part.FileName, part.BasePart.Clone());
 
             copy.Quantity = part.Quantity;
             copy.RotateMinBox = part.RotateMinBox;
@@ -102,19 +102,19 @@ namespace PartStacker.FormComponents
         {
             if (SelectedItemCount > 0)
             {
-                foreach (Part p in List.SelectedItems)
+                foreach (PartsListItem p in List.SelectedItems)
                     p.ReloadFile();
             }
             else
             {
-                foreach (Part p in List.Items)
+                foreach (PartsListItem p in List.Items)
                     p.ReloadFile();
             }
         }
 
         public void RemoveSelectedItems()
         {
-            foreach (Part selected in List.SelectedItems)
+            foreach (PartsListItem selected in List.SelectedItems)
             {
                 List.Items.Remove(selected);
             }

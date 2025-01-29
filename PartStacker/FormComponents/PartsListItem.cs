@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using System.Runtime.Serialization;
-using System.IO;
+﻿using System.Windows.Forms;
 using PartStacker.MeshFile;
 using PartStacker.Geometry;
 
-namespace PartStacker
+namespace PartStacker.FormComponents
 {
-    public class Part : ListViewItem
+    public class PartsListItem : ListViewItem
     {
         public Mesh BasePart;
         public string FileName;
@@ -23,7 +17,7 @@ namespace PartStacker
         public int RotationIndex;
         public bool Mirrored;
 
-        public Part(string FileName, Mesh BasePart)
+        public PartsListItem(string FileName, Mesh BasePart)
             : base()
         {
             this.BasePart = BasePart;
