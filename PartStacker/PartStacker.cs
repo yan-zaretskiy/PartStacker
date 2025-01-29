@@ -67,6 +67,7 @@ namespace PartStacker
 
         private bool? Stacker_Sub()
         {
+            Params.BaseParts = Params.BaseParts.OrderBy(p => p.Volume).ToArray();
             Result = new Mesh(Params.InitialTriangles);
 
             double triangles = 0;
@@ -165,29 +166,6 @@ namespace PartStacker
 
                     progress += Params.BaseParts[i].Triangles / 2;
                     SetProgress(progress, triangles);
-                }
-            }
-
-            // Do insertion sort
-            for (int i = 1; i < Meshes.Length; i++)
-            {
-                int j = i;
-                while (Params.BaseParts[j].Volume < Params.BaseParts[j - 1].Volume)
-                {
-                    Mesh[] tempBD = Meshes[j];
-                    int[, ,] tempVX = Voxels[j];
-                    PartsListItem tempPT = Params.BaseParts[j];
-
-                    Meshes[j] = Meshes[j - 1];
-                    Voxels[j] = Voxels[j - 1];
-                    Params.BaseParts[j] = Params.BaseParts[j - 1];
-
-                    Meshes[j - 1] = tempBD;
-                    Voxels[j - 1] = tempVX;
-                    Params.BaseParts[j - 1] = tempPT;
-
-                    j--;
-                    if (j == 0) break;
                 }
             }
 
