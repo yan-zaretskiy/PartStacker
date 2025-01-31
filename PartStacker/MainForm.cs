@@ -217,90 +217,18 @@ namespace PartStacker
 
             Controls.Add(Tabs);
 
-            // Part quantity updown
-            Tabs.TabPages.Add("Part Settings");
-            TabPage PartsTab = Tabs.TabPages[0];
-            caption = new Label()
-            {
-                Text = "Quantity: ",
-                Location = new Point(10, 25) - new Size(5, 15)
-            };
-            PartsTab.Controls.Add(caption);
-            PartQuantity = new NumericUpDown()
-            {
-                Minimum = 0,
-                Maximum = 200,
-                Location = new Point(120, 22) - new Size(5, 15),
-                Width = 50,
-                Value = 1,
-                Enabled = false
-            };
-            PartQuantity.ValueChanged += PartQuantityHandler;
-            PartsTab.Controls.Add(PartQuantity);
-
-            // Minimum hole size updown
-            caption = new Label()
-            {
-                Text = "Minimum hole: ",
-                Location = new Point(10, 50) - new Size(5, 15)
-            };
-            PartsTab.Controls.Add(caption);
-            MinHole = new NumericUpDown()
-            {
-                Minimum = 0,
-                Maximum = 100,
-                Location = new Point(120, 47) - new Size(5, 15),
-                Width = 50,
-                Value = 1,
-                Enabled = false
-            };
-            MinHole.ValueChanged += MinHoleHandler;
-            PartsTab.Controls.Add(MinHole);
-
-            // Checkbox for minimizing the bounding box
-            caption = new Label()
-            {
-                Text = "Minimize box: ",
-                Location = new Point(10, 75) - new Size(5, 15)
-            };
-            PartsTab.Controls.Add(caption);
-            RotateMinBox = new CheckBox()
-            {
-                Location = new Point(120, 71) - new Size(5, 15),
-                Checked = false,
-                Enabled = false,
-                Width = 20
-            };
-            RotateMinBox.CheckedChanged += RotateMinBoxHandler;
-            PartsTab.Controls.Add(RotateMinBox);
-
-            // Preview button that shows the voxelation
-            Preview = new Button()
-            {
-                Location = new Point(10, 98) - new Size(5, 15),
-                Size = new Size(88, 25),
-                Text = "Preview",
-                Enabled = false
-            };
-            Preview.Click += PreviewHandler;
-            PartsTab.Controls.Add(Preview);
-
-            // Preview button that shows the voxelation
-            CopyMirror = new Button()
-            {
-                Location = new Point(110, 98) - new Size(5, 15),
-                Size = new Size(88, 25),
-                Text = "Mirrored copy",
-                Enabled = false
-            };
-            CopyMirror.Click += CopyHandler;
-            PartsTab.Controls.Add(CopyMirror);
-
             GroupBox rotations = MakeRotationSelectionBox(out None, out Cubic, out Arbitrary);
             None.Click += RotationHandler;
             Cubic.Click += RotationHandler;
             Arbitrary.Click += RotationHandler;
-            PartsTab.Controls.Add(rotations);
+
+            TabPage partsTab = MakePartsTab(ref rotations, out PartQuantity, out MinHole, out RotateMinBox, out Preview, out CopyMirror);
+            Tabs.TabPages.Add(partsTab);
+            PartQuantity.ValueChanged += PartQuantityHandler;
+            MinHole.ValueChanged += MinHoleHandler;
+            RotateMinBox.CheckedChanged += RotateMinBoxHandler;
+            Preview.Click += PreviewHandler;
+            CopyMirror.Click += CopyHandler;
 
             TabPage sinterboxTab = MakeSinterboxTab(out Clearance, out Spacing, out Thickness, out BWidth, out EnableSinterbox);
             Tabs.TabPages.Add(sinterboxTab);
@@ -309,11 +237,130 @@ namespace PartStacker
             Tabs.TabPages.Add(boundingBoxTab);
         }
 
+        private static TabPage MakePartsTab(ref GroupBox rotations, out NumericUpDown PartQuantity, out NumericUpDown MinHole, out CheckBox RotateMinBox, out Button Preview, out Button CopyMirror)
+        {
+            TabPage tab = new TabPage("Part Settings");
+
+            TableLayoutPanel mainPanel = new TableLayoutPanel()
+            {
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                AutoSize = true,
+                Dock = DockStyle.Fill,
+                RowCount = 2,
+                ColumnCount = 1,
+                Margin = new Padding(0),
+                Padding = new Padding(0, 6, 0, 0),
+            };
+            mainPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 75));
+            mainPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            mainPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            tab.Controls.Add(mainPanel);
+
+            {
+                TableLayoutPanel bottomPanel = new TableLayoutPanel()
+                {
+                    AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                    AutoSize = true,
+                    Dock = DockStyle.Fill,
+                    RowCount = 1,
+                    ColumnCount = 3,
+                    Margin = new Padding(0),
+                    Padding = new Padding(0),
+                };
+                bottomPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+                bottomPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26));
+                bottomPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26));
+                bottomPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 48));
+                mainPanel.Controls.Add(bottomPanel, 0, 1);
+                var makeButton = (string text) => new Button()
+                {
+                    Size = new Size(88, 25),
+                    Text = text,
+                    Enabled = false,
+                    Margin = new Padding(6, 0, 0, 0),
+                };
+                Preview = makeButton("Preview");
+                CopyMirror = makeButton("Mirrored copy");
+                bottomPanel.Controls.Add(Preview, 0, 0);
+                bottomPanel.Controls.Add(CopyMirror, 1, 0);
+            }
+
+            TableLayoutPanel topPanel = new TableLayoutPanel()
+            {
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                AutoSize = true,
+                Dock = DockStyle.Fill,
+                RowCount = 1,
+                ColumnCount = 2,
+                Margin = new Padding(0),
+                Padding = new Padding(0),
+            };
+            topPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            topPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 46));
+            topPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 54));
+            mainPanel.Controls.Add(topPanel, 0, 0);
+
+            topPanel.Controls.Add(rotations, 1, 0);
+
+            {
+                TableLayoutPanel leftPanel = new TableLayoutPanel()
+                {
+                    AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                    AutoSize = true,
+                    Dock = DockStyle.Fill,
+                    RowCount = 3,
+                    ColumnCount = 2,
+                    Margin = new Padding(0),
+                    Padding = new Padding(0),
+                };
+                leftPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 33));
+                leftPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 33));
+                leftPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 34));
+                leftPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 62));
+                leftPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 38));
+                topPanel.Controls.Add(leftPanel, 0, 0);
+
+                var makeLabel = (string text) => new Label()
+                {
+                    Text = text,
+                    Anchor = AnchorStyles.Left,
+                    Padding = new Padding(3),
+                };
+                var makeNumericUpDown = (int maximum) => new NumericUpDown()
+                {
+                    Minimum = 0,
+                    Maximum = maximum,
+                    Width = 50,
+                    Value = 1,
+                    Enabled = false,
+                    Margin = new Padding(9, 1, 7, 0),
+                };
+
+                leftPanel.Controls.Add(makeLabel("Quantity:"), 0, 0);
+                PartQuantity = makeNumericUpDown(200);
+                leftPanel.Controls.Add(PartQuantity, 1, 0);
+
+                leftPanel.Controls.Add(makeLabel("Minimum hole:"), 0, 1);
+                MinHole = makeNumericUpDown(100);
+                leftPanel.Controls.Add(MinHole, 1, 1);
+
+                leftPanel.Controls.Add(makeLabel("Minimize box:"), 0, 2);
+                RotateMinBox = new CheckBox()
+                {
+                    Checked = false,
+                    Enabled = false,
+                    Margin = new Padding(9, 1, 7, 0),
+                };
+                leftPanel.Controls.Add(RotateMinBox, 1, 2);
+            }
+
+            return tab;
+        }
+
         private static GroupBox MakeRotationSelectionBox(out RadioButton None, out RadioButton Cubic, out RadioButton Arbitrary)
         {
             GroupBox box = new GroupBox()
             {
-                Location = new Point(180, 20) - new Size(5, 15),
                 AutoSizeMode = AutoSizeMode.GrowAndShrink,
                 AutoSize = true,
                 Text = "Part rotations",
