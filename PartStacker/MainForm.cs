@@ -99,54 +99,103 @@ namespace PartStacker
             };
             Controls.Add(Display3D);
 
+            Panel rightSide = new TableLayoutPanel()
+            {
+                Location = new Point(ClientSize.Width - 400, 20 + menu.Height),
+                Margin = new Padding(0),
+                Padding = new Padding(0),
+                MinimumSize = new Size(380, 0),
+                MaximumSize = new Size(380, 0),
+                Height = 450,
+            };
+            Controls.Add(rightSide);
+
             // ListView showing the base STL files
-            PartsList = new(this, ClientSize.Width, menu.Height);
-            PartsList.SelectedIndexChanged += PartSelectHandler; // Todo, make List not visible
+            PartsList = new PartsList(rightSide);
+            PartsList.SelectedIndexChanged += PartSelectHandler;
 
             // Buttons for interacting with the list view
-            Import = new Button()
             {
-                Location = new Point(ClientSize.Width - 400, 270 + menu.Height),
-                Size = new Size(88, 25),
-                Text = "Import"
-            };
-            Delete = new Button()
-            {
-                Location = new Point(ClientSize.Width - 302, 270 + menu.Height),
-                Size = new Size(88, 25),
-                Text = "Delete",
-                Enabled = false
-            };
-            Change = new Button()
-            {
-                Location = new Point(ClientSize.Width - 204, 270 + menu.Height),
-                Size = new Size(88, 25),
-                Text = "Change",
-                Enabled = false
-            };
-            Reload = new Button()
-            {
-                Location = new Point(ClientSize.Width - 106, 270 + menu.Height),
-                Size = new Size(88, 25),
-                Text = "Reload"
-            };
-            Import.Click += ImportHandler;
-            Delete.Click += DeleteHandler;
-            Change.Click += ChangeHandler;
-            Reload.Click += ReloadHandler;
-            Controls.Add(Import);
-            Controls.Add(Delete);
-            Controls.Add(Change);
-            Controls.Add(Reload);
+                TableLayoutPanel buttonPanel = new TableLayoutPanel()
+                {
+                    Margin = new Padding(0),
+                    Padding = new Padding(0, 10, 0, 0),
+                    AutoSize = true,
+                    Anchor = AnchorStyles.Top,
+                    Dock = DockStyle.Fill,
+                    RowCount = 1,
+                    ColumnCount = 4,
+                };
+                buttonPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25));
+                buttonPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25));
+                buttonPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25));
+                buttonPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25));
+                var makeButton = (string text) => new Button()
+                {
+                    Size = new Size(88, 25),
+                    MaximumSize = new Size(88, 25),
+                    Text = text,
+                    Enabled = false,
+                    Anchor = AnchorStyles.Top,
+                    Padding = new Padding(0),
+                    Margin = new Padding(0),
+                };
+                Import = makeButton("Import");
+                Delete = makeButton("Delete");
+                Change = makeButton("Change");
+                Reload = makeButton("Reload");
+                buttonPanel.Controls.Add(Import, 0, 0);
+                buttonPanel.Controls.Add(Delete, 1, 0);
+                buttonPanel.Controls.Add(Change, 2, 0);
+                buttonPanel.Controls.Add(Reload, 3, 0);
+                Import.Click += ImportHandler;
+                Delete.Click += DeleteHandler;
+                Change.Click += ChangeHandler;
+                Reload.Click += ReloadHandler;
+                rightSide.Controls.Add(buttonPanel);
+                Import.Enabled = true;
+                Reload.Enabled = true;
+            }
 
             // Label with statistics about all the parts
             InfoLabel = new Label()
             {
-                Location = new Point(ClientSize.Width - 400, 300 + menu.Height),
-                Width = ClientSize.Width - ClientSize.Height - 40
+                AutoSize = true,
+                Padding = new Padding(0, 5, 0, 0),
+                Margin = new Padding(0),
             };
-            Controls.Add(InfoLabel);
+            rightSide.Controls.Add(InfoLabel);
             SetText();
+
+            // Group box that contains controls for editing the parts
+            TabControl Tabs = new TabControl()
+            {
+                Anchor = AnchorStyles.Top,
+                Dock = DockStyle.Fill,
+                Margin = new Padding(0, 10, 0, 0),
+                MinimumSize = new Size(0, 140),
+                MaximumSize = new Size(0, 140),
+            };
+            rightSide.Controls.Add(Tabs);
+
+            GroupBox rotations = MakeRotationSelectionBox(out None, out Cubic, out Arbitrary);
+            None.Click += RotationHandler;
+            Cubic.Click += RotationHandler;
+            Arbitrary.Click += RotationHandler;
+
+            TabPage partsTab = MakePartsTab(ref rotations, out PartQuantity, out MinHole, out RotateMinBox, out Preview, out CopyMirror);
+            Tabs.TabPages.Add(partsTab);
+            PartQuantity.ValueChanged += PartQuantityHandler;
+            MinHole.ValueChanged += MinHoleHandler;
+            RotateMinBox.CheckedChanged += RotateMinBoxHandler;
+            Preview.Click += PreviewHandler;
+            CopyMirror.Click += CopyHandler;
+
+            TabPage sinterboxTab = MakeSinterboxTab(out Clearance, out Spacing, out Thickness, out BWidth, out EnableSinterbox);
+            Tabs.TabPages.Add(sinterboxTab);
+
+            TabPage boundingBoxTab = MakeBoundingBoxTab(out xMin, out yMin, out zMin, out xMax, out yMax, out zMax);
+            Tabs.TabPages.Add(boundingBoxTab);
 
             // Progressbar for giving information about the progress of the stacking
             Progress = new ProgressBar()
@@ -207,34 +256,6 @@ namespace PartStacker
                 DecimalPlaces = 2
             };
             Controls.Add(MinimumClearance);
-
-            // Group box that contains controls for editing the parts
-            TabControl Tabs = new TabControl()
-            {
-                Location = new Point(ClientSize.Width - 400, 325 + menu.Height),
-                Size = new Size(380, 140),
-            };
-
-            Controls.Add(Tabs);
-
-            GroupBox rotations = MakeRotationSelectionBox(out None, out Cubic, out Arbitrary);
-            None.Click += RotationHandler;
-            Cubic.Click += RotationHandler;
-            Arbitrary.Click += RotationHandler;
-
-            TabPage partsTab = MakePartsTab(ref rotations, out PartQuantity, out MinHole, out RotateMinBox, out Preview, out CopyMirror);
-            Tabs.TabPages.Add(partsTab);
-            PartQuantity.ValueChanged += PartQuantityHandler;
-            MinHole.ValueChanged += MinHoleHandler;
-            RotateMinBox.CheckedChanged += RotateMinBoxHandler;
-            Preview.Click += PreviewHandler;
-            CopyMirror.Click += CopyHandler;
-
-            TabPage sinterboxTab = MakeSinterboxTab(out Clearance, out Spacing, out Thickness, out BWidth, out EnableSinterbox);
-            Tabs.TabPages.Add(sinterboxTab);
-
-            TabPage boundingBoxTab = MakeBoundingBoxTab(out xMin, out yMin, out zMin, out xMax, out yMax, out zMax);
-            Tabs.TabPages.Add(boundingBoxTab);
         }
 
         private static TabPage MakePartsTab(ref GroupBox rotations, out NumericUpDown PartQuantity, out NumericUpDown MinHole, out CheckBox RotateMinBox, out Button Preview, out Button CopyMirror)
