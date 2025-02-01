@@ -101,12 +101,12 @@ namespace PartStacker
 
             Panel rightSide = new TableLayoutPanel()
             {
-                Location = new Point(ClientSize.Width - 400, 20 + menu.Height),
+                Location = new Point(ClientSize.Width - 400, menu.Height),
                 Margin = new Padding(0),
-                Padding = new Padding(0),
+                Padding = new Padding(0, 20, 0, 0),
                 MinimumSize = new Size(380, 0),
                 MaximumSize = new Size(380, 0),
-                Height = 450,
+                Height = 654,
             };
             Controls.Add(rightSide);
 
@@ -197,65 +197,123 @@ namespace PartStacker
             TabPage boundingBoxTab = MakeBoundingBoxTab(out xMin, out yMin, out zMin, out xMax, out yMax, out zMax);
             Tabs.TabPages.Add(boundingBoxTab);
 
-            // Progressbar for giving information about the progress of the stacking
-            Progress = new ProgressBar()
             {
-                Location = new Point(ClientSize.Width - 400, ClientSize.Height - 40),
-                Size = new Size(279, 25)
-            };
-            Controls.Add(Progress);
+                TableLayoutPanel panel = new TableLayoutPanel()
+                {
+                    Margin = new Padding(0),
+                    Padding = new Padding(0, 23, 0, 0),
+                    AutoSize = true,
+                    Anchor = AnchorStyles.Top,
+                    Dock = DockStyle.Fill,
+                    RowCount = 2,
+                    ColumnCount = 3,
+                    MaximumSize = new Size(0, 85),
+                };
+                panel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                panel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                panel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 125));
+                panel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 50));
+                panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
 
-            Start = new Button()
-            {
-                Location = new Point(ClientSize.Width - 106, ClientSize.Height - 40),
-                Size = new Size(88, 25),
-                Text = "Start"
-            };
-            Start.Click += StartHandler;
-            Controls.Add(Start);
+                // Minimal clearance size control
+                Label caption = new Label()
+                {
+                    Text = "Minimum clearance:",
+                    AutoSize = false,
+                    Width = 125,
+                    Anchor = AnchorStyles.Left,
+                    Dock = DockStyle.Left,
+                    Margin = new Padding(0),
+                    Padding = new Padding(0, 3, 0, 3),
+                };
+                panel.Controls.Add(caption, 0, 0);
+                MinimumClearance = new NumericUpDown()
+                {
+                    Minimum = 0.5M,
+                    Maximum = 2,
+                    Increment = 0.05M,
+                    Width = 50,
+                    Value = 1,
+                    Enabled = true,
+                    DecimalPlaces = 2,
+                    Anchor = AnchorStyles.Left,
+                    Margin = new Padding(0, 1, 0, 0),
+                };
+                panel.Controls.Add(MinimumClearance, 1, 0);
 
-            // Checkbox to allow section viewing
-            CheckBox section = new CheckBox()
-            {
-                Location = new Point(ClientSize.Width - 400, ClientSize.Height - 75),
-                Text = "Section view:",
-                CheckAlign = ContentAlignment.MiddleRight,
-                Width = 126
-            };
-            section.CheckedChanged += (o, e) => { Display3D.Section = section.Checked; };
-            Controls.Add(section);
+                // Checkbox to allow section viewing
+                caption = new Label()
+                {
+                    Text = "Section view:",
+                    AutoSize = false,
+                    Width = 125,
+                    Anchor = AnchorStyles.Left,
+                    Dock = DockStyle.Left,
+                    Margin = new Padding(0),
+                    Padding = new Padding(0, 7, 0, 0),
+                };
+                panel.Controls.Add(caption, 0, 1);
+                CheckBox section = new CheckBox()
+                {
+                    Anchor = AnchorStyles.Left,
+                    Margin = new Padding(0),
+                    Padding = new Padding(0, 7, 0, 0),
+                };
+                section.CheckedChanged += (o, e) => { Display3D.Section = section.Checked; };
+                panel.Controls.Add(section, 1, 1);
 
-            // Export button
-            Export = new Button()
-            {
-                Size = new Size(170, 30),
-                Location = new Point(ClientSize.Width - 195, ClientSize.Height - 80),
-                Text = "Export result as STL",
-                Enabled = false
-            };
-            Export.Click += ExportHandler;
-            Controls.Add(Export);
+                // Export button
+                Export = new Button()
+                {
+                    Size = new Size(150, 25),
+                    Text = "Export result as STL",
+                    Enabled = false,
+                    Padding = new Padding(0),
+                    Margin = new Padding(0),
+                    Anchor = AnchorStyles.Right,
+                };
+                Export.Click += ExportHandler;
+                panel.Controls.Add(Export, 2, 1);
 
-            // Minimal clearance size control
-            Label caption = new Label()
+                rightSide.Controls.Add(panel);
+            }
+
             {
-                Text = "Minimum clearance:",
-                Location = Location = new Point(ClientSize.Width - 400, ClientSize.Height - 100),
-                Width = 110
-            };
-            Controls.Add(caption);
-            MinimumClearance = new NumericUpDown()
-            {
-                Minimum = 0.5M,
-                Maximum = 2,
-                Increment = 0.05M,
-                Location = new Point(ClientSize.Width - 288, ClientSize.Height - 102),
-                Width = 50,
-                Value = 1,
-                Enabled = true,
-                DecimalPlaces = 2
-            };
-            Controls.Add(MinimumClearance);
+                TableLayoutPanel panel = new TableLayoutPanel()
+                {
+                    Padding = new Padding(0, 10, 0, 0),
+                    Margin = new Padding(0),
+                    AutoSize = true,
+                    Anchor = AnchorStyles.Top,
+                    Dock = DockStyle.Fill,
+                    ColumnCount = 2,
+                    MaximumSize = new Size(0, 35),
+                };
+                panel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 290));
+                panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+
+                // Progressbar for giving information about the progress of the stacking
+                Progress = new ProgressBar()
+                {
+                    Size = new Size(279, 25),
+                    Anchor = AnchorStyles.Left,
+                    Margin = new Padding(0),
+                };
+                panel.Controls.Add(Progress, 0, 0);
+
+                Start = new Button()
+                {
+                    Size = new Size(88, 25),
+                    Text = "Start",
+                    Anchor = AnchorStyles.Right,
+                    Padding = new Padding(0),
+                    Margin = new Padding(0),
+                };
+                Start.Click += StartHandler;
+                panel.Controls.Add(Start, 1, 0);
+
+                rightSide.Controls.Add(panel);
+            }
         }
 
         private static TabPage MakePartsTab(ref GroupBox rotations, out NumericUpDown PartQuantity, out NumericUpDown MinHole, out CheckBox RotateMinBox, out Button Preview, out Button CopyMirror)
