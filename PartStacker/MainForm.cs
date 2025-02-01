@@ -90,25 +90,38 @@ namespace PartStacker
             menu.Items.Add(about);
             Controls.Add(menu);
 
+            TableLayoutPanel mainPanel = new TableLayoutPanel()
+            {
+                Margin = new Padding(0),
+                Padding = new Padding(0, menu.Height, 0, 0),
+                Dock = DockStyle.Fill,
+                AutoSize = true,
+            };
+            mainPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            mainPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20 + 380 + 20));
+            Controls.Add(mainPanel);
+
             // Panel for drawing the 3D preview
             Display3D = new ModelViewerControl()
             {
-                Location = new Point(0, 24),
-                Size = new Size(ClientSize.Height - menu.Height, ClientSize.Height - menu.Height),
+                Padding = new Padding(0),
+                Margin = new Padding(0),
+                Dock = DockStyle.Fill,
+                Size = new Size(ClientSize.Width - (20 + 380 + 20), ClientSize.Height - menu.Height),
                 BackColor = Color.FromArgb(40, 50, 120)
             };
-            Controls.Add(Display3D);
+            mainPanel.Controls.Add(Display3D, 0, 0);
 
             Panel rightSide = new TableLayoutPanel()
             {
-                Location = new Point(ClientSize.Width - 400, menu.Height),
-                Margin = new Padding(0),
-                Padding = new Padding(0, 20, 0, 0),
+                Anchor = AnchorStyles.Right,
+                Margin = new Padding(20, 0, 20, 0),
+                Padding = new Padding(0, 20, 0, 20),
                 MinimumSize = new Size(380, 0),
                 MaximumSize = new Size(380, 0),
-                Height = 654,
+                Dock = DockStyle.Fill,
             };
-            Controls.Add(rightSide);
+            mainPanel.Controls.Add(rightSide, 1, 0);
 
             // ListView showing the base STL files
             PartsList = new PartsList(rightSide);
