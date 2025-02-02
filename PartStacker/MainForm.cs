@@ -41,10 +41,6 @@ namespace PartStacker
             Width = 1030;
             Height = 654;
 
-            // Fix size
-            MinimumSize = Size;
-            MaximumSize = Size;
-
             // Title text
             Text = "PartStacker 1.0 - Tom van der Zanden";
 
@@ -89,6 +85,14 @@ namespace PartStacker
             menu.Items.Add(partMenu);
             menu.Items.Add(about);
             Controls.Add(menu);
+
+            MinimumSize = new Size(20 + 380 + 30, 654);
+            Resize += (e, o) =>
+            {
+                Display3D.Size = new Size(ClientSize.Width - (20 + 380 + 20), ClientSize.Height - menu.Height);
+                PartsList.Height = Height - (654 - 240);
+                Display3D.Invalidate();
+            };
 
             TableLayoutPanel mainPanel = new TableLayoutPanel()
             {

@@ -36,6 +36,11 @@ namespace PartStacker.FormComponents
             remove => throw new NotSupportedException();
         }
 
+        public int Height
+        {
+            set => List.Height = value;
+        }
+
         public void Enable(bool enable)
         {
             List.Enabled = enable;

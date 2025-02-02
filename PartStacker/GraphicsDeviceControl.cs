@@ -131,11 +131,14 @@ namespace WinFormsContentLoading
             }
 
             // Make sure the graphics device is big enough, and is not lost.
-            string deviceResetError = HandleDeviceReset();
-
-            if (!string.IsNullOrEmpty(deviceResetError))
+            try
             {
-                return deviceResetError;
+                graphicsDeviceService.ResetDevice(ClientSize.Width,
+                                                  ClientSize.Height);
+            }
+            catch (Exception e)
+            {
+                return "Graphics device reset failed\n\n" + e;
             }
 
             // Many GraphicsDeviceControl instances can be sharing the same
@@ -182,54 +185,6 @@ namespace WinFormsContentLoading
                 // drawing. The lost device will be handled by the next BeginDraw,
                 // so we just swallow the exception.
             }
-        }
-
-
-        /// <summary>
-        /// Helper used by BeginDraw. This checks the graphics device status,
-        /// making sure it is big enough for drawing the current control, and
-        /// that the device is not lost. Returns an error string if the device
-        /// could not be reset.
-        /// </summary>
-        string HandleDeviceReset()
-        {
-            bool deviceNeedsReset = false;
-
-            switch (GraphicsDevice.GraphicsDeviceStatus)
-            {
-                case GraphicsDeviceStatus.Lost:
-                    // If the graphics device is lost, we cannot use it at all.
-                    return "Graphics device lost";
-
-                case GraphicsDeviceStatus.NotReset:
-                    // If device is in the not-reset state, we should try to reset it.
-                    deviceNeedsReset = true;
-                    break;
-
-                default:
-                    // If the device state is ok, check whether it is big enough.
-                    PresentationParameters pp = GraphicsDevice.PresentationParameters;
-
-                    deviceNeedsReset = (ClientSize.Width > pp.BackBufferWidth) ||
-                                       (ClientSize.Height > pp.BackBufferHeight);
-                    break;
-            }
-
-            // Do we need to reset the device?
-            if (deviceNeedsReset)
-            {
-                try
-                {
-                    graphicsDeviceService.ResetDevice(ClientSize.Width,
-                                                      ClientSize.Height);
-                }
-                catch (Exception e)
-                {
-                    return "Graphics device reset failed\n\n" + e;
-                }
-            }
-
-            return null;
         }
 
 
