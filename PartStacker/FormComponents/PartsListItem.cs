@@ -127,6 +127,7 @@ namespace PartStacker.FormComponents
             Mirrored = !Mirrored;
             Properties.BaseMesh.Mirror();
             Properties.BaseMesh.CalcBox();
+            SetItems();
         }
     }
 }
