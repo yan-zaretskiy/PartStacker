@@ -101,9 +101,8 @@ namespace WinFormsContentLoading
         /// </summary>
         protected override void OnPaint(PaintEventArgs e)
         {
-            string beginDrawError = BeginDraw();
-
-            if (string.IsNullOrEmpty(beginDrawError))
+            string? beginDrawError = BeginDraw();
+            if (beginDrawError is null)
             {
                 // Draw the control using the GraphicsDevice.
                 Draw();
@@ -122,7 +121,7 @@ namespace WinFormsContentLoading
         /// if this was not possible, which can happen if the graphics device is
         /// lost, or if we are running inside the Form designer.
         /// </summary>
-        string BeginDraw()
+        string? BeginDraw()
         {
             // If we have no graphics device, we must be running in the designer.
             if (graphicsDeviceService == null)
@@ -146,18 +145,7 @@ namespace WinFormsContentLoading
             // largest of these controls. But what if we are currently drawing
             // a smaller control? To avoid unwanted stretching, we set the
             // viewport to only use the top left portion of the full backbuffer.
-            Viewport viewport = new Viewport();
-
-            viewport.X = 0;
-            viewport.Y = 0;
-
-            viewport.Width = ClientSize.Width;
-            viewport.Height = ClientSize.Height;
-
-            viewport.MinDepth = 0;
-            viewport.MaxDepth = 1;
-
-            GraphicsDevice.Viewport = viewport;
+            GraphicsDevice.Viewport = new Viewport(0, 0, ClientSize.Width, ClientSize.Height);
 
             return null;
         }
