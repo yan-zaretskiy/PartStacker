@@ -1,5 +1,5 @@
-﻿using System.Drawing;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
+using static PartStacker.Constants;
 
 namespace PartStacker.FormComponents
 {
@@ -7,14 +7,16 @@ namespace PartStacker.FormComponents
     {
         private ListView List;
 
-        public PartsList(Control parent, int clientWidth, int menuHeight)
+        public PartsList(Control parent)
         {
             List = new ListView()
             {
-                Location = new Point(clientWidth - 400, 20 + menuHeight),
-                Size = new Size(380, 240),
                 View = View.Details,
                 AllowColumnReorder = true,
+                Anchor = AnchorStyles.Top,
+                Dock = DockStyle.Fill,
+                Height = PartsListInitialHeight,
+                Margin = new Padding(0),
             };
             List.Columns.Add("Name", 105);
             List.Columns.Add("Quantity", 60);
@@ -32,6 +34,11 @@ namespace PartStacker.FormComponents
         {
             add => List.SelectedIndexChanged += value;
             remove => throw new NotSupportedException();
+        }
+
+        public int Height
+        {
+            set => List.Height = value;
         }
 
         public void Enable(bool enable)

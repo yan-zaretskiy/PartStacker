@@ -29,7 +29,7 @@ namespace WinFormsContentLoading
     /// interface, which provides notification events for when the device is reset
     /// or disposed.
     /// </summary>
-    class GraphicsDeviceService : IGraphicsDeviceService
+    class GraphicsDeviceService
     {
         #region Fields
 
@@ -61,7 +61,7 @@ namespace WinFormsContentLoading
             parameters.PresentationInterval = PresentInterval.Immediate;
             parameters.IsFullScreen = false;
 
-            graphicsDevice = new GraphicsDevice(GraphicsAdapter.DefaultAdapter, GraphicsProfile.Reach, parameters);
+            GraphicsDevice = new GraphicsDevice(GraphicsAdapter.DefaultAdapter, GraphicsProfile.Reach, parameters);
         }
 
 
@@ -96,13 +96,10 @@ namespace WinFormsContentLoading
                 // device, we should dispose the singleton instance.
                 if (disposing)
                 {
-                    if (DeviceDisposing != null)
-                        DeviceDisposing(this, EventArgs.Empty);
-
-                    graphicsDevice.Dispose();
+                    GraphicsDevice.Dispose();
                 }
 
-                graphicsDevice = null;
+                GraphicsDevice = null;
             }
         }
 
@@ -114,38 +111,20 @@ namespace WinFormsContentLoading
         /// </summary>
         public void ResetDevice(int width, int height)
         {
-            if (DeviceResetting != null)
-                DeviceResetting(this, EventArgs.Empty);
+            parameters.BackBufferWidth = width;
+            parameters.BackBufferHeight = height;
 
-            parameters.BackBufferWidth = Math.Max(parameters.BackBufferWidth, width);
-            parameters.BackBufferHeight = Math.Max(parameters.BackBufferHeight, height);
-
-            graphicsDevice.Reset(parameters);
-
-            if (DeviceReset != null)
-                DeviceReset(this, EventArgs.Empty);
+            GraphicsDevice.Reset(parameters);
         }
 
         
         /// <summary>
         /// Gets the current graphics device.
         /// </summary>
-        public GraphicsDevice GraphicsDevice
-        {
-            get { return graphicsDevice; }
-        }
-
-        GraphicsDevice graphicsDevice;
+        public GraphicsDevice GraphicsDevice { get; private set; }
 
 
         // Store the current device settings.
         PresentationParameters parameters;
-
-
-        // IGraphicsDeviceService events.
-        public event EventHandler<EventArgs> DeviceCreated;
-        public event EventHandler<EventArgs> DeviceDisposing;
-        public event EventHandler<EventArgs> DeviceReset;
-        public event EventHandler<EventArgs> DeviceResetting;
     }
 }

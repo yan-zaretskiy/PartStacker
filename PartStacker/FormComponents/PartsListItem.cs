@@ -75,6 +75,10 @@ namespace PartStacker.FormComponents
                     break;
                 }
             }
+            if (Properties.Quantity == 0)
+            {
+                Properties.Quantity = 1;
+            }
 
             SubItems.Add(Properties.Quantity.ToString());
             SubItems.Add(Math.Round(Properties.Volume / 1000, 2).ToString());
@@ -123,6 +127,7 @@ namespace PartStacker.FormComponents
             Mirrored = !Mirrored;
             Properties.BaseMesh.Mirror();
             Properties.BaseMesh.CalcBox();
+            SetItems();
         }
     }
 }

@@ -101,9 +101,8 @@ namespace WinFormsContentLoading
         /// </summary>
         protected override void OnPaint(PaintEventArgs e)
         {
-            string beginDrawError = BeginDraw();
-
-            if (string.IsNullOrEmpty(beginDrawError))
+            string? beginDrawError = BeginDraw();
+            if (beginDrawError is null)
             {
                 // Draw the control using the GraphicsDevice.
                 Draw();
@@ -122,7 +121,7 @@ namespace WinFormsContentLoading
         /// if this was not possible, which can happen if the graphics device is
         /// lost, or if we are running inside the Form designer.
         /// </summary>
-        string BeginDraw()
+        string? BeginDraw()
         {
             // If we have no graphics device, we must be running in the designer.
             if (graphicsDeviceService == null)
@@ -131,11 +130,14 @@ namespace WinFormsContentLoading
             }
 
             // Make sure the graphics device is big enough, and is not lost.
-            string deviceResetError = HandleDeviceReset();
-
-            if (!string.IsNullOrEmpty(deviceResetError))
+            try
             {
-                return deviceResetError;
+                graphicsDeviceService.ResetDevice(ClientSize.Width,
+                                                  ClientSize.Height);
+            }
+            catch (Exception e)
+            {
+                return "Graphics device reset failed\n\n" + e;
             }
 
             // Many GraphicsDeviceControl instances can be sharing the same
@@ -143,18 +145,7 @@ namespace WinFormsContentLoading
             // largest of these controls. But what if we are currently drawing
             // a smaller control? To avoid unwanted stretching, we set the
             // viewport to only use the top left portion of the full backbuffer.
-            Viewport viewport = new Viewport();
-
-            viewport.X = 0;
-            viewport.Y = 0;
-
-            viewport.Width = ClientSize.Width;
-            viewport.Height = ClientSize.Height;
-
-            viewport.MinDepth = 0;
-            viewport.MaxDepth = 1;
-
-            GraphicsDevice.Viewport = viewport;
+            GraphicsDevice.Viewport = new Viewport(0, 0, ClientSize.Width, ClientSize.Height);
 
             return null;
         }
@@ -182,54 +173,6 @@ namespace WinFormsContentLoading
                 // drawing. The lost device will be handled by the next BeginDraw,
                 // so we just swallow the exception.
             }
-        }
-
-
-        /// <summary>
-        /// Helper used by BeginDraw. This checks the graphics device status,
-        /// making sure it is big enough for drawing the current control, and
-        /// that the device is not lost. Returns an error string if the device
-        /// could not be reset.
-        /// </summary>
-        string HandleDeviceReset()
-        {
-            bool deviceNeedsReset = false;
-
-            switch (GraphicsDevice.GraphicsDeviceStatus)
-            {
-                case GraphicsDeviceStatus.Lost:
-                    // If the graphics device is lost, we cannot use it at all.
-                    return "Graphics device lost";
-
-                case GraphicsDeviceStatus.NotReset:
-                    // If device is in the not-reset state, we should try to reset it.
-                    deviceNeedsReset = true;
-                    break;
-
-                default:
-                    // If the device state is ok, check whether it is big enough.
-                    PresentationParameters pp = GraphicsDevice.PresentationParameters;
-
-                    deviceNeedsReset = (ClientSize.Width > pp.BackBufferWidth) ||
-                                       (ClientSize.Height > pp.BackBufferHeight);
-                    break;
-            }
-
-            // Do we need to reset the device?
-            if (deviceNeedsReset)
-            {
-                try
-                {
-                    graphicsDeviceService.ResetDevice(ClientSize.Width,
-                                                      ClientSize.Height);
-                }
-                catch (Exception e)
-                {
-                    return "Graphics device reset failed\n\n" + e;
-                }
-            }
-
-            return null;
         }
 
 

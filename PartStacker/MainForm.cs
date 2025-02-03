@@ -1,18 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using System.Drawing;
-using System.IO;
-using System.Threading;
-using Microsoft.Xna.Framework.Content;
-using WinFormsContentLoading;
-using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using PartStacker.FormComponents;
 using PartStacker.Geometry;
 using PartStacker.MeshFile;
+using static PartStacker.Constants;
 
 namespace PartStacker
 {
@@ -38,12 +30,8 @@ namespace PartStacker
             : base()
         {
             // Set initial size
-            Width = 1030;
-            Height = 654;
-
-            // Fix size
-            MinimumSize = Size;
-            MaximumSize = Size;
+            Width = InitialWidth;
+            Height = InitialHeight;
 
             // Title text
             Text = "PartStacker 1.0 - Tom van der Zanden";
@@ -90,455 +78,563 @@ namespace PartStacker
             menu.Items.Add(about);
             Controls.Add(menu);
 
+            MinimumSize = new Size(PanelTotalWidth, InitialHeight);
+            Resize += (e, o) =>
+            {
+                Display3D.Size = new Size(ClientSize.Width - PanelTotalWidth, ClientSize.Height - menu.Height);
+                PartsList.Height = Height - (InitialHeight - PartsListInitialHeight);
+                Display3D.Invalidate();
+            };
+
+            TableLayoutPanel mainPanel = new TableLayoutPanel()
+            {
+                Margin = new Padding(0),
+                Padding = new Padding(0, menu.Height, 0, 0),
+                Dock = DockStyle.Fill,
+                AutoSize = true,
+            };
+            mainPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            mainPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, PanelTotalWidth));
+            Controls.Add(mainPanel);
+
             // Panel for drawing the 3D preview
             Display3D = new ModelViewerControl()
             {
-                Location = new Point(0, 24),
-                Size = new Size(ClientSize.Height - menu.Height, ClientSize.Height - menu.Height),
+                Padding = new Padding(0),
+                Margin = new Padding(0),
+                Dock = DockStyle.Fill,
+                Size = new Size(ClientSize.Width - PanelTotalWidth, ClientSize.Height - menu.Height),
                 BackColor = Color.FromArgb(40, 50, 120)
             };
-            Controls.Add(Display3D);
+            mainPanel.Controls.Add(Display3D, 0, 0);
+
+            Panel rightSide = new TableLayoutPanel()
+            {
+                Anchor = AnchorStyles.Right,
+                Margin = new Padding(PanelPadding, 0, PanelPadding, 0),
+                Padding = new Padding(0, PanelPadding, 0, PanelPadding),
+                MinimumSize = new Size(PanelWidth, 0),
+                MaximumSize = new Size(PanelWidth, 0),
+                Dock = DockStyle.Fill,
+            };
+            mainPanel.Controls.Add(rightSide, 1, 0);
 
             // ListView showing the base STL files
-            PartsList = new(this, ClientSize.Width, menu.Height);
-            PartsList.SelectedIndexChanged += PartSelectHandler; // Todo, make List not visible
+            PartsList = new PartsList(rightSide);
+            PartsList.SelectedIndexChanged += PartSelectHandler;
 
             // Buttons for interacting with the list view
-            Import = new Button()
             {
-                Location = new Point(ClientSize.Width - 400, 270 + menu.Height),
-                Size = new Size(88, 25),
-                Text = "Import"
-            };
-            Delete = new Button()
-            {
-                Location = new Point(ClientSize.Width - 302, 270 + menu.Height),
-                Size = new Size(88, 25),
-                Text = "Delete",
-                Enabled = false
-            };
-            Change = new Button()
-            {
-                Location = new Point(ClientSize.Width - 204, 270 + menu.Height),
-                Size = new Size(88, 25),
-                Text = "Change",
-                Enabled = false
-            };
-            Reload = new Button()
-            {
-                Location = new Point(ClientSize.Width - 106, 270 + menu.Height),
-                Size = new Size(88, 25),
-                Text = "Reload"
-            };
-            Import.Click += ImportHandler;
-            Delete.Click += DeleteHandler;
-            Change.Click += ChangeHandler;
-            Reload.Click += ReloadHandler;
-            Controls.Add(Import);
-            Controls.Add(Delete);
-            Controls.Add(Change);
-            Controls.Add(Reload);
+                TableLayoutPanel buttonPanel = new TableLayoutPanel()
+                {
+                    Margin = new Padding(0),
+                    Padding = new Padding(0, 10, 0, 0),
+                    AutoSize = true,
+                    Anchor = AnchorStyles.Top,
+                    Dock = DockStyle.Fill,
+                    RowCount = 1,
+                    ColumnCount = 4,
+                };
+                buttonPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25));
+                buttonPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25));
+                buttonPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25));
+                buttonPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 25));
+                var makeButton = (string text) => new Button()
+                {
+                    Size = new Size(88, 25),
+                    MaximumSize = new Size(88, 25),
+                    Text = text,
+                    Enabled = false,
+                    Anchor = AnchorStyles.Top,
+                    Padding = new Padding(0),
+                    Margin = new Padding(0),
+                };
+                Import = makeButton("Import");
+                Delete = makeButton("Delete");
+                Change = makeButton("Change");
+                Reload = makeButton("Reload");
+                buttonPanel.Controls.Add(Import, 0, 0);
+                buttonPanel.Controls.Add(Delete, 1, 0);
+                buttonPanel.Controls.Add(Change, 2, 0);
+                buttonPanel.Controls.Add(Reload, 3, 0);
+                Import.Click += ImportHandler;
+                Delete.Click += DeleteHandler;
+                Change.Click += ChangeHandler;
+                Reload.Click += ReloadHandler;
+                rightSide.Controls.Add(buttonPanel);
+                Import.Enabled = true;
+                Reload.Enabled = true;
+            }
 
             // Label with statistics about all the parts
             InfoLabel = new Label()
             {
-                Location = new Point(ClientSize.Width - 400, 300 + menu.Height),
-                Width = ClientSize.Width - ClientSize.Height - 40
+                AutoSize = true,
+                Padding = new Padding(0, 5, 0, 0),
+                Margin = new Padding(0),
             };
-            Controls.Add(InfoLabel);
+            rightSide.Controls.Add(InfoLabel);
             SetText();
-
-            // Progressbar for giving information about the progress of the stacking
-            Progress = new ProgressBar()
-            {
-                Location = new Point(ClientSize.Width - 400, ClientSize.Height - 40),
-                Size = new Size(279, 25)
-            };
-            Controls.Add(Progress);
-
-            Start = new Button()
-            {
-                Location = new Point(ClientSize.Width - 106, ClientSize.Height - 40),
-                Size = new Size(88, 25),
-                Text = "Start"
-            };
-            Start.Click += StartHandler;
-            Controls.Add(Start);
-
-            // Checkbox to allow section viewing
-            CheckBox section = new CheckBox()
-            {
-                Location = new Point(ClientSize.Width - 400, ClientSize.Height - 75),
-                Text = "Section view:",
-                CheckAlign = ContentAlignment.MiddleRight,
-                Width = 126
-            };
-            section.CheckedChanged += (o, e) => { Display3D.Section = section.Checked; };
-            Controls.Add(section);
-
-            // Export button
-            Export = new Button()
-            {
-                Size = new Size(170, 30),
-                Location = new Point(ClientSize.Width - 195, ClientSize.Height - 80),
-                Text = "Export result as STL",
-                Enabled = false
-            };
-            Export.Click += ExportHandler;
-            Controls.Add(Export);
-
-            // Minimal clearance size control
-            Label caption = new Label()
-            {
-                Text = "Minimum clearance:",
-                Location = Location = new Point(ClientSize.Width - 400, ClientSize.Height - 100),
-                Width = 110
-            };
-            Controls.Add(caption);
-            MinimumClearance = new NumericUpDown()
-            {
-                Minimum = 0.5M,
-                Maximum = 2,
-                Increment = 0.05M,
-                Location = new Point(ClientSize.Width - 288, ClientSize.Height - 102),
-                Width = 50,
-                Value = 1,
-                Enabled = true,
-                DecimalPlaces = 2
-            };
-            Controls.Add(MinimumClearance);
 
             // Group box that contains controls for editing the parts
             TabControl Tabs = new TabControl()
             {
-                Location = new Point(ClientSize.Width - 400, 325 + menu.Height),
-                Size = new Size(380, 140),
+                Anchor = AnchorStyles.Top,
+                Dock = DockStyle.Fill,
+                Margin = new Padding(0, 10, 0, 0),
+                MinimumSize = new Size(0, 140),
+                MaximumSize = new Size(0, 140),
             };
+            rightSide.Controls.Add(Tabs);
 
-            Controls.Add(Tabs);
-
-            // Part quantity updown
-            Tabs.TabPages.Add("Part Settings");
-            TabPage PartsTab = Tabs.TabPages[0];
-            caption = new Label()
-            {
-                Text = "Quantity: ",
-                Location = new Point(10, 25) - new Size(5, 15)
-            };
-            PartsTab.Controls.Add(caption);
-            PartQuantity = new NumericUpDown()
-            {
-                Minimum = 0,
-                Maximum = 200,
-                Location = new Point(120, 22) - new Size(5, 15),
-                Width = 50,
-                Value = 1,
-                Enabled = false
-            };
-            PartQuantity.ValueChanged += PartQuantityHandler;
-            PartsTab.Controls.Add(PartQuantity);
-
-            // Minimum hole size updown
-            caption = new Label()
-            {
-                Text = "Minimum hole: ",
-                Location = new Point(10, 50) - new Size(5, 15)
-            };
-            PartsTab.Controls.Add(caption);
-            MinHole = new NumericUpDown()
-            {
-                Minimum = 0,
-                Maximum = 100,
-                Location = new Point(120, 47) - new Size(5, 15),
-                Width = 50,
-                Value = 1,
-                Enabled = false
-            };
-            MinHole.ValueChanged += MinHoleHandler;
-            PartsTab.Controls.Add(MinHole);
-
-            // Checkbox for minimizing the bounding box
-            caption = new Label()
-            {
-                Text = "Minimize box: ",
-                Location = new Point(10, 75) - new Size(5, 15)
-            };
-            PartsTab.Controls.Add(caption);
-            RotateMinBox = new CheckBox()
-            {
-                Location = new Point(120, 71) - new Size(5, 15),
-                Checked = false,
-                Enabled = false,
-                Width = 20
-            };
-            RotateMinBox.CheckedChanged += RotateMinBoxHandler;
-            PartsTab.Controls.Add(RotateMinBox);
-
-            // Preview button that shows the voxelation
-            Preview = new Button()
-            {
-                Location = new Point(10, 98) - new Size(5, 15),
-                Size = new Size(88, 25),
-                Text = "Preview",
-                Enabled = false
-            };
-            Preview.Click += PreviewHandler;
-            PartsTab.Controls.Add(Preview);
-
-            // Preview button that shows the voxelation
-            CopyMirror = new Button()
-            {
-                Location = new Point(110, 98) - new Size(5, 15),
-                Size = new Size(88, 25),
-                Text = "Mirrored copy",
-                Enabled = false
-            };
-            CopyMirror.Click += CopyHandler;
-            PartsTab.Controls.Add(CopyMirror);
-
-            GroupBox rotations = new GroupBox()
-            {
-                Location = new Point(180, 20) - new Size(5, 15),
-                Text = "Part rotations",
-                Size = new Size(190, 61)
-            };
-            PartsTab.Controls.Add(rotations);
-
-            None = new RadioButton()
-            {
-                Location = new Point(10, 15),
-                Text = "None",
-                Enabled = false,
-                Width = 80
-            };
+            GroupBox rotations = MakeRotationSelectionBox(out None, out Cubic, out Arbitrary);
             None.Click += RotationHandler;
-            rotations.Controls.Add(None);
-            Cubic = new RadioButton()
-            {
-                Location = new Point(10, 35),
-                Text = "Cubic",
-                Checked = true,
-                Enabled = false
-            };
             Cubic.Click += RotationHandler;
-            rotations.Controls.Add(Cubic);
-            Arbitrary = new RadioButton()
-            {
-                Location = new Point(100, 15),
-                Text = "Arbitrary",
-                Enabled = false,
-                Width = 80
-            };
             Arbitrary.Click += RotationHandler;
-            rotations.Controls.Add(Arbitrary);
-            
-            Tabs.TabPages.Add("Sinterbox");
-            TabPage SinterboxTab = Tabs.TabPages[1];
-            caption = new Label()
+
+            TabPage partsTab = MakePartsTab(ref rotations, out PartQuantity, out MinHole, out RotateMinBox, out Preview, out CopyMirror);
+            Tabs.TabPages.Add(partsTab);
+            PartQuantity.ValueChanged += PartQuantityHandler;
+            MinHole.ValueChanged += MinHoleHandler;
+            RotateMinBox.CheckedChanged += RotateMinBoxHandler;
+            Preview.Click += PreviewHandler;
+            CopyMirror.Click += CopyHandler;
+
+            TabPage sinterboxTab = MakeSinterboxTab(out Clearance, out Spacing, out Thickness, out BWidth, out EnableSinterbox);
+            Tabs.TabPages.Add(sinterboxTab);
+
+            TabPage boundingBoxTab = MakeBoundingBoxTab(out xMin, out yMin, out zMin, out xMax, out yMax, out zMax);
+            Tabs.TabPages.Add(boundingBoxTab);
+
             {
-                Text = "Clearance: ",
-                Location = new Point(10, 25) - new Size(5, 15)
+                TableLayoutPanel panel = new TableLayoutPanel()
+                {
+                    Margin = new Padding(0),
+                    Padding = new Padding(0, 23, 0, 0),
+                    AutoSize = true,
+                    Anchor = AnchorStyles.Top,
+                    Dock = DockStyle.Fill,
+                    RowCount = 2,
+                    ColumnCount = 3,
+                    MaximumSize = new Size(0, 85),
+                };
+                panel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                panel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                panel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 125));
+                panel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 50));
+                panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+
+                // Minimal clearance size control
+                Label caption = new Label()
+                {
+                    Text = "Minimum clearance:",
+                    AutoSize = false,
+                    Width = 125,
+                    Anchor = AnchorStyles.Left,
+                    Dock = DockStyle.Left,
+                    Margin = new Padding(0),
+                    Padding = new Padding(0, 3, 0, 3),
+                };
+                panel.Controls.Add(caption, 0, 0);
+                MinimumClearance = new NumericUpDown()
+                {
+                    Minimum = 0.5M,
+                    Maximum = 2,
+                    Increment = 0.05M,
+                    Width = 50,
+                    Value = 1,
+                    Enabled = true,
+                    DecimalPlaces = 2,
+                    Anchor = AnchorStyles.Left,
+                    Margin = new Padding(0, 1, 0, 0),
+                };
+                panel.Controls.Add(MinimumClearance, 1, 0);
+
+                // Checkbox to allow section viewing
+                caption = new Label()
+                {
+                    Text = "Section view:",
+                    AutoSize = false,
+                    Width = 125,
+                    Anchor = AnchorStyles.Left,
+                    Dock = DockStyle.Left,
+                    Margin = new Padding(0),
+                    Padding = new Padding(0, 7, 0, 0),
+                };
+                panel.Controls.Add(caption, 0, 1);
+                CheckBox section = new CheckBox()
+                {
+                    Anchor = AnchorStyles.Left,
+                    Margin = new Padding(0),
+                    Padding = new Padding(0, 7, 0, 0),
+                };
+                section.CheckedChanged += (o, e) => { Display3D.Section = section.Checked; };
+                panel.Controls.Add(section, 1, 1);
+
+                // Export button
+                Export = new Button()
+                {
+                    Size = new Size(150, 25),
+                    Text = "Export result as STL",
+                    Enabled = false,
+                    Padding = new Padding(0),
+                    Margin = new Padding(0),
+                    Anchor = AnchorStyles.Right,
+                };
+                Export.Click += ExportHandler;
+                panel.Controls.Add(Export, 2, 1);
+
+                rightSide.Controls.Add(panel);
+            }
+
+            {
+                TableLayoutPanel panel = new TableLayoutPanel()
+                {
+                    Padding = new Padding(0, 10, 0, 0),
+                    Margin = new Padding(0),
+                    AutoSize = true,
+                    Anchor = AnchorStyles.Top,
+                    Dock = DockStyle.Fill,
+                    ColumnCount = 2,
+                    MaximumSize = new Size(0, 35),
+                };
+                panel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 290));
+                panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+
+                // Progressbar for giving information about the progress of the stacking
+                Progress = new ProgressBar()
+                {
+                    Size = new Size(279, 25),
+                    Anchor = AnchorStyles.Left,
+                    Margin = new Padding(0),
+                };
+                panel.Controls.Add(Progress, 0, 0);
+
+                Start = new Button()
+                {
+                    Size = new Size(88, 25),
+                    Text = "Start",
+                    Anchor = AnchorStyles.Right,
+                    Padding = new Padding(0),
+                    Margin = new Padding(0),
+                };
+                Start.Click += StartHandler;
+                panel.Controls.Add(Start, 1, 0);
+
+                rightSide.Controls.Add(panel);
+            }
+        }
+
+        private static TabPage MakePartsTab(ref GroupBox rotations, out NumericUpDown PartQuantity, out NumericUpDown MinHole, out CheckBox RotateMinBox, out Button Preview, out Button CopyMirror)
+        {
+            TabPage tab = new TabPage("Part Settings");
+
+            TableLayoutPanel mainPanel = new TableLayoutPanel()
+            {
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                AutoSize = true,
+                Dock = DockStyle.Fill,
+                RowCount = 2,
+                ColumnCount = 1,
+                Margin = new Padding(0),
+                Padding = new Padding(0, 6, 0, 0),
             };
-            SinterboxTab.Controls.Add(caption);
-            Clearance = new NumericUpDown()
+            mainPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 75));
+            mainPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            mainPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            tab.Controls.Add(mainPanel);
+
             {
-                Minimum = (decimal)0.1,
-                Maximum = 4,
-                Location = new Point(120, 22) - new Size(5, 15),
+                TableLayoutPanel bottomPanel = new TableLayoutPanel()
+                {
+                    AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                    AutoSize = true,
+                    Dock = DockStyle.Fill,
+                    RowCount = 1,
+                    ColumnCount = 3,
+                    Margin = new Padding(0),
+                    Padding = new Padding(0),
+                };
+                bottomPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+                bottomPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26));
+                bottomPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 26));
+                bottomPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 48));
+                mainPanel.Controls.Add(bottomPanel, 0, 1);
+                var makeButton = (string text) => new Button()
+                {
+                    Size = new Size(88, 25),
+                    Text = text,
+                    Enabled = false,
+                    Margin = new Padding(6, 0, 0, 0),
+                };
+                Preview = makeButton("Preview");
+                CopyMirror = makeButton("Mirrored copy");
+                bottomPanel.Controls.Add(Preview, 0, 0);
+                bottomPanel.Controls.Add(CopyMirror, 1, 0);
+            }
+
+            TableLayoutPanel topPanel = new TableLayoutPanel()
+            {
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                AutoSize = true,
+                Dock = DockStyle.Fill,
+                RowCount = 1,
+                ColumnCount = 2,
+                Margin = new Padding(0),
+                Padding = new Padding(0),
+            };
+            topPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            topPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 46));
+            topPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 54));
+            mainPanel.Controls.Add(topPanel, 0, 0);
+
+            topPanel.Controls.Add(rotations, 1, 0);
+
+            {
+                TableLayoutPanel leftPanel = new TableLayoutPanel()
+                {
+                    AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                    AutoSize = true,
+                    Dock = DockStyle.Fill,
+                    RowCount = 3,
+                    ColumnCount = 2,
+                    Margin = new Padding(0),
+                    Padding = new Padding(0),
+                };
+                leftPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 33));
+                leftPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 33));
+                leftPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 34));
+                leftPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 62));
+                leftPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 38));
+                topPanel.Controls.Add(leftPanel, 0, 0);
+
+                var makeLabel = (string text) => new Label()
+                {
+                    Text = text,
+                    Anchor = AnchorStyles.Left,
+                    Padding = new Padding(3),
+                };
+                var makeNumericUpDown = (int maximum) => new NumericUpDown()
+                {
+                    Minimum = 0,
+                    Maximum = maximum,
+                    Width = 50,
+                    Value = 1,
+                    Enabled = false,
+                    Margin = new Padding(9, 1, 7, 0),
+                };
+
+                leftPanel.Controls.Add(makeLabel("Quantity:"), 0, 0);
+                PartQuantity = makeNumericUpDown(200);
+                leftPanel.Controls.Add(PartQuantity, 1, 0);
+
+                leftPanel.Controls.Add(makeLabel("Minimum hole:"), 0, 1);
+                MinHole = makeNumericUpDown(100);
+                leftPanel.Controls.Add(MinHole, 1, 1);
+
+                leftPanel.Controls.Add(makeLabel("Minimize box:"), 0, 2);
+                RotateMinBox = new CheckBox()
+                {
+                    Checked = false,
+                    Enabled = false,
+                    Margin = new Padding(9, 1, 7, 0),
+                };
+                leftPanel.Controls.Add(RotateMinBox, 1, 2);
+            }
+
+            return tab;
+        }
+
+        private static GroupBox MakeRotationSelectionBox(out RadioButton None, out RadioButton Cubic, out RadioButton Arbitrary)
+        {
+            GroupBox box = new GroupBox()
+            {
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                AutoSize = true,
+                Text = "Part rotations",
+            };
+
+            TableLayoutPanel panel = new TableLayoutPanel()
+            {
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                AutoSize = true,
+                Dock = DockStyle.Fill,
+                RowCount = 2,
+                ColumnCount = 2,
+                Margin = new Padding(0),
+                Padding = new Padding(0, 0, 0, 3),
+            };
+            panel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            panel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            box.Controls.Add(panel);
+
+            var makeButton = (string text) => new RadioButton()
+            {
+                Text = text,
+                Enabled = false,
+                Padding = new Padding(9, 0, 0, 0),
+                Margin = new Padding(0),
+                Width = 92,
+                Height = 19,
+            };
+
+            None = makeButton("None");
+            panel.Controls.Add(None, 0, 0);
+
+            Cubic = makeButton("Cubic");
+            panel.Controls.Add(Cubic, 0, 1);
+
+            Arbitrary = makeButton("Arbitrary");
+            panel.Controls.Add(Arbitrary, 1, 0);
+
+            return box;
+        }
+
+        private static TabPage MakeSinterboxTab(out NumericUpDown Clearance, out NumericUpDown Spacing, out NumericUpDown Thickness, out NumericUpDown Width, out CheckBox EnableSinterbox)
+        {
+            TabPage tab = new TabPage("Sinterbox");
+
+            TableLayoutPanel panel = new TableLayoutPanel()
+            {
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                AutoSize = true,
+                Dock = DockStyle.Fill,
+                RowCount = 4,
+                ColumnCount = 4,
+                Margin = new Padding(0),
+                Padding = new Padding(0, 6, 0, 6),
+            };
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            tab.Controls.Add(panel);
+
+            var makeLabel = (string text) => new Label()
+            {
+                Text = text,
+                Anchor = AnchorStyles.Left,
+                Padding = new Padding(3),
+            };
+            var makeNumericUpDown = (double minimum, double maximum, double value, double increment) => new NumericUpDown()
+            {
+                Minimum = (decimal)minimum,
+                Maximum = (decimal)maximum,
                 Width = 50,
-                Value = (decimal)0.8,
-                Increment = (decimal)0.1,
-                DecimalPlaces = 1
+                Value = (decimal)value,
+                Increment = (decimal)increment,
+                DecimalPlaces = 1,
+                Anchor = AnchorStyles.Right,
+                Margin = new Padding(9, 1, 0, 0),
             };
-            SinterboxTab.Controls.Add(Clearance);
-            caption = new Label()
+
+            panel.Controls.Add(makeLabel("Clearance:"), 0, 0);
+            Clearance = makeNumericUpDown(0.1, 4, 0.8, 0.1);
+            panel.Controls.Add(Clearance, 1, 0);
+
+            panel.Controls.Add(makeLabel("Spacing:"), 0, 1);
+            Spacing = makeNumericUpDown(1, 20, 6, 0.5);
+            panel.Controls.Add(Spacing, 1, 1);
+
+            panel.Controls.Add(makeLabel("Thickness:"), 0, 2);
+            Thickness = makeNumericUpDown(0.1, 4, 0.8, 0.1);
+            panel.Controls.Add(Thickness, 1, 2);
+
+            panel.Controls.Add(makeLabel("Width:"), 0, 3);
+            Width = makeNumericUpDown(0.1, 4, 1.1, 0.1);
+            panel.Controls.Add(Width, 1, 3);
+
+            var caption = new Label()
             {
-                Text = "Spacing: ",
-                Location = new Point(10, 50) - new Size(5, 15)
+                Text = "Generate sinterbox:",
+                Anchor = AnchorStyles.Left,
+                Padding = new Padding(10, 3, 0, 3),
+                Width = 120,
             };
-            SinterboxTab.Controls.Add(caption);
-            Spacing = new NumericUpDown()
-            {
-                Minimum = 1,
-                Maximum = 20,
-                Location = new Point(120, 47) - new Size(5, 15),
-                Width = 50,
-                Value = 6,
-                Increment = (decimal)0.5,
-                DecimalPlaces = 1
-            };
-            SinterboxTab.Controls.Add(Spacing);
-            caption = new Label()
-            {
-                Text = "Thickness: ",
-                Location = new Point(10, 75) - new Size(5, 15)
-            };
-            SinterboxTab.Controls.Add(caption);
-            Thickness = new NumericUpDown()
-            {
-                Minimum = (decimal)0.1,
-                Maximum = 4,
-                Location = new Point(120, 72) - new Size(5, 15),
-                Width = 50,
-                Value = (decimal)0.8,
-                Increment = (decimal)0.1,
-                DecimalPlaces = 1
-            };
-            SinterboxTab.Controls.Add(Thickness);
-            caption = new Label()
-            {
-                Text = "Width: ",
-                Location = new Point(10, 100) - new Size(5, 15)
-            };
-            SinterboxTab.Controls.Add(caption);
-            BWidth = new NumericUpDown()
-            {
-                Minimum = (decimal)0.1,
-                Maximum = 4,
-                Location = new Point(120, 97) - new Size(5, 15),
-                Width = 50,
-                Value = (decimal)1.1,
-                Increment = (decimal)0.1,
-                DecimalPlaces = 1
-            };
-            SinterboxTab.Controls.Add(BWidth);
-            caption = new Label()
-            {
-                Text = "Generate sinterbox: ",
-                Location = new Point(180, 22) - new Size(5, 15)
-            };
-            SinterboxTab.Controls.Add(caption);
+            panel.Controls.Add(caption, 2, 0);
             EnableSinterbox = new CheckBox()
             {
-                Location = new Point(300, 18) - new Size(5, 15),
+                Anchor = AnchorStyles.Left,
                 Checked = true
             };
-            SinterboxTab.Controls.Add(EnableSinterbox);
-            
-            Tabs.TabPages.Add("Bounding Box");
-            TabPage BBTab = Tabs.TabPages[2];
-            caption = new Label()
+            panel.Controls.Add(EnableSinterbox, 3, 0);
+
+            return tab;
+        }
+
+        private static TabPage MakeBoundingBoxTab(out NumericUpDown xMin, out NumericUpDown yMin, out NumericUpDown zMin, out NumericUpDown xMax, out NumericUpDown yMax, out NumericUpDown zMax)
+        {
+            TabPage tab = new TabPage("Bounding Box");
+
+            TableLayoutPanel panel = new TableLayoutPanel()
             {
-                Text = "Initial X: ",
-                Location = new Point(10, 25) - new Size(5, 15)
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                AutoSize = true,
+                Dock = DockStyle.Fill,
+                RowCount = 4,
+                ColumnCount = 4,
+                Margin = new Padding(0),
+                Padding = new Padding(0, 6, 0, 6),
             };
-            BBTab.Controls.Add(caption);
-            xMin = new NumericUpDown()
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            panel.RowStyles.Add(new RowStyle(SizeType.Percent, 25));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            panel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
+            tab.Controls.Add(panel);
+
+            var makeLabel = (string text, int leftPadding) => new Label()
             {
-                Minimum = 10,
-                Maximum = 250,
-                Location = new Point(120, 22) - new Size(5, 15),
-                Width = 50,
-                Value = 150,
-                Increment = 1,
-                DecimalPlaces = 0
+                Text = text,
+                Anchor = AnchorStyles.Left,
+                Padding = new Padding(leftPadding, 3, 3, 3),
             };
-            BBTab.Controls.Add(xMin);
-            caption = new Label()
-            {
-                Text = "Initial Y: ",
-                Location = new Point(10, 50) - new Size(5, 15)
-            };
-            BBTab.Controls.Add(caption);
-            yMin = new NumericUpDown()
-            {
-                Minimum = 10,
-                Maximum = 250,
-                Location = new Point(120, 47) - new Size(5, 15),
-                Width = 50,
-                Value = 150,
-                Increment = 1,
-                DecimalPlaces = 0
-            };
-            BBTab.Controls.Add(yMin);
-            caption = new Label()
-            {
-                Text = "Initial Z: ",
-                Location = new Point(10, 75) - new Size(5, 15)
-            };
-            BBTab.Controls.Add(caption);
-            zMin = new NumericUpDown()
+            var makeNumericUpDown = (double value, AnchorStyles anchor) => new NumericUpDown()
             {
                 Minimum = 10,
                 Maximum = 250,
-                Location = new Point(120, 72) - new Size(5, 15),
                 Width = 50,
-                Value = 30,
+                Value = (decimal)value,
                 Increment = 1,
-                DecimalPlaces = 0
+                DecimalPlaces = 0,
+                Anchor = anchor,
+                Margin = new Padding(9, 1, 0, 0),
             };
-            BBTab.Controls.Add(zMin);
-            //
-            //
-            caption = new Label()
-            {
-                Text = "Maximum X: ",
-                Location = new Point(10, 25) - new Size(5, 15) + new Size(170, 0)
-            };
-            BBTab.Controls.Add(caption);
-            xMax = new NumericUpDown()
-            {
-                Minimum = 10,
-                Maximum = 250,
-                Location = new Point(120, 22) - new Size(5, 15) + new Size(170, 0),
-                Width = 50,
-                Value = 156,
-                Increment = 1,
-                DecimalPlaces = 0
-            };
-            BBTab.Controls.Add(xMax);
-            caption = new Label()
-            {
-                Text = "Maximum Y: ",
-                Location = new Point(10, 50) - new Size(5, 15) + new Size(170, 0)
-            };
-            BBTab.Controls.Add(caption);
-            yMax = new NumericUpDown()
-            {
-                Minimum = 10,
-                Maximum = 250,
-                Location = new Point(120, 47) - new Size(5, 15) + new Size(170, 0),
-                Width = 50,
-                Value = 156,
-                Increment = 1,
-                DecimalPlaces = 0
-            };
-            BBTab.Controls.Add(yMax);
-            caption = new Label()
-            {
-                Text = "Maximum Z: ",
-                Location = new Point(10, 75) - new Size(5, 15) + new Size(170, 0)
-            };
-            BBTab.Controls.Add(caption);
-            zMax = new NumericUpDown()
-            {
-                Minimum = 10,
-                Maximum = 250,
-                Location = new Point(120, 72) - new Size(5, 15) + new Size(170, 0),
-                Width = 50,
-                Value = 90,
-                Increment = 1,
-                DecimalPlaces = 0
-            };
-            BBTab.Controls.Add(zMax);
-            
-            ComboBox PresetBox = new ComboBox()
-            {
-                Location = new Point(10, 85),
-                Width = 200,
-                DropDownStyle = ComboBoxStyle.DropDownList
-            };
-            BBTab.Controls.Add(PresetBox);
-            PresetBox.Items.Add("Load Preset");
-            PresetBox.Items.Add("P1 130x105");
-            PresetBox.Items.Add("P1 65x105");
-            PresetBox.Items.Add("P1 86x105");
-            PresetBox.Items.Add("P2 165x165");
-            PresetBox.Items.Add("P2 82x165");
-            PresetBox.Items.Add("P2 82x82");
-            PresetBox.Items.Add("P2 110x110");
-            PresetBox.SelectedIndex = 0;
-            PresetBox.SelectedIndexChanged += loadBBPreset;
+
+            panel.Controls.Add(makeLabel("Initial X:", 3), 0, 0);
+            xMin = makeNumericUpDown(150, AnchorStyles.Right);
+            panel.Controls.Add(xMin, 1, 0);
+
+            panel.Controls.Add(makeLabel("Initial Y:", 3), 0, 1);
+            yMin = makeNumericUpDown(150, AnchorStyles.Right);
+            panel.Controls.Add(yMin, 1, 1);
+
+            panel.Controls.Add(makeLabel("Initial Z:", 3), 0, 2);
+            zMin = makeNumericUpDown(30, AnchorStyles.Right);
+            panel.Controls.Add(zMin, 1, 2);
+
+            panel.Controls.Add(makeLabel("Maximum X:", 20), 2, 0);
+            xMax = makeNumericUpDown(156, AnchorStyles.None);
+            panel.Controls.Add(xMax, 3, 0);
+
+            panel.Controls.Add(makeLabel("Maximum Y:", 20), 2, 1);
+            yMax = makeNumericUpDown(156, AnchorStyles.None);
+            panel.Controls.Add(yMax, 3, 1);
+
+            panel.Controls.Add(makeLabel("Maximum Z:", 20), 2, 2);
+            zMax = makeNumericUpDown(90, AnchorStyles.None);
+            panel.Controls.Add(zMax, 3, 2);
+
+            return tab;
         }
 
         public void CopyHandler(object o, EventArgs ea)
@@ -688,34 +784,6 @@ namespace PartStacker
             int[,,] voxels_temp = new int[mesh.box.Item1, mesh.box.Item2, mesh.box.Item3];
             int volume = mesh.Voxelize(voxels_temp, 1, (int)MinHole.Value);
             Display3D.SetMeshWithVoxels(mesh, voxels_temp, volume);
-        }
-
-        public void loadBBPreset(object o, EventArgs ea)
-        {
-            ComboBox box = (ComboBox) o;
-            if (box.SelectedIndex != 0)
-            {
-                string[] strArray = box.GetItemText(box.SelectedItem).Split(new char[] { ' ', 'x' });
-                int num = int.Parse(strArray[1]);
-                int num2 = int.Parse(strArray[2]);
-                xMin.Value = num - 7;
-                yMin.Value = num2 - 7;
-                xMax.Value = num - 4;
-                yMax.Value = num2 - 4;
-                int minimum = (int) zMin.Minimum;
-                PartsList.ForEachItem(part =>
-                {
-                    Tuple<int, int, int> tuple = part.Properties.BaseMesh.CalcBox();
-                    minimum = Math.Max(minimum, 1 + Math.Min(tuple.Item1, Math.Min(tuple.Item2, tuple.Item3)));
-                });
-                var (_, _, volume) = PartsList.Totals();
-                if (volume == 0)
-                {
-                    volume = 1000;
-                }
-                zMin.Value = Math.Min(zMin.Maximum, Math.Max(minimum, (decimal) ((((double) volume) / 0.135) / ((double) (num * num2)))));
-                zMax.Value = Math.Max(zMax.Minimum, Math.Min(zMax.Maximum, 2M * ((decimal) ((((double) volume) / 0.15) / ((double) (num * num2))))));
-            }
         }
 
         public void ImportHandler(object o, EventArgs ea)

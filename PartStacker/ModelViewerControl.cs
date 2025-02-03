@@ -30,7 +30,7 @@ namespace PartStacker
     {
         public int TriangleCount;
         public Vector3 BB;
-        bool section = false;
+        float nearPlaneDistance = 12.0f;
 
         double zoom = 100;
         Quaternion modelRotation = Quaternion.Identity;
@@ -80,8 +80,11 @@ namespace PartStacker
         {
             Color backColor = new Color(BackColor.R, BackColor.G, BackColor.B);
             GraphicsDevice.Clear(backColor);
+            float aspect = (float)ClientSize.Width / (float)ClientSize.Height;
+            effect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, aspect, nearPlaneDistance, 450.0f);
             effect.World = Matrix.CreateTranslation(-0.5f * BB) * Matrix.CreateFromQuaternion(modelRotation);
-            effect.View = Matrix.CreateLookAt(new Vector3(0, 0, (float)zoom), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
+            float scale = 591.0f / ClientSize.Height;
+            effect.View = Matrix.CreateScale(scale, scale, 1.0f) * Matrix.CreateLookAt(new Vector3(0, 0, (float)zoom), new Vector3(0, 0, 0), new Vector3(0, 1, 0));
 
             if (TriangleCount > 0)
             {
@@ -97,7 +100,6 @@ namespace PartStacker
 
         protected void SetupEffect()
         {
-            effect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, 1.0f, 11.0f, 300.0f);
             effect.VertexColorEnabled = true;
             GraphicsDevice.RasterizerState = new RasterizerState() { CullMode = CullMode.None };
             //GraphicsDevice.RasterizerState = new RasterizerState() { CullMode = CullMode.None, FillMode = FillMode.WireFrame };
@@ -114,17 +116,12 @@ namespace PartStacker
 
         public bool Section
         {
-            get
-            {
-                return section;
-            }
             set
             {
-                section = value;
-                if(section)
-                    effect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, 1.0f, 37.0f, 450.0f);
+                if (value)
+                    nearPlaneDistance = 37.0f;
                 else
-                    effect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.PiOver4, 1.0f, 12.0f, 450.0f);
+                    nearPlaneDistance = 12.0f;
 
                 Invalidate();
             }
