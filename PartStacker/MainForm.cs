@@ -1,18 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using System.Drawing;
-using System.IO;
-using System.Threading;
-using Microsoft.Xna.Framework.Content;
-using WinFormsContentLoading;
-using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using PartStacker.FormComponents;
 using PartStacker.Geometry;
 using PartStacker.MeshFile;
+using static PartStacker.Constants;
 
 namespace PartStacker
 {
@@ -38,8 +30,8 @@ namespace PartStacker
             : base()
         {
             // Set initial size
-            Width = 1030;
-            Height = 654;
+            Width = InitialWidth;
+            Height = InitialHeight;
 
             // Title text
             Text = "PartStacker 1.0 - Tom van der Zanden";
@@ -86,11 +78,11 @@ namespace PartStacker
             menu.Items.Add(about);
             Controls.Add(menu);
 
-            MinimumSize = new Size(20 + 380 + 30, 654);
+            MinimumSize = new Size(PanelTotalWidth, InitialHeight);
             Resize += (e, o) =>
             {
-                Display3D.Size = new Size(ClientSize.Width - (20 + 380 + 20), ClientSize.Height - menu.Height);
-                PartsList.Height = Height - (654 - 240);
+                Display3D.Size = new Size(ClientSize.Width - PanelTotalWidth, ClientSize.Height - menu.Height);
+                PartsList.Height = Height - (InitialHeight - PartsListInitialHeight);
                 Display3D.Invalidate();
             };
 
@@ -102,7 +94,7 @@ namespace PartStacker
                 AutoSize = true,
             };
             mainPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
-            mainPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 20 + 380 + 20));
+            mainPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, PanelTotalWidth));
             Controls.Add(mainPanel);
 
             // Panel for drawing the 3D preview
@@ -111,7 +103,7 @@ namespace PartStacker
                 Padding = new Padding(0),
                 Margin = new Padding(0),
                 Dock = DockStyle.Fill,
-                Size = new Size(ClientSize.Width - (20 + 380 + 20), ClientSize.Height - menu.Height),
+                Size = new Size(ClientSize.Width - PanelTotalWidth, ClientSize.Height - menu.Height),
                 BackColor = Color.FromArgb(40, 50, 120)
             };
             mainPanel.Controls.Add(Display3D, 0, 0);
@@ -119,10 +111,10 @@ namespace PartStacker
             Panel rightSide = new TableLayoutPanel()
             {
                 Anchor = AnchorStyles.Right,
-                Margin = new Padding(20, 0, 20, 0),
-                Padding = new Padding(0, 20, 0, 20),
-                MinimumSize = new Size(380, 0),
-                MaximumSize = new Size(380, 0),
+                Margin = new Padding(PanelPadding, 0, PanelPadding, 0),
+                Padding = new Padding(0, PanelPadding, 0, PanelPadding),
+                MinimumSize = new Size(PanelWidth, 0),
+                MaximumSize = new Size(PanelWidth, 0),
                 Dock = DockStyle.Fill,
             };
             mainPanel.Controls.Add(rightSide, 1, 0);

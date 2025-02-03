@@ -1,5 +1,5 @@
-﻿using System.Drawing;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
+using static PartStacker.Constants;
 
 namespace PartStacker.FormComponents
 {
@@ -15,7 +15,7 @@ namespace PartStacker.FormComponents
                 AllowColumnReorder = true,
                 Anchor = AnchorStyles.Top,
                 Dock = DockStyle.Fill,
-                Height = 240,
+                Height = PartsListInitialHeight,
                 Margin = new Padding(0),
             };
             List.Columns.Add("Name", 105);
