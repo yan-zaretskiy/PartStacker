@@ -238,5 +238,12 @@ namespace PartStacker
             BB = ToVector3(mesh.size);
             Invalidate();
         }
+
+        public void UnsetMesh()
+        {
+            TriangleCount = 0;
+            triangles = null;
+            Invalidate();
+        }
     }
 }

@@ -1,6 +1,6 @@
 # PartStacker
 
-A community fork of https://tomvanderzanden.nl/partstacker/
+A community fork of https://github.com/TomvdZanden/PartStacker/
 
 ## To build this project on Windows
 

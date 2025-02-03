@@ -5,11 +5,11 @@ using System.Runtime.Versioning;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("PartStacker")]
+[assembly: AssemblyTitle("PartStacker Community Edition")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("PartStacker")]
+[assembly: AssemblyProduct("PartStacker Community Edition")]
 [assembly: AssemblyCopyright("Copyright © 2012, 2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
