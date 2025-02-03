@@ -34,7 +34,7 @@ namespace PartStacker
             Height = InitialHeight;
 
             // Title text
-            Text = "PartStacker 1.0 - Tom van der Zanden";
+            Text = $"PartStacker Community Edition v{VersionString}";
 
             // Abort stacking when program is closed
             this.FormClosing += (o, e) => { Stacker?.Stop(); };
@@ -67,10 +67,25 @@ namespace PartStacker
 
             ToolStripMenuItem about = new ToolStripMenuItem("Help");
             item = new ToolStripMenuItem("About");
-            item.Click += (o, e) => { MessageBox.Show("PartStacker is (c)opyright Tom van der Zanden 2011-2013. It is licensed under the GNU General Public License.", "PartStacker", MessageBoxButtons.OK, MessageBoxIcon.Information); };
+            item.Click += (o, e) =>
+            {
+                string message =
+                    "PartStacker Community Edition is a continuation of PartStacker, (c)opyright Tom van der Zanden 2011-2013. Visit https://github.com/TomvdZanden/PartStacker/.\n\n"
+                    + "PartStacker Community Edition is (c)opyright Braden Ganetsky 2025. Visit https://github.com/PartStackerCommunity/PartStacker/.\n\n"
+                    + "Both the original and the Community Edition are licensed under the GNU General Public License v3.0."
+                ;
+                MessageBox.Show(message, "PartStacker Community Edition", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            };
             about.DropDownItems.Add(item);
             item = new ToolStripMenuItem("Visit website");
-            item.Click += (o, e) => { System.Diagnostics.Process.Start("http://www.tomvanderzanden.nl/partstacker"); };
+            item.Click += (o, e) =>
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "https://github.com/PartStackerCommunity/PartStacker/",
+                    UseShellExecute = true
+                });
+            };
             about.DropDownItems.Add(item);
 
             menu.Items.Add(fileMenu);
