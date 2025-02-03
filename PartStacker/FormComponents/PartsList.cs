@@ -72,7 +72,7 @@ namespace PartStacker.FormComponents
         }
 
         public void Add(PartsListItem part) => List.Items.Add(part);
-        public void RemoveAll() => List.Clear();
+        public void RemoveAll() => List.Items.Clear();
 
         public void ForEachItem(Action<PartsListItem> action)
         {

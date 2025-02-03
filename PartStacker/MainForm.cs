@@ -660,6 +660,9 @@ namespace PartStacker
         public void NewHandler(object o, EventArgs ea)
         {
             PartsList.RemoveAll();
+            SetText();
+            LastResult = null;
+            Display3D.UnsetMesh();
         }
 
         public void OpenHandler(object o, EventArgs ea)
