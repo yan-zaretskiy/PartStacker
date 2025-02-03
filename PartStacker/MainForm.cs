@@ -664,6 +664,9 @@ namespace PartStacker
 
         public void OpenHandler(object o, EventArgs ea)
         {
+            MessageBox.Show("Saving and loading stacking settings are not currently supported. It will be re-enabled in a future version.", "Unsupported feature", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+
             OpenFileDialog select = new OpenFileDialog()
             {
                 Title = "Load stacking settings from file",
@@ -699,6 +702,9 @@ namespace PartStacker
 
         public void SaveHandler(object o, EventArgs ea)
         {
+            MessageBox.Show("Saving and loading stacking settings are not currently supported. It will be re-enabled in a future version.", "Unsupported feature", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+
             SaveFileDialog select = new SaveFileDialog()
             {
                 Title = "Select file to save stacking settings",
