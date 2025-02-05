@@ -8,7 +8,7 @@ A community fork of https://github.com/TomvdZanden/PartStacker/
 
 You'll need Visual Studio 2022 with
 * The ".NET desktop development" workload
-* The .NET 8.0 runtime.
+* The .NET 9.0 runtime.
 
 Clone the repo with its submodules
 

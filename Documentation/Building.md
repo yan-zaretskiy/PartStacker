@@ -20,8 +20,7 @@ To see if `git` is installed
 
 * If you don't have Visual Studio 2022 yet, visit [this download link](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=Community&channel=Release&version=VS2022) for the installer
 * If you already have Visual Studio 2022, open the Visual Studio Installer already on your computer
-    * Ensure you have at least version 17.8
-    * The screenshot below shows version 17.12, which is higher than 17.8
+    * Ensure you have at least version 17.12
     * ![](./Building/Visual_Studio_Version.png)
     * Otherwise, update Visual Studio to a new enough version
     * ![](./Building/Visual_Studio_Update.png)
@@ -33,7 +32,7 @@ You should see 4 tabs in this window
 
 * In the "Workloads" tab, make sure you select ".NET desktop development"
 * ![](./Building/Visual_Studio_Dotnet_Workload.png)
-* In the "Individual components tab, make sure you search for and select ".NET 8.0 Runtime"
+* In the "Individual components tab, make sure you search for and select ".NET 9.0 Runtime"
 * ![](./Building/Visual_Studio_Dotnet_Runtime.png)
 
 Then click install at the bottom right
