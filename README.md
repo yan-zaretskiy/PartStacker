@@ -1,6 +1,12 @@
 # PartStacker
 
-A community fork of https://github.com/TomvdZanden/PartStacker/
+A tool to pack 3D mesh files into a minimal bounding box.
+
+A community fork of https://github.com/TomvdZanden/PartStacker/.
+
+## Download the latest release
+
+[**Click here**](https://github.com/PartStackerCommunity/PartStacker/releases/tag/v0.1) for the latest release.
 
 ## To build this project on Windows
 

@@ -66,7 +66,7 @@ If you already had the code downloaded from before, open Windows PowerShell, nav
 
 ```
 git checkout main
-git pull
+git pull --recurse-submodules
 ```
 
 ## Build and run PartStacker
@@ -79,3 +79,11 @@ Go into the PartStacker folder in your regular file explorer, then open `PartSta
 * If all goes well, PartStacker will build and immediately start running
 
 If you make edits to the code, click the solid green arrow again to rebuild and rerun PartStacker
+
+### Common hurdles
+
+When running PartStacker for the first time, you may encounter a pop-up that looks like this
+
+![](./Building/Visual_Studio_Just_My_Code.png)
+
+If you don't know the difference between these options, select "Disable Just My Code and Continue"
