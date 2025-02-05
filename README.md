@@ -1,6 +1,12 @@
 # PartStacker
 
-A community fork of https://github.com/TomvdZanden/PartStacker/
+A tool to pack 3D mesh files into a minimal bounding box.
+
+A community fork of https://github.com/TomvdZanden/PartStacker/.
+
+## Download the latest release
+
+[**Click here**](https://github.com/PartStackerCommunity/PartStacker/releases/tag/v0.1) for the latest release.
 
 ## To build this project on Windows
 
@@ -8,7 +14,7 @@ A community fork of https://github.com/TomvdZanden/PartStacker/
 
 You'll need Visual Studio 2022 with
 * The ".NET desktop development" workload
-* The .NET 8.0 runtime.
+* The .NET 9.0 runtime.
 
 Clone the repo with its submodules
 
@@ -16,6 +22,4 @@ Clone the repo with its submodules
 git clone --recurse-submodules https://github.com/PartStackerCommunity/PartStacker.git
 ```
 
-First build the dependency, MonoGame, by building all configurations of `./Dependencies/MonoGame/MonoGame.Framework.WindowsDX.sln`.
-
-Then open `./PartStacker.sln` and get started!
+Open `./PartStacker.sln` and get started!

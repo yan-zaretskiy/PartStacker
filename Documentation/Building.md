@@ -20,8 +20,7 @@ To see if `git` is installed
 
 * If you don't have Visual Studio 2022 yet, visit [this download link](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=Community&channel=Release&version=VS2022) for the installer
 * If you already have Visual Studio 2022, open the Visual Studio Installer already on your computer
-    * Ensure you have at least version 17.8
-    * The screenshot below shows version 17.12, which is higher than 17.8
+    * Ensure you have at least version 17.12
     * ![](./Building/Visual_Studio_Version.png)
     * Otherwise, update Visual Studio to a new enough version
     * ![](./Building/Visual_Studio_Update.png)
@@ -33,7 +32,7 @@ You should see 4 tabs in this window
 
 * In the "Workloads" tab, make sure you select ".NET desktop development"
 * ![](./Building/Visual_Studio_Dotnet_Workload.png)
-* In the "Individual components tab, make sure you search for and select ".NET 8.0 Runtime"
+* In the "Individual components tab, make sure you search for and select ".NET 9.0 Runtime"
 * ![](./Building/Visual_Studio_Dotnet_Runtime.png)
 
 Then click install at the bottom right
@@ -67,35 +66,10 @@ If you already had the code downloaded from before, open Windows PowerShell, nav
 
 ```
 git checkout main
-git pull
+git pull --recurse-submodules
 ```
 
-## Build MonoGame
-
-Go into the PartStacker folder in your regular file explorer, then open `Dependencies/MonoGame/MonoGame.Framework.WindowsDX.sln` in Visual Studio 2022
-
-Make sure both of the projects are loaded
-
-* Look at the "Solution Explorer" panel
-* ![](./Building/MonoGame_Projects.png)
-* If either project says "(unloaded)" in the name
-    * Right click on each project and click "Reload Project"
-    * If this option either doesn't work or isn't available, refer to the "Install Visual Studio 2022 Community Edition" section of this document to fix your installation
-* ![](./Building/MonoGame_Projects_Unloaded.png)
-
-Build the projects
-
-* Menu bar -> "Build" -> "Batch Build"
-* ![](./Building/MonoGame_Batch_Build_1.png)
-* Select all the checkboxes in the "Build" column
-* Click the "Rebuild" button
-* ![](./Building/MonoGame_Batch_Build_2.png)
-* Wait for it to finish
-* After this, you can close Visual Studio.
-
-You only need to do this once, not every time you want to build PartStacker.
-
-## Build and run PartStacker itself
+## Build and run PartStacker
 
 Go into the PartStacker folder in your regular file explorer, then open `PartStacker.sln` in Visual Studio 2022
 
@@ -105,3 +79,11 @@ Go into the PartStacker folder in your regular file explorer, then open `PartSta
 * If all goes well, PartStacker will build and immediately start running
 
 If you make edits to the code, click the solid green arrow again to rebuild and rerun PartStacker
+
+### Common hurdles
+
+When running PartStacker for the first time, you may encounter a pop-up that looks like this
+
+![](./Building/Visual_Studio_Just_My_Code.png)
+
+If you don't know the difference between these options, select "Disable Just My Code and Continue"
