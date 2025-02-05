@@ -283,7 +283,7 @@ namespace PartStacker
                     Margin = new Padding(0),
                     Padding = new Padding(0, 7, 0, 0),
                 };
-                section.CheckedChanged += (o, e) => { Display3D.Section = section.Checked; };
+                section.CheckedChanged += (o, e) => { Display3D.SetSectionView(section.Checked); };
                 panel.Controls.Add(section, 1, 1);
 
                 // Export button

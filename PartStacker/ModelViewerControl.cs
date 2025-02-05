@@ -114,17 +114,14 @@ namespace PartStacker
             effect.DirectionalLight0.Direction = new Vector3(0, 0, -1);
         }
 
-        public bool Section
+        public void SetSectionView(bool value)
         {
-            set
-            {
-                if (value)
-                    nearPlaneDistance = 37.0f;
-                else
-                    nearPlaneDistance = 12.0f;
+            if (value)
+                nearPlaneDistance = 37.0f;
+            else
+                nearPlaneDistance = 12.0f;
 
-                Invalidate();
-            }
+            Invalidate();
         }
 
         private static Vector3 ToVector3(Vector vec) => new Vector3((float)vec.X, (float)vec.Y, (float)vec.Z);
