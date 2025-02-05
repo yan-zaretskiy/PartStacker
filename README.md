@@ -16,6 +16,4 @@ Clone the repo with its submodules
 git clone --recurse-submodules https://github.com/PartStackerCommunity/PartStacker.git
 ```
 
-First build the dependency, MonoGame, by building all configurations of `./Dependencies/MonoGame/MonoGame.Framework.WindowsDX.sln`.
-
-Then open `./PartStacker.sln` and get started!
+Open `./PartStacker.sln` and get started!

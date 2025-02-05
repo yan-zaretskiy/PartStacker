@@ -70,32 +70,7 @@ git checkout main
 git pull
 ```
 
-## Build MonoGame
-
-Go into the PartStacker folder in your regular file explorer, then open `Dependencies/MonoGame/MonoGame.Framework.WindowsDX.sln` in Visual Studio 2022
-
-Make sure both of the projects are loaded
-
-* Look at the "Solution Explorer" panel
-* ![](./Building/MonoGame_Projects.png)
-* If either project says "(unloaded)" in the name
-    * Right click on each project and click "Reload Project"
-    * If this option either doesn't work or isn't available, refer to the "Install Visual Studio 2022 Community Edition" section of this document to fix your installation
-* ![](./Building/MonoGame_Projects_Unloaded.png)
-
-Build the projects
-
-* Menu bar -> "Build" -> "Batch Build"
-* ![](./Building/MonoGame_Batch_Build_1.png)
-* Select all the checkboxes in the "Build" column
-* Click the "Rebuild" button
-* ![](./Building/MonoGame_Batch_Build_2.png)
-* Wait for it to finish
-* After this, you can close Visual Studio.
-
-You only need to do this once, not every time you want to build PartStacker.
-
-## Build and run PartStacker itself
+## Build and run PartStacker
 
 Go into the PartStacker folder in your regular file explorer, then open `PartStacker.sln` in Visual Studio 2022
 
