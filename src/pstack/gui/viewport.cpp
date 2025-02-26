@@ -53,45 +53,6 @@ constexpr auto fragment_shader_source = R"(
     }
 )";
 
-namespace {
-
-geo::mesh default_tetrahedron_mesh() {
-    static constexpr float sqrt3 = 0.57735026919f;
-
-    using point3 = geo::point3<float>;
-    using vector3 = geo::vector3<float>;
-
-    std::vector<geo::triangle> triangles{};
-    triangles.emplace_back(
-        vector3{sqrt3, sqrt3, -sqrt3},
-        point3{0.5f, 0.5f, 0.5f},
-        point3{0.5f, -0.5f, -0.5f},
-        point3{-0.5f, 0.5f, -0.5f}
-    );
-    triangles.emplace_back(
-        vector3{sqrt3, -sqrt3, sqrt3},
-        point3{0.5f, 0.5f, 0.5f},
-        point3{-0.5f, -0.5f, 0.5f},
-        point3{0.5f, -0.5f, -0.5f}
-    );
-    triangles.emplace_back(
-        vector3{-sqrt3, sqrt3, sqrt3},
-        point3{0.5f, 0.5f, 0.5f},
-        point3{-0.5f, 0.5f, -0.5f},
-        point3{-0.5f, -0.5f, 0.5f}
-    );
-    triangles.emplace_back(
-        vector3{-sqrt3, -sqrt3, -sqrt3},
-        point3{0.5f, -0.5f, -0.5f},
-        point3{-0.5f, -0.5f, 0.5f},
-        point3{-0.5f, 0.5f, -0.5f}
-    );
-
-    return geo::mesh(std::move(triangles));
-}
-
-} // namespace
-
 bool viewport::initialize() {
     if (!_opengl_context) {
         return false;
@@ -116,9 +77,7 @@ bool viewport::initialize() {
     }
 
     _vao.initialize();
-    const auto mesh = default_tetrahedron_mesh();
-    const auto centroid = mesh.volume_and_centroid().centroid;
-    set_mesh(mesh, centroid);
+    remove_mesh();
 
     return true;
 }
@@ -195,6 +154,18 @@ void viewport::set_mesh(const geo::mesh& mesh, const geo::point3<float>& centroi
     const auto size = bounding.max - bounding.min;
     const auto zoom_factor = 1 / std::max({ size.x, size.y, size.z });
     _transform.scale_mesh(zoom_factor);
+    _shader.set_uniform("transform_vertices", _transform.for_vertices());
+    _shader.set_uniform("transform_normals", _transform.for_normals());
+}
+
+void viewport::remove_mesh() {
+    _vao.clear();
+
+    _vao.add_vertex_buffer(0, {});
+    _vao.add_vertex_buffer(1, {});
+
+    _transform.translation({ 0, 0, 0 });
+    _transform.scale_mesh(1);
     _shader.set_uniform("transform_vertices", _transform.for_vertices());
     _shader.set_uniform("transform_normals", _transform.for_normals());
 }

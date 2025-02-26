@@ -27,6 +27,7 @@ public:
     void on_size(wxSizeEvent& event);
 
     void set_mesh(const geo::mesh& mesh, const geo::point3<float>& centroid);
+    void remove_mesh();
 
 	void on_left_down(wxMouseEvent& evt);
 	void on_motion(wxMouseEvent& evt);
