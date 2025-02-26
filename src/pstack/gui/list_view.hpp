@@ -19,6 +19,7 @@ public:
 
     class row;
     row& append_row(std::vector<wxString> items);
+    void delete_row(std::size_t row_index);
     void set_text(std::size_t row_index, int column, const wxString& text);
     std::size_t rows() const {
         return _rows.size();
@@ -44,13 +45,7 @@ private:
 
 class list_view::row {
 public:
-    row(long index)
-        : _index(index)
-    {}
-
-    long index() const {
-        return _index;
-    }
+    row() = default;
 
     template <class T>
     void set_data(T&& t) {
@@ -63,7 +58,6 @@ public:
     }
 
 private:
-    long _index;
     std::any _data{};
 };
 

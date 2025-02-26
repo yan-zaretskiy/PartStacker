@@ -97,6 +97,19 @@ void parts_list::refresh_quantity_text() {
     update_label();
 }
 
+void parts_list::delete_selected() {
+    std::vector<std::size_t> indices_to_delete{};
+    for (const auto [index, value] : _selected | std::views::enumerate) {
+        if (value) {
+            indices_to_delete.push_back(index);
+        }
+    }
+    for (const std::size_t index : indices_to_delete | std::views::reverse) {
+        _list.delete_row(index);
+        _selected.erase(_selected.begin() + index);
+    }
+}
+
 void parts_list::update_label() {
     int parts = 0;
     double volume = 0;

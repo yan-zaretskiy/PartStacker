@@ -20,6 +20,7 @@ public:
 
     void append_row(std::string mesh_file);
     void refresh_quantity_text();
+    void delete_selected();
     
     void update_label();
     wxWindow* label() const {

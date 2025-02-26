@@ -19,11 +19,19 @@ list_view::row& list_view::append_row(const std::vector<wxString> items) {
     }
 
     const long row_index = _list->InsertItem(_rows.size(), items.at(0));
-    auto& r = _rows.emplace_back(row_index);
+    auto& r = _rows.emplace_back();
     for (const auto& [column, item] : items | std::views::enumerate | std::views::drop(1)) {
         _list->SetItem(row_index, column, item);
     }
     return r;
+}
+
+void list_view::delete_row(const std::size_t row_index) {
+    if (row_index >= _rows.size()) {
+        throw std::runtime_error("Wrong number of items in the parts list.");
+    }
+    _list->DeleteItem(row_index);
+    _rows.erase(_rows.begin() + row_index);
 }
 
 void list_view::set_text(std::size_t row_index, int column, const wxString& text) {

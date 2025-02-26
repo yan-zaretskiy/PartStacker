@@ -163,6 +163,12 @@ void main_window::on_import(wxCommandEvent& event) {
     event.Skip();
 }
 
+void main_window::on_delete(wxCommandEvent& event) {
+    _parts_list.delete_selected();
+    set_part(std::nullopt);
+    event.Skip();
+}
+
 wxSizer* main_window::make_part_buttons(main_window* frame) {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     auto make_button = [frame](const char* text) {
@@ -170,18 +176,19 @@ wxSizer* main_window::make_part_buttons(main_window* frame) {
         button->SetMinSize(frame->FromDIP(button_size));
         return button;
     };
-    auto import_button = make_button("Import");
-    import_button->Bind(wxEVT_BUTTON, &main_window::on_import, frame);
-    auto delete_button = make_button("Delete");
-    auto change_button = make_button("Change");
-    auto reload_button = make_button("Reload");
-    sizer->Add(import_button, 1, wxEXPAND);
+    frame->_import_button = make_button("Import");
+    frame->_import_button->Bind(wxEVT_BUTTON, &main_window::on_import, frame);
+    frame->_delete_button = make_button("Delete");
+    frame->_delete_button->Bind(wxEVT_BUTTON, &main_window::on_delete, frame);
+    frame->_change_button = make_button("Change");
+    frame->_reload_button = make_button("Reload");
+    sizer->Add(frame->_import_button, 1, wxEXPAND);
     sizer->AddSpacer(frame->FromDIP(inner_border));
-    sizer->Add(delete_button, 1, wxEXPAND);
+    sizer->Add(frame->_delete_button, 1, wxEXPAND);
     sizer->AddSpacer(frame->FromDIP(inner_border));
-    sizer->Add(change_button, 1, wxEXPAND);
+    sizer->Add(frame->_change_button, 1, wxEXPAND);
     sizer->AddSpacer(frame->FromDIP(inner_border));
-    sizer->Add(reload_button, 1, wxEXPAND);
+    sizer->Add(frame->_reload_button, 1, wxEXPAND);
     return sizer;
 }
 

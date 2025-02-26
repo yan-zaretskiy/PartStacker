@@ -35,6 +35,11 @@ private:
     wxRadioButton* _radio_arbitrary = nullptr;
     wxRadioButton* _radio_cubic = nullptr;
 
+    wxButton* _import_button = nullptr;
+    wxButton* _delete_button = nullptr;
+    wxButton* _change_button = nullptr;
+    wxButton* _reload_button = nullptr;
+
     static wxMenuBar* make_menu_bar();
 
     static wxSizer* make_part_buttons(main_window* frame);
@@ -44,6 +49,9 @@ private:
     static wxWindow* make_tabs(main_window* frame);
 
     void on_import(wxCommandEvent& event);
+    void on_delete(wxCommandEvent& event);
+    void on_change(wxCommandEvent& event);
+    void on_reload(wxCommandEvent& event);
 };
 
 } // namespace pstack::gui
