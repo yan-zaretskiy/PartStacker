@@ -18,22 +18,29 @@ public:
     parts_list(const parts_list&) = delete;
     parts_list& operator=(const parts_list&) = delete;
 
+    std::size_t rows() {
+        return _list.rows();
+    }
     void append_row(std::string mesh_file);
     void refresh_quantity_text();
     void delete_selected();
+
+    part_properties& at(std::size_t row) {
+        return _properties.at(row);
+    }
     
     void update_label();
     wxWindow* label() const {
         return _label;
     }
-    
-    list_view& list() {
-        return _list;
+    wxWindow* control() {
+        return _list.control();
     }
 
 private:
     list_view _list{};
     wxStaticText* _label{};
+    std::vector<part_properties> _properties;
     std::vector<bool> _selected{};
 };
 

@@ -17,15 +17,11 @@ public:
     list_view() = default;
     list_view(main_window* parent, wxSize min_size, const std::vector<std::pair<wxString, int>>& columns);
 
-    class row;
-    row& append_row(std::vector<wxString> items);
+    void append_row(std::vector<wxString> items);
     void delete_row(std::size_t row_index);
     void set_text(std::size_t row_index, int column, const wxString& text);
     std::size_t rows() const {
-        return _rows.size();
-    }
-    row& row_at(std::size_t i) {
-        return _rows.at(i);
+        return _rows;
     }
 
     wxWindow* control() const {
@@ -39,26 +35,8 @@ public:
 
 private:
     wxListView* _list = nullptr;
-    std::vector<row> _rows;
+    std::size_t _rows = 0;
     std::size_t _columns = 0;
-};
-
-class list_view::row {
-public:
-    row() = default;
-
-    template <class T>
-    void set_data(T&& t) {
-        _data.emplace<T>(std::forward<T>(t));
-    }
-
-    template <class T>
-    T& get_data() {
-        return *std::any_cast<T>(&_data);
-    }
-
-private:
-    std::any _data{};
 };
 
 } // namespace pstack::gui

@@ -13,25 +13,24 @@ list_view::list_view(main_window* parent, const wxSize min_size, const std::vect
     _columns = columns.size();
 }
 
-list_view::row& list_view::append_row(const std::vector<wxString> items) {
+void list_view::append_row(const std::vector<wxString> items) {
     if (items.size() != _columns) {
         throw std::runtime_error("Wrong number of items in the parts list.");
     }
 
-    const long row_index = _list->InsertItem(_rows.size(), items.at(0));
-    auto& r = _rows.emplace_back();
+    const auto row_index = _rows++;
+    _list->InsertItem(row_index, items.at(0));
     for (const auto& [column, item] : items | std::views::enumerate | std::views::drop(1)) {
         _list->SetItem(row_index, column, item);
     }
-    return r;
 }
 
 void list_view::delete_row(const std::size_t row_index) {
-    if (row_index >= _rows.size()) {
+    if (row_index >= _rows) {
         throw std::runtime_error("Wrong number of items in the parts list.");
     }
     _list->DeleteItem(row_index);
-    _rows.erase(_rows.begin() + row_index);
+    --_rows;
 }
 
 void list_view::set_text(std::size_t row_index, int column, const wxString& text) {

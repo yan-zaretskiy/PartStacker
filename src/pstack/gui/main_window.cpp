@@ -1,6 +1,6 @@
 #include "pstack/files/stl.hpp"
-#include "pstack/gui/list_view.hpp"
 #include "pstack/gui/main_window.hpp"
+#include "pstack/gui/parts_list.hpp"
 #include "pstack/gui/part_properties.hpp"
 #include "pstack/gui/viewport.hpp"
 
@@ -48,7 +48,7 @@ main_window::main_window(const wxString& title)
     _parts_list.update_label();
 
     auto right_sizer = new wxBoxSizer(wxVERTICAL);
-    right_sizer->Add(_parts_list.list().control(), 1, wxEXPAND);
+    right_sizer->Add(_parts_list.control(), 1, wxEXPAND);
     right_sizer->AddSpacer(FromDIP(inner_border));
     right_sizer->Add(make_part_buttons(this), 0, wxEXPAND);
     right_sizer->AddSpacer(FromDIP(inner_border));
@@ -77,7 +77,7 @@ void main_window::set_part(const std::optional<std::size_t> index) {
     }
 
     enable_part_settings(true);
-    _current_part = &_parts_list.list().row_at(*index).get_data<part_properties>();
+    _current_part = &_parts_list.at(*index);
     _quantity_spinner->SetValue(_current_part->quantity);
     _min_hole_spinner->SetValue(_current_part->min_hole);
     _minimize_checkbox->SetValue(_current_part->rotate_min_box);
@@ -155,7 +155,7 @@ void main_window::on_import(wxCommandEvent& event) {
     }
     _parts_list.update_label();
     if (paths.size() == 1) {
-        set_part(_parts_list.list().rows() - 1);
+        set_part(_parts_list.rows() - 1);
     } else {
         set_part(std::nullopt);
     }
