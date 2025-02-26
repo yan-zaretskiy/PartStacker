@@ -21,7 +21,9 @@ public:
     std::size_t rows() {
         return _list.rows();
     }
-    void append_row(std::string mesh_file);
+    void append(std::string mesh_file);
+    void change(std::string mesh_file, std::size_t row);
+    void reload(std::size_t row);
     void refresh_quantity_text();
     void delete_selected();
     void get_selected(std::vector<std::size_t>& vec);

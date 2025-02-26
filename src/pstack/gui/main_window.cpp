@@ -164,7 +164,7 @@ void main_window::on_import(wxCommandEvent& event) {
     dialog.GetPaths(paths);
 
     for (const auto& path : paths) {
-        _parts_list.append_row(path.ToStdString());
+        _parts_list.append(path.ToStdString());
     }
     _parts_list.update_label();
     if (paths.size() == 1) {
@@ -180,8 +180,8 @@ void main_window::on_delete(wxCommandEvent& event) {
     static thread_local std::vector<std::size_t> selected{};
     _parts_list.get_selected(selected);
     auto message = std::format("Are you sure you want to delete {} {} item{}?", selected.size() == 1 ? "this" : "these", selected.size(), selected.size() == 1 ? "" : "s");
-    auto dialog = new wxMessageDialog(this, std::move(message), "Delete items", wxYES_NO | wxNO_DEFAULT);
-    if (dialog->ShowModal() == wxID_YES) {
+    wxMessageDialog dialog(this, std::move(message), "Delete items", wxYES_NO | wxNO_DEFAULT);
+    if (dialog.ShowModal() == wxID_YES) {
         _parts_list.delete_selected();
         _parts_list.update_label();
         select_parts({});
@@ -190,12 +190,36 @@ void main_window::on_delete(wxCommandEvent& event) {
 }
 
 void main_window::on_change(wxCommandEvent& event) {
-    // todo
+    wxFileDialog dialog(this, "Change mesh", "", "",
+                        "STL files (*.stl)|*.stl",
+                        wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (dialog.ShowModal() == wxID_CANCEL) {
+        return;
+    }
+
+    static thread_local std::vector<std::size_t> selected{};
+    _parts_list.get_selected(selected);
+    if (selected.size() != 1) {
+        throw std::runtime_error("Can only change 1 part at a time");
+    }
+
+    wxString path = dialog.GetPath();
+    _parts_list.change(path.ToStdString(), selected[0]);
+    _parts_list.update_label();
+    set_part(selected[0]);
+
     event.Skip();
 }
 
 void main_window::on_reload(wxCommandEvent& event) {
-    // todo
+    static thread_local std::vector<std::size_t> selected{};
+    _parts_list.get_selected(selected);
+    for (const std::size_t row : selected) {
+        _parts_list.reload(row);
+    }
+    _parts_list.update_label();
+    select_parts({});
     event.Skip();
 }
 

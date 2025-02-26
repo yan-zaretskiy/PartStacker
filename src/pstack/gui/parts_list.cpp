@@ -68,9 +68,9 @@ parts_list::parts_list(main_window* parent, wxSize min_size, void(main_window::*
     _list.bind(wxEVT_LIST_ITEM_DESELECTED, callback);
 }
 
-void parts_list::append_row(std::string mesh_file) {
+void parts_list::append(std::string mesh_file) {
     part_properties properties = make_properties(std::move(mesh_file));
-    _list.append_row({
+    _list.append({
         properties.name,
         std::to_string(properties.quantity),
         std::format("{:.2f}", properties.volume / 1000),
@@ -79,6 +79,23 @@ void parts_list::append_row(std::string mesh_file) {
     });
     _properties.push_back(std::move(properties));
     _selected.push_back(false);
+}
+
+void parts_list::change(std::string mesh_file, const std::size_t row) {
+    part_properties& properties = _properties.at(row);
+    properties = make_properties(std::move(mesh_file));
+    _list.replace(row, {
+        properties.name,
+        std::to_string(properties.quantity),
+        std::format("{:.2f}", properties.volume / 1000),
+        std::to_string(properties.triangle_count),
+        (properties.mirrored ? "Mirrored" : "")
+    });
+    _selected.at(row) = false;
+}
+
+void parts_list::reload(const std::size_t row) {
+    change(std::move(_properties.at(row).mesh_file), row);
 }
 
 void parts_list::refresh_quantity_text() {

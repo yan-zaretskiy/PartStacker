@@ -17,7 +17,8 @@ public:
     list_view() = default;
     list_view(main_window* parent, wxSize min_size, const std::vector<std::pair<wxString, int>>& columns);
 
-    void append_row(std::vector<wxString> items);
+    void append(std::vector<wxString> items);
+    void replace(std::size_t row_index, std::vector<wxString> items);
     void delete_row(std::size_t row_index);
     void set_text(std::size_t row_index, int column, const wxString& text);
     std::size_t rows() const {
