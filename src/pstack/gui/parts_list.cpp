@@ -48,7 +48,11 @@ part_properties make_properties(std::string mesh_file) {
 
 } // namespace
 
-parts_list::parts_list(main_window* parent, wxSize min_size, void(main_window::*set_part)(std::optional<std::size_t>)) {
+parts_list::parts_list(main_window* parent,
+                       wxSize min_size,
+                       void(main_window::*set_part)(std::optional<std::size_t>),
+                       void(main_window::*enable_part_buttons)(std::size_t count_selected))
+{
     _list = list_view(parent, min_size, {
         { "Name", 105 },
         { "Quantity", 60 },
@@ -58,17 +62,21 @@ parts_list::parts_list(main_window* parent, wxSize min_size, void(main_window::*
     });
     _label = new wxStaticText(parent, wxID_ANY, "");
 
-    _list.bind(wxEVT_LIST_ITEM_SELECTED, [this, parent, set_part](wxListEvent& event) {
+    _list.bind(wxEVT_LIST_ITEM_SELECTED, [=, this](wxListEvent& event) {
         _selected.at(event.GetIndex()) = true;
-        if (std::ranges::count(_selected, true) == 1) {
+        const std::size_t count_selected = std::ranges::count(_selected, true);
+        (parent->*enable_part_buttons)(count_selected);
+        if (count_selected == 1) {
             (parent->*set_part)(event.GetIndex());
         } else {
             (parent->*set_part)(std::nullopt);
         }
     });
-    _list.bind(wxEVT_LIST_ITEM_DESELECTED, [this, parent, set_part](wxListEvent& event) {
+    _list.bind(wxEVT_LIST_ITEM_DESELECTED, [=, this](wxListEvent& event) {
         _selected.at(event.GetIndex()) = false;
-        if (std::ranges::count(_selected, true) == 1) {
+        const std::size_t count_selected = std::ranges::count(_selected, true);
+        (parent->*enable_part_buttons)(count_selected);
+        if (count_selected == 1) {
             (parent->*set_part)(std::ranges::find(_selected, true) - _selected.begin());
         } else {
             (parent->*set_part)(std::nullopt);

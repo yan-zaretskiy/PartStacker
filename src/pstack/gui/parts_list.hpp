@@ -12,7 +12,10 @@ namespace pstack::gui {
 class parts_list {
 public:
     parts_list() = default;
-    parts_list(main_window* parent, wxSize min_size, void(main_window::*set_part)(std::optional<std::size_t>));
+    parts_list(main_window* parent,
+               wxSize min_size,
+               void(main_window::*set_part)(std::optional<std::size_t>),
+               void(main_window::*enable_part_buttons)(std::size_t count_selected));
 
     // Non-copyable and non-movable, because of the bound callback
     parts_list(const parts_list&) = delete;
