@@ -12,10 +12,7 @@ namespace pstack::gui {
 class parts_list {
 public:
     parts_list() = default;
-    parts_list(main_window* parent,
-               wxSize min_size,
-               void(main_window::*set_part)(std::optional<std::size_t>),
-               void(main_window::*enable_part_buttons)(std::size_t count_selected));
+    parts_list(main_window* parent, wxSize min_size, void(main_window::*select_parts)(const std::vector<std::size_t>&));
 
     // Non-copyable and non-movable, because of the bound callback
     parts_list(const parts_list&) = delete;
@@ -27,6 +24,7 @@ public:
     void append_row(std::string mesh_file);
     void refresh_quantity_text();
     void delete_selected();
+    void get_selected(std::vector<std::size_t>& vec);
 
     part_properties& at(std::size_t row) {
         return _properties.at(row);

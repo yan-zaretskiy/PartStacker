@@ -24,8 +24,10 @@ public:
 private:
     viewport* _viewport = nullptr;
 
-    void set_part(std::optional<std::size_t> index);
-    parts_list _parts_list{ this, wxSize(380, 240), &main_window::set_part, &main_window::enable_part_buttons };
+    void select_parts(const std::vector<std::size_t>& indices);
+    void set_part(std::size_t index);
+    void unset_part();
+    parts_list _parts_list{ this, wxSize(380, 240), &main_window::select_parts };
     part_properties* _current_part = nullptr;
     void enable_part_settings(bool enable);
     wxSpinCtrl* _quantity_spinner = nullptr;
@@ -35,7 +37,6 @@ private:
     wxRadioButton* _radio_arbitrary = nullptr;
     wxRadioButton* _radio_cubic = nullptr;
 
-    void enable_part_buttons(std::size_t count_selected);
     wxButton* _import_button = nullptr;
     wxButton* _delete_button = nullptr;
     wxButton* _change_button = nullptr;

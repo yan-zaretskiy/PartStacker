@@ -48,11 +48,7 @@ part_properties make_properties(std::string mesh_file) {
 
 } // namespace
 
-parts_list::parts_list(main_window* parent,
-                       wxSize min_size,
-                       void(main_window::*set_part)(std::optional<std::size_t>),
-                       void(main_window::*enable_part_buttons)(std::size_t count_selected))
-{
+parts_list::parts_list(main_window* parent, wxSize min_size, void(main_window::*select_parts)(const std::vector<std::size_t>&)) {
     _list = list_view(parent, min_size, {
         { "Name", 105 },
         { "Quantity", 60 },
@@ -62,26 +58,14 @@ parts_list::parts_list(main_window* parent,
     });
     _label = new wxStaticText(parent, wxID_ANY, "");
 
-    _list.bind(wxEVT_LIST_ITEM_SELECTED, [=, this](wxListEvent& event) {
-        _selected.at(event.GetIndex()) = true;
-        const std::size_t count_selected = std::ranges::count(_selected, true);
-        (parent->*enable_part_buttons)(count_selected);
-        if (count_selected == 1) {
-            (parent->*set_part)(event.GetIndex());
-        } else {
-            (parent->*set_part)(std::nullopt);
-        }
-    });
-    _list.bind(wxEVT_LIST_ITEM_DESELECTED, [=, this](wxListEvent& event) {
-        _selected.at(event.GetIndex()) = false;
-        const std::size_t count_selected = std::ranges::count(_selected, true);
-        (parent->*enable_part_buttons)(count_selected);
-        if (count_selected == 1) {
-            (parent->*set_part)(std::ranges::find(_selected, true) - _selected.begin());
-        } else {
-            (parent->*set_part)(std::nullopt);
-        }
-    });
+    auto callback = [=, this](wxListEvent& event) {
+        _selected.at(event.GetIndex()) = (event.GetEventType() == wxEVT_LIST_ITEM_SELECTED);
+        static thread_local std::vector<std::size_t> selected{};
+        get_selected(selected);
+        (parent->*select_parts)(selected);
+    };
+    _list.bind(wxEVT_LIST_ITEM_SELECTED, callback);
+    _list.bind(wxEVT_LIST_ITEM_DESELECTED, callback);
 }
 
 void parts_list::append_row(std::string mesh_file) {
@@ -105,16 +89,21 @@ void parts_list::refresh_quantity_text() {
 }
 
 void parts_list::delete_selected() {
-    std::vector<std::size_t> indices_to_delete{};
-    for (const auto [index, value] : _selected | std::views::enumerate) {
-        if (value) {
-            indices_to_delete.push_back(index);
-        }
-    }
+    static thread_local std::vector<std::size_t> indices_to_delete{};
+    get_selected(indices_to_delete);
     for (const std::size_t index : indices_to_delete | std::views::reverse) {
         _list.delete_row(index);
         _properties.erase(_properties.begin() + index);
         _selected.erase(_selected.begin() + index);
+    }
+}
+
+void parts_list::get_selected(std::vector<std::size_t>& vec) {
+    vec.clear();
+    for (const auto [index, value] : _selected | std::views::enumerate) {
+        if (value) {
+            vec.push_back(index);
+        }
     }
 }
 

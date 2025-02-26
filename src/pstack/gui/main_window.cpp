@@ -12,6 +12,7 @@
 #include <wx/gbsizer.h>
 #include <wx/listctrl.h>
 #include <wx/menu.h>
+#include <wx/msgdlg.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/radiobut.h>
@@ -69,15 +70,21 @@ void main_window::after_show() {
     _viewport->render();
 }
 
-void main_window::set_part(const std::optional<std::size_t> index) {
-    if (not index.has_value()) {
-        enable_part_settings(false);
-        _current_part = nullptr;
-        return;
+void main_window::select_parts(const std::vector<std::size_t>& indices) {
+    const auto size = indices.size();
+    _delete_button->Enable(size != 0);
+    _change_button->Enable(size == 1);
+    _reload_button->Enable(size != 0);
+    if (size == 1) {
+        set_part(indices[0]);
+    } else {
+        unset_part();
     }
+}
 
+void main_window::set_part(const std::size_t index) {
     enable_part_settings(true);
-    _current_part = &_parts_list.at(*index);
+    _current_part = &_parts_list.at(index);
     _quantity_spinner->SetValue(_current_part->quantity);
     _min_hole_spinner->SetValue(_current_part->min_hole);
     _minimize_checkbox->SetValue(_current_part->rotate_min_box);
@@ -106,6 +113,12 @@ void main_window::set_part(const std::optional<std::size_t> index) {
     _viewport->render();
 }
 
+void main_window::unset_part() {
+    enable_part_settings(false);
+    _current_part = nullptr;
+    return;
+}
+
 void main_window::enable_part_settings(bool enable) {
     _quantity_spinner->Enable(enable);
     _min_hole_spinner->Enable(enable);
@@ -113,12 +126,6 @@ void main_window::enable_part_settings(bool enable) {
     _radio_none->Enable(enable);
     _radio_arbitrary->Enable(enable);
     _radio_cubic->Enable(enable);
-}
-
-void main_window::enable_part_buttons(const std::size_t count_selected) {
-    _delete_button->Enable(count_selected != 0);
-    _change_button->Enable(count_selected == 1);
-    _reload_button->Enable(count_selected != 0);
 }
 
 wxMenuBar* main_window::make_menu_bar() {
@@ -163,15 +170,22 @@ void main_window::on_import(wxCommandEvent& event) {
     if (paths.size() == 1) {
         set_part(_parts_list.rows() - 1);
     } else {
-        set_part(std::nullopt);
+        unset_part();
     }
     
     event.Skip();
 }
 
 void main_window::on_delete(wxCommandEvent& event) {
-    _parts_list.delete_selected();
-    set_part(std::nullopt);
+    static thread_local std::vector<std::size_t> selected{};
+    _parts_list.get_selected(selected);
+    auto message = std::format("Are you sure you want to delete {} {} item{}?", selected.size() == 1 ? "this" : "these", selected.size(), selected.size() == 1 ? "" : "s");
+    auto dialog = new wxMessageDialog(this, std::move(message), "Delete items", wxYES_NO | wxNO_DEFAULT);
+    if (dialog->ShowModal() == wxID_YES) {
+        _parts_list.delete_selected();
+        _parts_list.update_label();
+        select_parts({});
+    }
     event.Skip();
 }
 
