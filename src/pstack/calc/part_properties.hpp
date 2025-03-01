@@ -1,10 +1,10 @@
-#ifndef PSTACK_GUI_PART_PROPERTIES_HPP
-#define PSTACK_GUI_PART_PROPERTIES_HPP
+#ifndef PSTACK_CALC_PART_PROPERTIES_HPP
+#define PSTACK_CALC_PART_PROPERTIES_HPP
 
 #include <string>
 #include "pstack/geo/mesh.hpp"
 
-namespace pstack::gui {
+namespace pstack::calc {
 
 struct part_properties {
     std::string mesh_file;
@@ -22,6 +22,6 @@ struct part_properties {
     bool rotate_min_box;
 };
 
-} // namespace pstack::gui
+} // namespace pstack::calc
 
-#endif PSTACK_GUI_PART_PROPERTIES_HPP
+#endif PSTACK_CALC_PART_PROPERTIES_HPP

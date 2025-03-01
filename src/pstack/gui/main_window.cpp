@@ -1,7 +1,6 @@
 #include "pstack/files/stl.hpp"
 #include "pstack/gui/main_window.hpp"
 #include "pstack/gui/parts_list.hpp"
-#include "pstack/gui/part_properties.hpp"
 #include "pstack/gui/viewport.hpp"
 
 #include <wx/button.h>

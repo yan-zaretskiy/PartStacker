@@ -1,13 +1,15 @@
 #ifndef PSTACK_GUI_PARTS_LIST_HPP
 #define PSTACK_GUI_PARTS_LIST_HPP
 
+#include "pstack/calc/part_properties.hpp"
 #include "pstack/gui/list_view.hpp"
-#include "pstack/gui/part_properties.hpp"
 #include <wx/stattext.h>
 #include <optional>
 #include <string_view>
 
 namespace pstack::gui {
+
+using pstack::calc::part_properties;
 
 class parts_list {
 public:

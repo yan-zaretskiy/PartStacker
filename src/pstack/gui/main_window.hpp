@@ -11,7 +11,6 @@
 #include <optional>
 #include <vector>
 #include "pstack/gui/parts_list.hpp"
-#include "pstack/gui/part_properties.hpp"
 
 namespace pstack::gui {
 

@@ -11,6 +11,7 @@ target_link_libraries(gui PRIVATE
     wx::core
     wx::base
     wx::gl
+    pstack_calc
     pstack_files
     pstack_geo
     pstack_graphics
