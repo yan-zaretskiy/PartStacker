@@ -21,7 +21,7 @@ float parse_float(R&& r) {
 
 } // namespace
 
-geo::mesh from_stl(const std::string& file_name) {
+calc::mesh from_stl(const std::string& file_name) {
     std::string file = read_file(file_name);
     if (file.empty()) {
         return {};
@@ -84,10 +84,10 @@ geo::mesh from_stl(const std::string& file_name) {
         }
     }
 
-    return geo::mesh(std::move(triangles));
+    return calc::mesh(std::move(triangles));
 }
 
-void to_stl(const geo::mesh& mesh, std::string_view to_file) {
+void to_stl(const calc::mesh& mesh, std::string_view to_file) {
 
 }
 

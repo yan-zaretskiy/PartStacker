@@ -13,8 +13,8 @@ struct stacker_parameters {
     std::vector<part_properties*> parts;
 
     std::function<void(double, double)> set_progress;
-    std::function<void(const geo::mesh&, int, int, int)> display_mesh;
-    std::function<void(geo::mesh)> on_success;
+    std::function<void(const mesh&, int, int, int)> display_mesh;
+    std::function<void(mesh)> on_success;
     std::function<void()> on_failure;
     std::function<void()> on_finish;
     

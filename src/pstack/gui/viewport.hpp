@@ -4,7 +4,8 @@
 // OpenGL utilities must be included first
 #include "pstack/graphics/buffer.hpp"
 #include "pstack/graphics/shader.hpp"
-#include "pstack/geo/mesh.hpp"
+
+#include "pstack/calc/mesh.hpp"
 #include "pstack/gui/transformation.hpp"
 
 #include <wx/event.h>
@@ -26,7 +27,7 @@ public:
     void render(wxDC& dc);
     void on_size(wxSizeEvent& event);
 
-    void set_mesh(const geo::mesh& mesh, const geo::point3<float>& centroid);
+    void set_mesh(const calc::mesh& mesh, const geo::point3<float>& centroid);
     void remove_mesh();
 
 	void on_left_down(wxMouseEvent& evt);

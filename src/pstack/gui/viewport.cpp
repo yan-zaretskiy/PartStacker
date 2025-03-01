@@ -130,7 +130,7 @@ void viewport::on_size(wxSizeEvent& event) {
     event.Skip();
 }
 
-void viewport::set_mesh(const geo::mesh& mesh, const geo::point3<float>& centroid) {
+void viewport::set_mesh(const calc::mesh& mesh, const geo::point3<float>& centroid) {
     _vao.clear();
 
     using vector3 = geo::vector3<float>;

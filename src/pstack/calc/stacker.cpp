@@ -1,12 +1,12 @@
+#include "pstack/calc/mesh.hpp"
 #include "pstack/calc/stacker.hpp"
-#include "pstack/geo/mesh.hpp"
 #include <optional>
 
 namespace pstack::calc {
 
 namespace {
 
-std::optional<geo::mesh> stack_impl(const stacker_parameters& params) {
+std::optional<mesh> stack_impl(const stacker_parameters& params) {
     (void)params;
     return std::nullopt;
 }
@@ -17,7 +17,7 @@ void stacker::stack(const stacker_parameters params) {
     if (_running.exchange(true)) {
         return;
     }
-    std::optional<geo::mesh> result = stack_impl(params);
+    std::optional<mesh> result = stack_impl(params);
     if (result.has_value()) {
         if (result->triangles().empty()) {
             params.on_failure();

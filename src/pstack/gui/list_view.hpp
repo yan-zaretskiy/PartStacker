@@ -1,12 +1,12 @@
 #ifndef PSTACK_GUI_LIST_VIEW_HPP
 #define PSTACK_GUI_LIST_VIEW_HPP
 
+#include "pstack/calc/mesh.hpp"
 #include <wx/listctrl.h>
 #include <wx/string.h>
 #include <any>
 #include <utility>
 #include <vector>
-#include "pstack/geo/mesh.hpp"
 
 namespace pstack::gui {
 

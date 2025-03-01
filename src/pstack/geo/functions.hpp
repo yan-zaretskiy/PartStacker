@@ -1,6 +1,7 @@
 #ifndef PSTACK_GEO_FUNCTIONS_HPP
 #define PSTACK_GEO_FUNCTIONS_HPP
 
+#include <concepts>
 #include <cstdint>
 #include <numbers>
 

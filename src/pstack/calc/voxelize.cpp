@@ -28,7 +28,7 @@ public:
 
 } // namespace
 
-int voxelize(const geo::mesh& mesh, const std::mdspan<int, std::dextents<std::size_t, 3>> voxels, const int index, const std::size_t carver_size) {
+int voxelize(const mesh& mesh, const std::mdspan<int, std::dextents<std::size_t, 3>> voxels, const int index, const std::size_t carver_size) {
     util::mdarray<Bool, 3> actual_triangles(voxels.extents());
     util::mdarray<Bool, 3> visited(voxels.extents());
     util::mdarray<Bool, 3> carved(voxels.extents());

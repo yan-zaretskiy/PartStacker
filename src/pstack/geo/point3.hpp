@@ -46,6 +46,12 @@ constexpr vector3<T> operator-(const point3<T> lhs, const point3<T> rhs) {
 }
 
 template <class T>
+constexpr point3<T>& operator+=(point3<T>& lhs, const vector3<T>& rhs) {
+    lhs = { lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z };
+    return lhs;
+}
+
+template <class T>
 constexpr point3<T> operator+(const point3<T>& lhs, const std::type_identity_t<T>& rhs) {
     return { lhs.x + rhs, lhs.y + rhs, lhs.z + rhs };
 }

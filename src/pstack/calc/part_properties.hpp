@@ -2,14 +2,14 @@
 #define PSTACK_CALC_PART_PROPERTIES_HPP
 
 #include <string>
-#include "pstack/geo/mesh.hpp"
+#include "pstack/calc/mesh.hpp"
 
 namespace pstack::calc {
 
 struct part_properties {
     std::string mesh_file;
     std::string name;
-    geo::mesh mesh;
+    mesh mesh;
 
     int quantity;
 
