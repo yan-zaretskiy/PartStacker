@@ -195,7 +195,7 @@ void main_window::on_stacking(const bool starting) {
 
     _min_clearance_spinner->Enable(enable);
     _section_view_checkbox->Enable(enable);
-    _export_button->Enable(enable);
+    // _export_button is handled elsewhere
     _stack_button->SetLabelText(enable ? "Start" : "Stop");
     _progress_bar->SetValue(0);
 }
@@ -228,8 +228,7 @@ wxMenuBar* main_window::make_menu_bar() {
                 return on_import(event);
             }
             case menu_item::export_: {
-                wxMessageBox("Not yet implemented");
-                break;
+                return on_export(event);
             }
             case menu_item::about: {
                 constexpr auto str =
@@ -278,6 +277,8 @@ void main_window::on_new(wxCommandEvent& event) {
         _parts_list.delete_all();
         unset_part();
         _viewport->remove_mesh();
+        _last_result.reset();
+        _export_button->Disable();
     }
     event.Skip();
 }
@@ -293,6 +294,20 @@ void main_window::on_close(wxCloseEvent& event) {
         }
     }
     event.Skip();
+}
+
+void main_window::on_export(wxCommandEvent& event) {
+    on_export();
+    event.Skip();
+}
+
+void main_window::on_export() {
+    if (not _last_result.has_value()) {
+        wxMessageBox("Nothing to export", "Error");
+        return;
+    }
+
+    wxMessageBox("Not yet implemented");
 }
 
 void main_window::on_import(wxCommandEvent& event) {
@@ -403,6 +418,8 @@ wxSizer* main_window::make_bottom_section1() {
 
     _export_button = new wxButton(this, wxID_ANY, "Export result as STL");
     _export_button->SetMinSize(FromDIP(button_size));
+    _export_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) { return on_export(event); });
+    _export_button->Disable();
     sizer->Add(_export_button, wxGBPosition(1, 3));
     
     sizer->AddGrowableCol(2, 1);

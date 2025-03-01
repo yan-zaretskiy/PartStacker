@@ -62,6 +62,7 @@ private:
     wxSpinCtrl* _maximum_z_spinner = nullptr;
 
     void on_stacking(bool starting);
+    std::optional<calc::mesh> _last_result = {};
     wxSpinCtrlDouble* _min_clearance_spinner = nullptr;
     wxCheckBox* _section_view_checkbox = nullptr;
     wxButton* _export_button = nullptr;
@@ -82,6 +83,8 @@ private:
 
     void on_new(wxCommandEvent& event);
     void on_close(wxCloseEvent& event);
+    void on_export(wxCommandEvent& event);
+    void on_export();
     void on_import(wxCommandEvent& event);
     void on_delete(wxCommandEvent& event);
     void on_change(wxCommandEvent& event);
