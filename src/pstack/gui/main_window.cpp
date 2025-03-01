@@ -111,7 +111,6 @@ void main_window::set_part(const std::size_t index) {
         default: std::unreachable();
     }
     _viewport->set_mesh(_current_part->mesh, _current_part->centroid);
-    _viewport->render();
 }
 
 void main_window::unset_part() {
@@ -214,9 +213,8 @@ void main_window::on_import(wxCommandEvent& event) {
     }
     _parts_list.update_label();
     if (paths.size() == 1) {
-        set_part(_parts_list.rows() - 1);
-    } else {
-        unset_part();
+        auto& part = _parts_list.at(_parts_list.rows() - 1);
+        _viewport->set_mesh(part.mesh, part.centroid);
     }
     
     event.Skip();

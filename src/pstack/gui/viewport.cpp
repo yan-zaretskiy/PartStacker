@@ -156,6 +156,8 @@ void viewport::set_mesh(const geo::mesh& mesh, const geo::point3<float>& centroi
     _transform.scale_mesh(zoom_factor);
     _shader.set_uniform("transform_vertices", _transform.for_vertices());
     _shader.set_uniform("transform_normals", _transform.for_normals());
+
+    render();
 }
 
 void viewport::remove_mesh() {
