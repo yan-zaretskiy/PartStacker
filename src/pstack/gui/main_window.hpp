@@ -29,6 +29,7 @@ private:
     void unset_part();
     parts_list _parts_list{ this, wxSize(380, 240), &main_window::select_parts };
     part_properties* _current_part = nullptr;
+    std::optional<std::size_t> _current_part_index = std::nullopt;
     void enable_part_settings(bool enable);
     wxSpinCtrl* _quantity_spinner = nullptr;
     wxSpinCtrl* _min_hole_spinner = nullptr;

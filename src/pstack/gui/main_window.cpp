@@ -85,6 +85,7 @@ void main_window::select_parts(const std::vector<std::size_t>& indices) {
 void main_window::set_part(const std::size_t index) {
     enable_part_settings(true);
     _current_part = &_parts_list.at(index);
+    _current_part_index.emplace(index);
     _quantity_spinner->SetValue(_current_part->quantity);
     _min_hole_spinner->SetValue(_current_part->min_hole);
     _minimize_checkbox->SetValue(_current_part->rotate_min_box);
@@ -116,6 +117,7 @@ void main_window::set_part(const std::size_t index) {
 void main_window::unset_part() {
     enable_part_settings(false);
     _current_part = nullptr;
+    _current_part_index = std::nullopt;
     return;
 }
 
@@ -239,16 +241,9 @@ void main_window::on_change(wxCommandEvent& event) {
         return;
     }
 
-    static thread_local std::vector<std::size_t> selected{};
-    _parts_list.get_selected(selected);
-    if (selected.size() != 1) {
-        throw std::runtime_error("Can only change 1 part at a time");
-    }
-
-    wxString path = dialog.GetPath();
-    _parts_list.change(path.ToStdString(), selected[0]);
+    _parts_list.change(dialog.GetPath().ToStdString(), _current_part_index.value());
     _parts_list.update_label();
-    set_part(selected[0]);
+    set_part(_current_part_index.value());
 
     event.Skip();
 }
