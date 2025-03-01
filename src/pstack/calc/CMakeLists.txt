@@ -1,4 +1,5 @@
 add_library(pstack_calc STATIC
+    sinterbox.cpp
     voxelize.cpp
 )
 

@@ -13,6 +13,15 @@ struct vector3 {
 };
 
 template <class T>
+inline constexpr vector3<T> unit_x = { 1, 0, 0 };
+
+template <class T>
+inline constexpr vector3<T> unit_y = { 0, 1, 0 };
+
+template <class T>
+inline constexpr vector3<T> unit_z = { 0, 0, 1 };
+
+template <class T>
 constexpr vector3<T> operator+(const vector3<T>& lhs, const vector3<T>& rhs) {
     return { lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z };
 }
@@ -23,9 +32,34 @@ constexpr vector3<T> operator-(const vector3<T>& lhs, const vector3<T>& rhs) {
 }
 
 template <class T>
+constexpr vector3<T> operator-(const vector3<T>& lhs) {
+    return { -lhs.x, -lhs.y, -lhs.z };
+}
+
+template <class T>
 constexpr vector3<T>& operator+=(vector3<T>& lhs, const vector3<T>& rhs) {
     lhs = { lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z };
     return lhs;
+}
+
+template <class T>
+constexpr vector3<T> operator+(const vector3<T>& lhs, const std::type_identity_t<T>& rhs) {
+    return { lhs.x + rhs, lhs.y + rhs, lhs.z + rhs };
+}
+
+template <class T>
+constexpr vector3<T> operator+(const std::type_identity_t<T>& lhs, const vector3<T>& rhs) {
+    return { lhs + rhs.x, lhs + rhs.y, lhs + rhs.z };
+}
+
+template <class T>
+constexpr vector3<T> operator-(const vector3<T>& lhs, const std::type_identity_t<T>& rhs) {
+    return { lhs.x - rhs, lhs.y - rhs, lhs.z - rhs };
+}
+
+template <class T>
+constexpr vector3<T> operator-(const std::type_identity_t<T>& lhs, const vector3<T>& rhs) {
+    return { lhs - rhs.x, lhs - rhs.y, lhs - rhs.z };
 }
 
 template <class T>
