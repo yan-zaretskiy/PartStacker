@@ -60,7 +60,7 @@ main_window::main_window(const wxString& title)
     right_sizer->AddSpacer(FromDIP(inner_border));
     right_sizer->Add(make_bottom_section1(), 0, wxEXPAND);
     right_sizer->AddSpacer(FromDIP(inner_border));
-    right_sizer->Add(make_bottom_section2(this), 0, wxEXPAND);
+    right_sizer->Add(make_bottom_section2(), 0, wxEXPAND);
     reset_fields();
 
     sizer->Add(right_sizer, 0, wxEXPAND | wxALL, FromDIP(outside_border));
@@ -158,6 +158,48 @@ void main_window::enable_part_settings(bool enable) {
     _mirror_button->Enable(enable);
 }
 
+void main_window::on_stacking(const bool starting) {
+    const bool enable = not starting;
+    enable_part_settings(enable and _current_part_index.has_value());
+    _parts_list.control()->Enable(enable);
+    for (wxMenuItem* item : _disableable_menu_items) {
+        item->Enable(enable);
+    }
+
+    if (enable) {
+        static thread_local std::vector<std::size_t> selected{};
+        _parts_list.get_selected(selected);
+        _import_button->Enable();
+        _delete_button->Enable(selected.size() != 0);
+        _change_button->Enable(selected.size() == 1);
+        _reload_button->Enable(selected.size() != 0);
+    } else {
+        _import_button->Disable();
+        _delete_button->Disable();
+        _change_button->Disable();
+        _reload_button->Disable();
+    }
+
+    _clearance_spinner->Enable(enable);
+    _spacing_spinner->Enable(enable);
+    _thickness_spinner->Enable(enable);
+    _width_spinner->Enable(enable);
+    _sinterbox_checkbox->Enable(enable);
+    
+    _initial_x_spinner->Enable(enable);
+    _initial_y_spinner->Enable(enable);
+    _initial_z_spinner->Enable(enable);
+    _maximum_x_spinner->Enable(enable);
+    _maximum_y_spinner->Enable(enable);
+    _maximum_z_spinner->Enable(enable);
+
+    _min_clearance_spinner->Enable(enable);
+    _section_view_checkbox->Enable(enable);
+    _export_button->Enable(enable);
+    _stack_button->SetLabelText(enable ? "Start" : "Stop");
+    _progress_bar->SetValue(0);
+}
+
 wxMenuBar* main_window::make_menu_bar() {
     auto menu_bar = new wxMenuBar();
     enum class menu_item {
@@ -207,15 +249,15 @@ wxMenuBar* main_window::make_menu_bar() {
     });
 
     auto file_menu = new wxMenu();
-    file_menu->Append((int)menu_item::new_, "&New\tCtrl-N", "Clear the current working session");
-    file_menu->Append((int)menu_item::open, "&Open\tCtrl-O", "Open PartStacker settings file");
-    file_menu->Append((int)menu_item::save, "&Save\tCtrl-S", "Save PartStacker settings");
+    _disableable_menu_items.push_back(file_menu->Append((int)menu_item::new_, "&New\tCtrl-N", "Clear the current working session"));
+    _disableable_menu_items.push_back(file_menu->Append((int)menu_item::open, "&Open\tCtrl-O", "Open PartStacker settings file"));
+    _disableable_menu_items.push_back(file_menu->Append((int)menu_item::save, "&Save\tCtrl-S", "Save PartStacker settings"));
     file_menu->Append((int)menu_item::close, "&Close\tShift-Esc", "Close PartStacker");
     menu_bar->Append(file_menu, "&File");
 
     auto import_menu = new wxMenu();
-    import_menu->Append((int)menu_item::import, "&Import\tCtrl-I", "Open mesh files");
-    import_menu->Append((int)menu_item::export_, "&Export\tCtrl-E", "Save last result as mesh file");
+    _disableable_menu_items.push_back(import_menu->Append((int)menu_item::import, "&Import\tCtrl-I", "Open mesh files"));
+    _disableable_menu_items.push_back(import_menu->Append((int)menu_item::export_, "&Export\tCtrl-E", "Save last result as mesh file"));
     menu_bar->Append(import_menu, "&Mesh");
 
     auto help_menu = new wxMenu();
@@ -354,31 +396,31 @@ wxSizer* main_window::make_bottom_section1() {
     _min_clearance_spinner->SetRange(0.5, 2);
     sizer->Add(_min_clearance_spinner, wxGBPosition(0, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
 
-    auto checkbox = new wxCheckBox(this, wxID_ANY, "");
-    sizer->Add(checkbox, wxGBPosition(1, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+    _section_view_checkbox = new wxCheckBox(this, wxID_ANY, "");
+    sizer->Add(_section_view_checkbox, wxGBPosition(1, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
 
     new wxGBSizerItem(sizer, wxGBPosition(1, 2), wxDefaultSpan, wxEXPAND);
 
-    auto export_button = new wxButton(this, wxID_ANY, "Export result as STL");
-    export_button->SetMinSize(FromDIP(button_size));
-    sizer->Add(export_button, wxGBPosition(1, 3));
+    _export_button = new wxButton(this, wxID_ANY, "Export result as STL");
+    _export_button->SetMinSize(FromDIP(button_size));
+    sizer->Add(_export_button, wxGBPosition(1, 3));
     
     sizer->AddGrowableCol(2, 1);
     return sizer;
 }
 
-wxSizer* main_window::make_bottom_section2(main_window* frame) {
+wxSizer* main_window::make_bottom_section2() {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    auto progress = new wxGauge(frame, wxID_ANY, 100);
-    progress->SetMinSize(frame->FromDIP(button_size));
+    _progress_bar = new wxGauge(this, wxID_ANY, 100);
+    _progress_bar->SetMinSize(FromDIP(button_size));
 
-    auto start_button = new wxButton(frame, wxID_ANY, "Start");
-    start_button->SetMinSize(frame->FromDIP(button_size));
+    _stack_button = new wxButton(this, wxID_ANY, "Start");
+    _stack_button->SetMinSize(FromDIP(button_size));
 
-    sizer->Add(progress, 1, wxEXPAND);
-    sizer->AddSpacer(frame->FromDIP(inner_border));
-    sizer->Add(start_button);
+    sizer->Add(_progress_bar, 1, wxEXPAND);
+    sizer->AddSpacer(FromDIP(inner_border));
+    sizer->Add(_stack_button);
 
     return sizer;
 }

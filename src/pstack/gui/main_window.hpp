@@ -3,6 +3,7 @@
 
 #include <wx/checkbox.h>
 #include <wx/frame.h>
+#include <wx/gauge.h>
 #include <wx/panel.h>
 #include <wx/radiobut.h>
 #include <wx/sizer.h>
@@ -60,13 +61,19 @@ private:
     wxSpinCtrl* _maximum_y_spinner = nullptr;
     wxSpinCtrl* _maximum_z_spinner = nullptr;
 
+    void on_stacking(bool starting);
     wxSpinCtrlDouble* _min_clearance_spinner = nullptr;
+    wxCheckBox* _section_view_checkbox = nullptr;
+    wxButton* _export_button = nullptr;
+    wxButton* _stack_button = nullptr;
+    wxGauge* _progress_bar = nullptr;
 
     wxMenuBar* make_menu_bar();
+    std::vector<wxMenuItem*> _disableable_menu_items;
 
     wxSizer* make_part_buttons();
     wxSizer* make_bottom_section1();
-    static wxSizer* make_bottom_section2(main_window* frame);
+    wxSizer* make_bottom_section2();
 
     wxWindow* make_tabs();
     void make_tab_part_settings(wxPanel* panel);
