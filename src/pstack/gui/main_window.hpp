@@ -11,6 +11,7 @@
 #include <wx/string.h>
 #include <optional>
 #include <vector>
+#include "pstack/calc/stacker_thread.hpp"
 #include "pstack/gui/parts_list.hpp"
 
 namespace pstack::gui {
@@ -61,13 +62,18 @@ private:
     wxSpinCtrl* _maximum_y_spinner = nullptr;
     wxSpinCtrl* _maximum_z_spinner = nullptr;
 
-    void on_stacking(bool starting);
+    void on_stacking(wxCommandEvent& event);
+    void on_stacking_start();
+    void on_stacking_stop();
+    void on_stacking_success(calc::mesh mesh);
+    void enable_on_stacking(bool starting);
     std::optional<calc::mesh> _last_result = {};
     wxSpinCtrlDouble* _min_clearance_spinner = nullptr;
     wxCheckBox* _section_view_checkbox = nullptr;
     wxButton* _export_button = nullptr;
     wxButton* _stack_button = nullptr;
     wxGauge* _progress_bar = nullptr;
+    calc::stacker_thread _stacker_thread;
 
     wxMenuBar* make_menu_bar();
     std::vector<wxMenuItem*> _disableable_menu_items;

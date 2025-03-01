@@ -158,7 +158,97 @@ void main_window::enable_part_settings(bool enable) {
     _mirror_button->Enable(enable);
 }
 
-void main_window::on_stacking(const bool starting) {
+void main_window::on_stacking(wxCommandEvent& event) {
+    if (_stack_button->GetLabelText() == "Stop") {
+        on_stacking_stop();
+    } else {
+        on_stacking_start();
+    } 
+    event.Skip();
+}
+
+void main_window::on_stacking_start() {
+    const auto triangles = _parts_list.total_triangles();
+    if (triangles == 0) {
+        return;
+    } else if (triangles > 1'000'000) {
+        if (wxMessageBox("The finished model will exceed 1,000,000 triangles. Continue stacking?", "Warning", wxYES_NO | wxYES_DEFAULT) != wxYES) {
+            return;
+        }
+    }
+
+    calc::stacker_parameters params {
+        .initial_triangles = triangles + 2,
+        .parts = _parts_list.get_all(),
+
+        .set_progress = [this](double progress, double total) {
+            _progress_bar->SetValue((int)(100 * progress / total));
+        },
+        .display_mesh = [this](const calc::mesh& mesh, int max_x, int max_y, int max_z) {
+            _viewport->set_mesh(mesh, { max_x / 2.0f, max_y / 2.0f, max_z / 2.0f });
+        },
+        .on_success = [this](calc::mesh mesh) {
+            on_stacking_success(std::move(mesh));
+            _export_button->Enable();
+        },
+        .on_failure = [this] {
+            _export_button->Disable();
+            _last_result.reset();
+            wxMessageBox("Did not manage to stack parts within maximum bounding box", "Stacking failed");
+        },
+        .on_finish = [this] {
+            enable_on_stacking(false);
+        },
+        
+        .resolution = _min_clearance_spinner->GetValue(),
+        .x_min = _initial_x_spinner->GetValue(), .x_max = _maximum_x_spinner->GetValue(),
+        .y_min = _initial_y_spinner->GetValue(), .y_max = _maximum_y_spinner->GetValue(),
+        .z_min = _initial_z_spinner->GetValue(), .z_max = _maximum_z_spinner->GetValue(),
+    };
+    enable_on_stacking(true);
+    _stacker_thread.start(std::move(params));
+}
+    
+void main_window::on_stacking_stop() {
+    if (wxMessageBox("Abort stacking?", "Abort", wxYES_NO | wxNO_DEFAULT) == wxYES) {
+        _stacker_thread.stop();
+    }
+}
+
+void main_window::on_stacking_success(calc::mesh mesh) {
+    _last_result.emplace(std::move(mesh));
+    auto bounding = _last_result->bounding();
+    if (_sinterbox_checkbox->GetValue()) {
+        const double offset = _thickness_spinner->GetValue() + _clearance_spinner->GetValue();
+        _last_result->set_baseline(geo::origin3<float> + offset);
+        const calc::sinterbox_parameters params {
+            .min = bounding.min,
+            .max = bounding.max,
+            .clearance = _clearance_spinner->GetValue(),
+            .thickness = _thickness_spinner->GetValue(),
+            .width = _width_spinner->GetValue(),
+            .spacing = _spacing_spinner->GetValue() + 0.00013759,
+        };
+        _last_result->add_sinterbox(params);
+        bounding = _last_result->bounding();
+    }
+    
+    const auto size = bounding.max - bounding.min;
+    const auto centroid = (size / 2) + geo::origin3<float>;
+    _viewport->set_mesh(*_last_result, centroid);
+
+    const double volume = _last_result->volume_and_centroid().volume;
+    const double percent_volume = 100 * volume / (size.x * size.y * size.z);
+
+    auto message = std::format(
+        "Done stacking! Final bounding box: {:.1f}x{:.1f}x{:.1f}mm ({:.1f}% density).\n\nWould you like to save the result now?",
+        size.x, size.y, size.z, percent_volume);
+    if (wxMessageBox(std::move(message), "Stacking complete", wxYES_NO | wxYES_DEFAULT) == wxYES) {
+        on_export();
+    }
+}
+
+void main_window::enable_on_stacking(const bool starting) {
     const bool enable = not starting;
     enable_part_settings(enable and _current_part_index.has_value());
     _parts_list.control()->Enable(enable);
@@ -293,6 +383,7 @@ void main_window::on_close(wxCloseEvent& event) {
             return;
         }
     }
+    _stacker_thread.stop();
     event.Skip();
 }
 
@@ -434,6 +525,7 @@ wxSizer* main_window::make_bottom_section2() {
 
     _stack_button = new wxButton(this, wxID_ANY, "Start");
     _stack_button->SetMinSize(FromDIP(button_size));
+    _stack_button->Bind(wxEVT_BUTTON, &main_window::on_stacking, this);
 
     sizer->Add(_progress_bar, 1, wxEXPAND);
     sizer->AddSpacer(FromDIP(inner_border));
