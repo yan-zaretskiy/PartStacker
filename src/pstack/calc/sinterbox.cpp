@@ -1,4 +1,5 @@
 #include "pstack/calc/sinterbox.hpp"
+#include "pstack/util/mdarray.hpp"
 #include <mdspan>
 #include <vector>
 
@@ -94,10 +95,8 @@ void append_sinterbox(std::vector<geo::triangle>& triangles, const sinterbox_par
 
     // XY sides
     {
-        std::vector<geo::point3<float>> lower_xy_data(positions_x.size() * positions_y.size(), {});
-        std::vector<geo::point3<float>> upper_xy_data(positions_x.size() * positions_y.size(), {});
-        std::mdspan lower_xy(lower_xy_data.data(), positions_x.size(), positions_y.size());
-        std::mdspan upper_xy(upper_xy_data.data(), positions_x.size(), positions_y.size());
+        util::mdarray<geo::point3<float>, 2> lower_xy(positions_x.size(), positions_y.size());
+        util::mdarray<geo::point3<float>, 2> upper_xy(positions_x.size(), positions_y.size());
         for (std::size_t x = 0; x < positions_x.size(); ++x) {
             for (std::size_t y = 0; y < positions_y.size(); ++y) {
                 lower_xy[x, y] = { positions_x[x], positions_y[y], lower_bound.z };
@@ -111,10 +110,8 @@ void append_sinterbox(std::vector<geo::triangle>& triangles, const sinterbox_par
     // ZX sides
     // Note, doing "XZ" instead of "ZX" makes the triangles face the wrong way
     {
-        std::vector<geo::point3<float>> lower_zx_data(positions_z.size() * positions_x.size(), {});
-        std::vector<geo::point3<float>> upper_zx_data(positions_z.size() * positions_x.size(), {});
-        std::mdspan lower_zx(lower_zx_data.data(), positions_z.size(), positions_x.size());
-        std::mdspan upper_zx(upper_zx_data.data(), positions_z.size(), positions_x.size());
+        util::mdarray<geo::point3<float>, 2> lower_zx(positions_z.size(), positions_x.size());
+        util::mdarray<geo::point3<float>, 2> upper_zx(positions_z.size(), positions_x.size());
         for (std::size_t z = 0; z < positions_z.size(); ++z) {
             for (std::size_t x = 0; x < positions_x.size(); ++x) {
                 lower_zx[z, x] = { positions_x[x], lower_bound.y, positions_z[z] };
@@ -127,10 +124,8 @@ void append_sinterbox(std::vector<geo::triangle>& triangles, const sinterbox_par
 
     // YZ sides
     {
-        std::vector<geo::point3<float>> lower_yz_data(positions_y.size() * positions_z.size(), {});
-        std::vector<geo::point3<float>> upper_yz_data(positions_y.size() * positions_z.size(), {});
-        std::mdspan lower_yz(lower_yz_data.data(), positions_y.size(), positions_z.size());
-        std::mdspan upper_yz(upper_yz_data.data(), positions_y.size(), positions_z.size());
+        util::mdarray<geo::point3<float>, 2> lower_yz(positions_y.size(), positions_z.size());
+        util::mdarray<geo::point3<float>, 2> upper_yz(positions_y.size(), positions_z.size());
         for (std::size_t y = 0; y < positions_y.size(); ++y) {
             for (std::size_t z = 0; z < positions_z.size(); ++z) {
                 lower_yz[y, z] = { lower_bound.x, positions_y[y], positions_z[z] };

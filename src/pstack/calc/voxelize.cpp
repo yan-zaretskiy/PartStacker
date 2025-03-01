@@ -1,4 +1,5 @@
 #include "pstack/calc/voxelize.hpp"
+#include "pstack/util/mdarray.hpp"
 #include <algorithm>
 #include <cfenv>
 #include <cmath>
@@ -15,6 +16,7 @@ class Bool {
 private:
     bool value;
 public:
+    Bool() : value() {}
     Bool(bool b) : value(b) {}
     operator bool&() & {
         return value;
@@ -27,12 +29,9 @@ public:
 } // namespace
 
 int voxelize(const geo::mesh& mesh, const std::mdspan<int, std::dextents<std::size_t, 3>> voxels, const int index, const std::size_t carver_size) {
-    std::vector<Bool> actual_triangles_data(voxels.size(), false);
-    const auto actual_triangles = std::mdspan(actual_triangles_data.data(), voxels.extents());
-    std::vector<Bool> visited_data(voxels.size(), false);
-    const auto visited = std::mdspan(visited_data.data(), voxels.extents());
-    std::vector<Bool> carved_data(voxels.size(), false);
-    const auto carved = std::mdspan(carved_data.data(), voxels.extents());
+    util::mdarray<Bool, 3> actual_triangles(voxels.extents());
+    util::mdarray<Bool, 3> visited(voxels.extents());
+    util::mdarray<Bool, 3> carved(voxels.extents());
 
     // First render each part, placing voxels at the position of each triangle
     for (const geo::triangle& t : mesh.triangles()) {
