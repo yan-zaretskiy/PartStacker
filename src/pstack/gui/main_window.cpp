@@ -208,21 +208,21 @@ wxMenuBar* main_window::make_menu_bar() {
     });
 
     auto file_menu = new wxMenu();
-    file_menu->Append((int)menu_item::new_, "New");
-    file_menu->Append((int)menu_item::open, "Open");
-    file_menu->Append((int)menu_item::save, "Save");
-    file_menu->Append((int)menu_item::close, "Close");
-    menu_bar->Append(file_menu, "File");
+    file_menu->Append((int)menu_item::new_, "&New\tCtrl-N", "Clear the current working session");
+    file_menu->Append((int)menu_item::open, "&Open\tCtrl-O", "Open PartStacker settings file");
+    file_menu->Append((int)menu_item::save, "&Save\tCtrl-S", "Save PartStacker settings");
+    file_menu->Append((int)menu_item::close, "&Close\tShift-Esc", "Close PartStacker");
+    menu_bar->Append(file_menu, "&File");
 
     auto import_menu = new wxMenu();
-    import_menu->Append((int)menu_item::import, "Import parts");
-    import_menu->Append((int)menu_item::export_, "Export result as STL");
-    menu_bar->Append(import_menu, "Import/Export");
+    import_menu->Append((int)menu_item::import, "&Import\tCtrl-I", "Open mesh files");
+    import_menu->Append((int)menu_item::export_, "&Export\tCtrl-E", "Save last result as mesh file");
+    menu_bar->Append(import_menu, "&Mesh");
 
     auto help_menu = new wxMenu();
-    help_menu->Append((int)menu_item::about, "About");
-    help_menu->Append((int)menu_item::website, "Visit website");
-    menu_bar->Append(help_menu, "Help");
+    help_menu->Append((int)menu_item::about, "&About", "About PartStacker");
+    help_menu->Append((int)menu_item::website, "Visit &website", "Open PartStacker GitHub");
+    menu_bar->Append(help_menu, "&Help");
 
     return menu_bar;
 }
