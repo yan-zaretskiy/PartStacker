@@ -25,6 +25,7 @@ public:
 private:
     viewport* _viewport = nullptr;
 
+    void reset_fields();
     void select_parts(const std::vector<std::size_t>& indices);
     void set_part(std::size_t index);
     void unset_part();
@@ -47,17 +48,33 @@ private:
     wxButton* _change_button = nullptr;
     wxButton* _reload_button = nullptr;
 
+    wxSpinCtrlDouble* _clearance_spinner = nullptr;
+    wxSpinCtrlDouble* _spacing_spinner = nullptr;
+    wxSpinCtrlDouble* _thickness_spinner = nullptr;
+    wxSpinCtrlDouble* _width_spinner = nullptr;
+    wxCheckBox* _sinterbox_checkbox = nullptr;
+
+    wxSpinCtrl* _initial_x_spinner = nullptr;
+    wxSpinCtrl* _initial_y_spinner = nullptr;
+    wxSpinCtrl* _initial_z_spinner = nullptr;
+    wxSpinCtrl* _maximum_x_spinner = nullptr;
+    wxSpinCtrl* _maximum_y_spinner = nullptr;
+    wxSpinCtrl* _maximum_z_spinner = nullptr;
+
+    wxSpinCtrlDouble* _min_clearance_spinner = nullptr;
+
     wxMenuBar* make_menu_bar();
 
     wxSizer* make_part_buttons();
-    static wxSizer* make_bottom_section1(main_window* frame);
+    wxSizer* make_bottom_section1();
     static wxSizer* make_bottom_section2(main_window* frame);
 
     wxWindow* make_tabs();
     void make_tab_part_settings(wxPanel* panel);
-    static void make_tab_sinterbox(wxPanel* panel);
-    static void make_tab_bounding_box(wxPanel* panel);
+    void make_tab_sinterbox(wxPanel* panel);
+    void make_tab_bounding_box(wxPanel* panel);
 
+    void on_new(wxCommandEvent& event);
     void on_close(wxCloseEvent& event);
     void on_import(wxCommandEvent& event);
     void on_delete(wxCommandEvent& event);

@@ -170,6 +170,8 @@ void viewport::remove_mesh() {
     _transform.scale_mesh(1);
     _shader.set_uniform("transform_vertices", _transform.for_vertices());
     _shader.set_uniform("transform_normals", _transform.for_normals());
+
+    render();
 }
 
 void viewport::on_left_down(wxMouseEvent& evt) {

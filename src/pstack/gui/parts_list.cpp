@@ -111,6 +111,15 @@ void parts_list::reload_quantity(std::size_t row) {
     update_label();
 }
 
+void parts_list::delete_all() {
+    for (std::size_t index = _properties.size(); index-- != 0; ) {
+        _list.delete_row(index);
+    }
+    _properties.clear();
+    _selected.clear();
+    update_label();
+}
+
 void parts_list::delete_selected() {
     static thread_local std::vector<std::size_t> indices_to_delete{};
     get_selected(indices_to_delete);
