@@ -1,6 +1,7 @@
 #ifndef PSTACK_CALC_MESH_HPP
 #define PSTACK_CALC_MESH_HPP
 
+#include "pstack/calc/sinterbox.hpp"
 #include "pstack/geo/functions.hpp"
 #include "pstack/geo/triangle.hpp"
 #include <vector>
@@ -25,6 +26,10 @@ public:
 
     void mirror_x();
     void set_baseline(const geo::point3<float> baseline);
+
+    void add_sinterbox(const sinterbox_parameters& params) {
+        append_sinterbox(_triangles, params);
+    }
 
     struct bounding_t {
         geo::point3<float> min;
