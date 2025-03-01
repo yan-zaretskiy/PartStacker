@@ -128,6 +128,9 @@ void main_window::enable_part_settings(bool enable) {
     _radio_none->Enable(enable);
     _radio_arbitrary->Enable(enable);
     _radio_cubic->Enable(enable);
+    _preview_button->Enable(enable);
+    _copy_button->Enable(enable);
+    _mirror_button->Enable(enable);
 }
 
 wxMenuBar* main_window::make_menu_bar() {
@@ -252,7 +255,7 @@ void main_window::on_reload(wxCommandEvent& event) {
     static thread_local std::vector<std::size_t> selected{};
     _parts_list.get_selected(selected);
     for (const std::size_t row : selected) {
-        _parts_list.reload(row);
+        _parts_list.reload_file(row);
     }
     _parts_list.update_label();
     select_parts({});
@@ -387,7 +390,6 @@ wxWindow* main_window::make_tabs(main_window* frame) {
             frame->_radio_arbitrary->Bind(wxEVT_RADIOBUTTON, [frame](wxCommandEvent& event) { frame->_current_part->rotation_index = 2; });
             frame->_radio_cubic->Bind(wxEVT_RADIOBUTTON, [frame](wxCommandEvent& event) { frame->_current_part->rotation_index = 1; });
 
-            frame->enable_part_settings(false);
             top_sizer->Add(label_sizer, 0, wxEXPAND);
             top_sizer->AddSpacer(notebook->FromDIP(3 * inner_border));
             top_sizer->Add(button_sizer, 0, wxEXPAND);
@@ -396,14 +398,30 @@ wxWindow* main_window::make_tabs(main_window* frame) {
         }
 
         {
-            auto preview_button = new wxButton(panel, wxID_ANY, "Preview");
-            preview_button->SetMinSize(notebook->FromDIP(button_size));
-            auto mirrored_button = new wxButton(panel, wxID_ANY, "Mirrored");
-            mirrored_button->SetMinSize(notebook->FromDIP(button_size));
-            bottom_sizer->Add(preview_button);
+            frame->_preview_button = new wxButton(panel, wxID_ANY, "Preview");
+            frame->_preview_button->SetMinSize(notebook->FromDIP(button_size));
+            frame->_copy_button = new wxButton(panel, wxID_ANY, "Copy");
+            frame->_copy_button->SetMinSize(notebook->FromDIP(button_size));
+            frame->_copy_button->Bind(wxEVT_BUTTON, [frame](wxCommandEvent& event) {
+                frame->_parts_list.append(*frame->_current_part);
+                frame->_parts_list.update_label();
+            });
+            frame->_mirror_button = new wxButton(panel, wxID_ANY, "Mirror");
+            frame->_mirror_button->SetMinSize(notebook->FromDIP(button_size));
+            frame->_mirror_button->Bind(wxEVT_BUTTON, [frame](wxCommandEvent& event) {
+                frame->_current_part->mirrored = not frame->_current_part->mirrored;
+                frame->_current_part->mesh.mirror_x();
+                frame->_parts_list.reload_text(frame->_current_part_index.value());
+                frame->set_part(frame->_current_part_index.value());
+            });
+            bottom_sizer->Add(frame->_preview_button);
             bottom_sizer->AddSpacer(notebook->FromDIP(inner_border));
-            bottom_sizer->Add(mirrored_button);
+            bottom_sizer->Add(frame->_copy_button);
+            bottom_sizer->AddSpacer(notebook->FromDIP(inner_border));
+            bottom_sizer->Add(frame->_mirror_button);
         }
+
+        frame->enable_part_settings(false);
     }
 
     {

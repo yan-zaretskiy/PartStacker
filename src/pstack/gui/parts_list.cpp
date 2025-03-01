@@ -10,7 +10,7 @@ namespace pstack::gui {
 
 namespace {
 
-part_properties make_properties(std::string mesh_file) {
+part_properties make_properties(std::string mesh_file, bool mirrored) {
     part_properties properties;
     properties.mesh_file = std::move(mesh_file);
     properties.name = std::filesystem::path(properties.mesh_file).stem().string();
@@ -39,7 +39,7 @@ part_properties make_properties(std::string mesh_file) {
     properties.volume = volume_and_centroid.volume;
     properties.centroid = volume_and_centroid.centroid;
     properties.triangle_count = properties.mesh.triangles().size();
-    properties.mirrored = false;
+    properties.mirrored = mirrored;
     properties.min_hole = 1;
     properties.rotation_index = 1;
     properties.rotate_min_box = false;
@@ -69,7 +69,10 @@ parts_list::parts_list(main_window* parent, wxSize min_size, void(main_window::*
 }
 
 void parts_list::append(std::string mesh_file) {
-    part_properties properties = make_properties(std::move(mesh_file));
+    append(make_properties(std::move(mesh_file), false));
+}
+
+void parts_list::append(part_properties properties) {
     _list.append({
         properties.name,
         std::to_string(properties.quantity),
@@ -83,7 +86,17 @@ void parts_list::append(std::string mesh_file) {
 
 void parts_list::change(std::string mesh_file, const std::size_t row) {
     part_properties& properties = _properties.at(row);
-    properties = make_properties(std::move(mesh_file));
+    properties = make_properties(std::move(mesh_file), properties.mirrored);
+    reload_text(row);
+    _selected.at(row) = false;
+}
+
+void parts_list::reload_file(const std::size_t row) {
+    change(std::move(_properties.at(row).mesh_file), row);
+}
+
+void parts_list::reload_text(const std::size_t row) {
+    const part_properties& properties = _properties.at(row);
     _list.replace(row, {
         properties.name,
         std::to_string(properties.quantity),
@@ -91,11 +104,6 @@ void parts_list::change(std::string mesh_file, const std::size_t row) {
         std::to_string(properties.triangle_count),
         (properties.mirrored ? "Mirrored" : "")
     });
-    _selected.at(row) = false;
-}
-
-void parts_list::reload(const std::size_t row) {
-    change(std::move(_properties.at(row).mesh_file), row);
 }
 
 void parts_list::refresh_quantity_text() {

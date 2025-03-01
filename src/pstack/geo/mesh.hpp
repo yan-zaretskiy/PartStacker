@@ -20,6 +20,16 @@ public:
         return _triangles;
     }
 
+    constexpr void mirror_x() {
+        for (auto& t : _triangles) {
+            t.normal.x = -t.normal.x;
+            t.v1.x = -t.v1.x;
+            t.v2.x = -t.v2.x;
+            t.v3.x = -t.v3.x;
+            std::swap(t.v2, t.v3);
+        }
+    }
+
     struct bounding_t {
         point3<float> min;
         point3<float> max;

@@ -37,6 +37,9 @@ private:
     wxRadioButton* _radio_none = nullptr;
     wxRadioButton* _radio_arbitrary = nullptr;
     wxRadioButton* _radio_cubic = nullptr;
+    wxButton* _preview_button = nullptr;
+    wxButton* _copy_button = nullptr;
+    wxButton* _mirror_button = nullptr;
 
     wxButton* _import_button = nullptr;
     wxButton* _delete_button = nullptr;
