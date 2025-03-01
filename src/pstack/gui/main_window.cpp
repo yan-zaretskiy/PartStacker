@@ -165,11 +165,16 @@ wxMenuBar* main_window::make_menu_bar() {
                 break;
             }
             case menu_item::about: {
-                wxMessageBox("Not yet implemented");
+                constexpr auto str =
+                    "PartStacker Community Edition\n\n"
+                    "PartStacker Community Edition is a continuation of PartStacker, (c)opyright Tom van der Zanden 2011-2013.\nVisit https://github.com/TomvdZanden/PartStacker/.\n\n"
+                    "PartStacker Community Edition is (c)opyright Braden Ganetsky 2025.\nVisit https://github.com/PartStackerCommunity/PartStacker/.\n\n"
+                    "Both the original and the Community Edition are licensed under the GNU General Public License v3.0.";
+                wxMessageBox(str, "PartStacker Community Edition");
                 break;
             }
             case menu_item::website: {
-                wxMessageBox("Not yet implemented");
+                wxLaunchDefaultBrowser("https://github.com/PartStackerCommunity/PartStacker/");
                 break;
             }
         }
