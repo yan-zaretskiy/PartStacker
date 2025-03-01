@@ -130,22 +130,63 @@ void main_window::enable_part_settings(bool enable) {
 
 wxMenuBar* main_window::make_menu_bar() {
     auto menu_bar = new wxMenuBar();
+    enum class menu_item {
+        new_, open, save, close,
+        import, export_,
+        about, website,
+    };
+    menu_bar->Bind(wxEVT_MENU, [this](wxCommandEvent& event) {
+        switch (menu_item{ event.GetId() }) {
+            case menu_item::new_: {
+                wxMessageBox("Not yet implemented");
+                break;
+            }
+            case menu_item::open: {
+                wxMessageBox("Not yet implemented");
+                break;
+            }
+            case menu_item::save: {
+                wxMessageBox("Not yet implemented");
+                break;
+            }
+            case menu_item::close: {
+                wxMessageBox("Not yet implemented");
+                break;
+            }
+            case menu_item::import: {
+                return on_import(event);
+            }
+            case menu_item::export_: {
+                wxMessageBox("Not yet implemented");
+                break;
+            }
+            case menu_item::about: {
+                wxMessageBox("Not yet implemented");
+                break;
+            }
+            case menu_item::website: {
+                wxMessageBox("Not yet implemented");
+                break;
+            }
+        }
+        event.Skip();
+    });
 
     auto file_menu = new wxMenu();
-    file_menu->Append(wxID_ANY, "New");
-    file_menu->Append(wxID_ANY, "Open");
-    file_menu->Append(wxID_ANY, "Save");
-    file_menu->Append(wxID_ANY, "Close");
+    file_menu->Append((int)menu_item::new_, "New");
+    file_menu->Append((int)menu_item::open, "Open");
+    file_menu->Append((int)menu_item::save, "Save");
+    file_menu->Append((int)menu_item::close, "Close");
     menu_bar->Append(file_menu, "File");
 
     auto import_menu = new wxMenu();
-    import_menu->Append(wxID_ANY, "Import parts");
-    import_menu->Append(wxID_ANY, "Export result as STL");
+    import_menu->Append((int)menu_item::import, "Import parts");
+    import_menu->Append((int)menu_item::export_, "Export result as STL");
     menu_bar->Append(import_menu, "Import/Export");
 
     auto help_menu = new wxMenu();
-    help_menu->Append(wxID_ANY, "About");
-    help_menu->Append(wxID_ANY, "Visit website");
+    help_menu->Append((int)menu_item::about, "About");
+    help_menu->Append((int)menu_item::website, "Visit website");
     menu_bar->Append(help_menu, "Help");
 
     return menu_bar;

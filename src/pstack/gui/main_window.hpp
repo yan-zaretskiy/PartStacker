@@ -42,7 +42,7 @@ private:
     wxButton* _change_button = nullptr;
     wxButton* _reload_button = nullptr;
 
-    static wxMenuBar* make_menu_bar();
+    wxMenuBar* make_menu_bar();
 
     wxSizer* make_part_buttons();
     static wxSizer* make_bottom_section1(main_window* frame);
