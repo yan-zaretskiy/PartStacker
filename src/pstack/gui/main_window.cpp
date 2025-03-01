@@ -32,6 +32,8 @@ const wxColour background_colour = wxColour(0xF0, 0xF0, 0xF0);
 main_window::main_window(const wxString& title)
     : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxDefaultSize)
 {
+    Bind(wxEVT_CLOSE_WINDOW, &main_window::on_close, this);
+
     SetBackgroundColour(background_colour);
     SetMenuBar(make_menu_bar());
 
@@ -154,7 +156,7 @@ wxMenuBar* main_window::make_menu_bar() {
                 break;
             }
             case menu_item::close: {
-                wxMessageBox("Not yet implemented");
+                Close();
                 break;
             }
             case menu_item::import: {
@@ -199,6 +201,19 @@ wxMenuBar* main_window::make_menu_bar() {
     menu_bar->Append(help_menu, "Help");
 
     return menu_bar;
+}
+
+void main_window::on_close(wxCloseEvent& event) {
+    if (_parts_list.rows() != 0 and event.CanVeto()) {
+        if (wxMessageBox("Close PartStacker?",
+                         "Close",
+                         wxYES_NO | wxNO_DEFAULT) != wxYES)
+        {
+            event.Veto();
+            return;
+        }
+    }
+    event.Skip();
 }
 
 void main_window::on_import(wxCommandEvent& event) {

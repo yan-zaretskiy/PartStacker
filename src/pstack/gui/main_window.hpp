@@ -58,6 +58,7 @@ private:
     static void make_tab_sinterbox(wxPanel* panel);
     static void make_tab_bounding_box(wxPanel* panel);
 
+    void on_close(wxCloseEvent& event);
     void on_import(wxCommandEvent& event);
     void on_delete(wxCommandEvent& event);
     void on_change(wxCommandEvent& event);
