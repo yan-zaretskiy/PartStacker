@@ -7,13 +7,15 @@
 namespace pstack::calc {
 
 struct sinterbox_parameters {
+    geo::point3<float> min;
+    geo::point3<float> max;
     double clearance;
     double thickness;
     double width;
     double spacing;
 };
 
-void append_sinterbox(std::vector<geo::triangle>& triangles, const geo::vector3<float>& size, const sinterbox_parameters& params);
+void append_sinterbox(std::vector<geo::triangle>& triangles, const sinterbox_parameters& params);
 
 } // namespace pstack::calc
 

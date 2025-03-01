@@ -45,6 +45,32 @@ constexpr vector3<T> operator-(const point3<T> lhs, const point3<T> rhs) {
     return { lhs.x - rhs.x, lhs.y - rhs.y, lhs.z - rhs.z };
 }
 
+template <class T>
+constexpr point3<T> operator+(const point3<T>& lhs, const std::type_identity_t<T>& rhs) {
+    return { lhs.x + rhs, lhs.y + rhs, lhs.z + rhs };
+}
+
+template <class T>
+constexpr point3<T> operator+(const std::type_identity_t<T>& lhs, const vector3<T>& rhs) {
+    return { lhs + rhs.x, lhs + rhs.y, lhs + rhs.z };
+}
+
+template <class T>
+constexpr point3<T> operator+(const point3<T> lhs, const point3<T> rhs) {
+    return { lhs.x + rhs.x, lhs.y + rhs.y, lhs.z + rhs.z };
+}
+
+template <class T>
+constexpr point3<T> operator-(const point3<T>& lhs, const std::type_identity_t<T>& rhs) {
+    return { lhs.x - rhs, lhs.y - rhs, lhs.z - rhs };
+}
+
+template <class T>
+constexpr point3<T> operator-(const std::type_identity_t<T>& lhs, const vector3<T>& rhs) {
+    return { lhs - rhs.x, lhs - rhs.y, lhs - rhs.z };
+}
+
+
 } // namespace pstack::geo
 
 #endif // PSTACK_GEO_POINT3_HPP

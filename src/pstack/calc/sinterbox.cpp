@@ -46,10 +46,9 @@ void append_side(std::vector<geo::triangle>& triangles, const std::mdspan<const 
     }
 }
 
-auto make_positions(const geo::vector3<float>& size, const sinterbox_parameters& params)
-    -> std::tuple<std::vector<float>, std::vector<float>, std::vector<float>>
-{
-    const auto [clearance, thickness, width, desired_spacing] = params;
+std::tuple<std::vector<float>, std::vector<float>, std::vector<float>> make_positions(const sinterbox_parameters& params) {
+    const auto [min, max, clearance, thickness, width, desired_spacing] = params;
+    const geo::vector3 size = max - min;
 
     // Number of bars in the given direction
     const geo::vector3 N = [&] {
@@ -64,12 +63,8 @@ auto make_positions(const geo::vector3<float>& size, const sinterbox_parameters&
         _numerators.z / (N.z + 1)
     };
 
-    const geo::point3 lower_bound = { -clearance, -clearance, -clearance };
-    const geo::point3 upper_bound = {
-        -clearance + N.x * (real_spacing.x + width) + real_spacing.x,
-        -clearance + N.y * (real_spacing.y + width) + real_spacing.y,
-        -clearance + N.z * (real_spacing.z + width) + real_spacing.z
-    };
+    const geo::point3 lower_bound = min - clearance;
+    const geo::point3 upper_bound = max + clearance;
 
     const auto make_vector = [&](auto elem) -> std::vector<float> {
         std::vector<float> out;
@@ -92,8 +87,8 @@ auto make_positions(const geo::vector3<float>& size, const sinterbox_parameters&
 
 } // namespace
 
-void append_sinterbox(std::vector<geo::triangle>& triangles, const geo::vector3<float>& size, const sinterbox_parameters& params) {
-    const auto [positions_x, positions_y, positions_z] = make_positions(size, params);
+void append_sinterbox(std::vector<geo::triangle>& triangles, const sinterbox_parameters& params) {
+    const auto [positions_x, positions_y, positions_z] = make_positions(params);
     const geo::point3 lower_bound = { positions_x.at(1), positions_y.at(1), positions_z.at(1) };
     const geo::point3 upper_bound = { positions_x.at(positions_x.size() - 2), positions_y.at(positions_y.size() - 2), positions_z.at(positions_z.size() - 2) };
 
