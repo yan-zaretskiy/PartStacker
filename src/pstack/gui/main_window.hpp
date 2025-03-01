@@ -3,6 +3,7 @@
 
 #include <wx/checkbox.h>
 #include <wx/frame.h>
+#include <wx/panel.h>
 #include <wx/radiobut.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
@@ -52,7 +53,10 @@ private:
     static wxSizer* make_bottom_section1(main_window* frame);
     static wxSizer* make_bottom_section2(main_window* frame);
 
-    static wxWindow* make_tabs(main_window* frame);
+    wxWindow* make_tabs();
+    void make_tab_part_settings(wxPanel* panel);
+    static void make_tab_sinterbox(wxPanel* panel);
+    static void make_tab_bounding_box(wxPanel* panel);
 
     void on_import(wxCommandEvent& event);
     void on_delete(wxCommandEvent& event);
