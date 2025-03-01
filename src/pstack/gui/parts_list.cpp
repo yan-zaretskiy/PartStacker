@@ -106,10 +106,8 @@ void parts_list::reload_text(const std::size_t row) {
     });
 }
 
-void parts_list::refresh_quantity_text() {
-    for (std::size_t row : std::views::iota(0ull, _list.rows())) {
-        _list.set_text(row, 1, std::to_string(_properties[row].quantity));
-    }
+void parts_list::reload_quantity(std::size_t row) {
+    _list.set_text(row, 1, std::to_string(_properties.at(row).quantity));
     update_label();
 }
 
@@ -136,8 +134,7 @@ void parts_list::update_label() {
     int parts = 0;
     double volume = 0;
     int triangles = 0;
-    for (const std::size_t row : std::views::iota(0ull, _list.rows())) {
-        const auto& properties = _properties.at(row);
+    for (const auto& properties : _properties) {
         parts += properties.quantity;
         volume += properties.quantity * properties.volume;
         triangles += properties.quantity * properties.triangle_count;

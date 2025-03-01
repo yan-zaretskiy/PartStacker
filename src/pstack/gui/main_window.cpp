@@ -370,7 +370,7 @@ wxWindow* main_window::make_tabs(main_window* frame) {
             button_sizer->Add(frame->_minimize_checkbox, 0, wxALIGN_CENTER_VERTICAL);
             frame->_quantity_spinner->Bind(wxEVT_SPINCTRL, [frame](wxSpinEvent& event) {
                 frame->_current_part->quantity = event.GetPosition();
-                frame->_parts_list.refresh_quantity_text();
+                frame->_parts_list.reload_quantity(frame->_current_part_index.value());
             });
             frame->_min_hole_spinner->Bind(wxEVT_SPINCTRL, [frame](wxSpinEvent& event) { frame->_current_part->min_hole = event.GetPosition(); });
             frame->_minimize_checkbox->Bind(wxEVT_CHECKBOX, [frame](wxCommandEvent& event) { frame->_current_part->rotate_min_box = event.IsChecked(); });

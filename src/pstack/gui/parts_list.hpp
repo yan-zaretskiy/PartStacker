@@ -26,7 +26,7 @@ public:
     void change(std::string mesh_file, std::size_t row);
     void reload_file(std::size_t row);
     void reload_text(std::size_t row);
-    void refresh_quantity_text();
+    void reload_quantity(std::size_t row);
     void delete_selected();
     void get_selected(std::vector<std::size_t>& vec);
 
