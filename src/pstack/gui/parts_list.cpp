@@ -140,15 +140,15 @@ void parts_list::get_selected(std::vector<std::size_t>& vec) {
 }
 
 void parts_list::update_label() {
-    int parts = 0;
-    double volume = 0;
-    int triangles = 0;
+    _total_parts = 0;
+    _total_volume = 0;
+    _total_triangles = 0;
     for (const auto& properties : _properties) {
-        parts += properties.quantity;
-        volume += properties.quantity * properties.volume;
-        triangles += properties.quantity * properties.triangle_count;
+        _total_parts += properties.quantity;
+        _total_volume += properties.quantity * properties.volume;
+        _total_triangles += properties.quantity * properties.triangle_count;
     }
-    _label->SetLabelText(std::format("Parts: {} - Volume: {:.1f} - Triangles: {}", parts, volume / 1000, triangles));
+    _label->SetLabelText(std::format("Parts: {} - Volume: {:.1f} - Triangles: {}", _total_parts, _total_volume / 1000, _total_triangles));
 }
 
 } // namespace pstack::gui

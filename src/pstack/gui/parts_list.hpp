@@ -36,20 +36,42 @@ public:
     part_properties& at(std::size_t row) {
         return _properties.at(row);
     }
+    std::vector<part_properties*> get_all() {
+        std::vector<part_properties*> out{};
+        out.reserve(_properties.size());
+        for (auto& part : _properties) {
+            out.push_back(&part);
+        }
+        return out;
+    }
     
     void update_label();
     wxWindow* label() const {
         return _label;
     }
+    std::size_t total_parts() const {
+        return _total_parts;
+    }
+    double total_volume() const {
+        return _total_volume;
+    }
+    std::size_t total_triangles() const {
+        return _total_triangles;
+    }
+
     wxWindow* control() {
         return _list.control();
     }
 
 private:
     list_view _list{};
-    wxStaticText* _label{};
     std::vector<part_properties> _properties;
     std::vector<bool> _selected{};
+
+    wxStaticText* _label{};
+    std::size_t _total_parts{};
+    double _total_volume{};
+    std::size_t _total_triangles{};
 };
 
 } // namespace pstack::gui
