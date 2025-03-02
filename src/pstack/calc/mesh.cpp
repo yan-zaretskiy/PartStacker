@@ -55,12 +55,13 @@ mesh::bounding_t mesh::bounding() const {
     out.max = { std::numeric_limits<float>::min(), std::numeric_limits<float>::min(), std::numeric_limits<float>::min() };
 
     for (const auto& triangle : _triangles) {
-        out.min = geo::min(out.min, triangle.v1);
-        out.min = geo::min(out.min, triangle.v2);
-        out.min = geo::min(out.min, triangle.v3);
-        out.max = geo::max(out.max, triangle.v1);
-        out.max = geo::max(out.max, triangle.v2);
-        out.max = geo::max(out.max, triangle.v3);
+        out.min.x = std::min({ out.min.x, triangle.v1.x, triangle.v2.x, triangle.v3.x });
+        out.min.y = std::min({ out.min.y, triangle.v1.y, triangle.v2.y, triangle.v3.y });
+        out.min.z = std::min({ out.min.z, triangle.v1.z, triangle.v2.z, triangle.v3.z });
+
+        out.max.x = std::max({ out.max.x, triangle.v1.x, triangle.v2.x, triangle.v3.x });
+        out.max.y = std::max({ out.max.y, triangle.v1.y, triangle.v2.y, triangle.v3.y });
+        out.max.z = std::max({ out.max.z, triangle.v1.z, triangle.v2.z, triangle.v3.z });
     }
 
     const geo::vector3<float> size = out.max - out.min;
