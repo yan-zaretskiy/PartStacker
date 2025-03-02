@@ -22,14 +22,12 @@ public:
         }
         _thread.emplace([this, params = std::move(params)] {
             _stacker.stack(std::move(params));
-            _thread->detach();
-            _thread.reset();
         });
     }
     
     void stop() {
         _stacker.abort();
-        if (_thread.has_value()) {
+        if (_thread.has_value() and _thread->joinable()) {
             _thread->join();
         }
         _thread.reset();
