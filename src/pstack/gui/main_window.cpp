@@ -633,11 +633,15 @@ void main_window::make_tab_part_settings(wxPanel* panel) {
     {
         _preview_button = new wxButton(panel, wxID_ANY, "Preview");
         _preview_button->SetMinSize(panel->FromDIP(button_size));
+        _preview_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+            wxMessageBox("Not yet implemented");
+        });
         _copy_button = new wxButton(panel, wxID_ANY, "Copy");
         _copy_button->SetMinSize(panel->FromDIP(button_size));
         _copy_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
             _parts_list.append(*_current_part);
             _parts_list.update_label();
+            event.Skip();
         });
         _mirror_button = new wxButton(panel, wxID_ANY, "Mirror");
         _mirror_button->SetMinSize(panel->FromDIP(button_size));
@@ -647,6 +651,7 @@ void main_window::make_tab_part_settings(wxPanel* panel) {
             _current_part->mesh.set_baseline({ 0, 0, 0 });
             _parts_list.reload_text(_current_part_index.value());
             set_part(_current_part_index.value());
+            event.Skip();
         });
         bottom_sizer->Add(_preview_button);
         bottom_sizer->AddSpacer(panel->FromDIP(inner_border));
