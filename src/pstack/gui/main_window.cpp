@@ -408,7 +408,16 @@ void main_window::on_export() {
         return;
     }
 
-    wxMessageBox("Not yet implemented");
+    wxFileDialog dialog(this, "Export mesh", "", "",
+                        "STL files (*.stl)|*.stl",
+                        wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (dialog.ShowModal() == wxID_CANCEL) {
+        return;
+    }
+
+    const wxString path = dialog.GetPath();
+    files::to_stl(*_last_result, path.ToStdString());
 }
 
 void main_window::on_import(wxCommandEvent& event) {

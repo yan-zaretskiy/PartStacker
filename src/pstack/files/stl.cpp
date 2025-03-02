@@ -1,7 +1,9 @@
 #include "pstack/files/read.hpp"
 #include "pstack/files/stl.hpp"
 #include "pstack/geo/triangle.hpp"
+#include <array>
 #include <charconv>
+#include <fstream>
 #include <ranges>
 #include <sstream>
 #include <string>
@@ -21,8 +23,8 @@ float parse_float(R&& r) {
 
 } // namespace
 
-calc::mesh from_stl(const std::string& file_name) {
-    std::string file = read_file(file_name);
+calc::mesh from_stl(const std::string& file_path) {
+    std::string file = read_file(file_path);
     if (file.empty()) {
         return {};
     }
@@ -87,8 +89,31 @@ calc::mesh from_stl(const std::string& file_name) {
     return calc::mesh(std::move(triangles));
 }
 
-void to_stl(const calc::mesh& mesh, std::string_view to_file) {
+void to_stl(const calc::mesh& mesh, const std::string& file_path) {
+    std::ofstream file(file_path, std::ios::out | std::ios::binary);
 
+    const std::array<std::byte, 80> header{};
+    file.write(reinterpret_cast<const char*>(header.data()), header.size());
+
+    const std::uint32_t count = static_cast<std::uint32_t>(mesh.triangles().size());
+    file.write(reinterpret_cast<const char*>(&count), sizeof(count));
+
+    std::array<std::byte, 50> triangle{};
+    for (const auto& t : mesh.triangles()) {
+        reinterpret_cast<float*>(triangle.data())[ 0] = t.normal.x;
+        reinterpret_cast<float*>(triangle.data())[ 1] = t.normal.y;
+        reinterpret_cast<float*>(triangle.data())[ 2] = t.normal.z;
+        reinterpret_cast<float*>(triangle.data())[ 3] = t.v1.x;
+        reinterpret_cast<float*>(triangle.data())[ 4] = t.v1.y;
+        reinterpret_cast<float*>(triangle.data())[ 5] = t.v1.z;
+        reinterpret_cast<float*>(triangle.data())[ 6] = t.v2.x;
+        reinterpret_cast<float*>(triangle.data())[ 7] = t.v2.y;
+        reinterpret_cast<float*>(triangle.data())[ 8] = t.v2.z;
+        reinterpret_cast<float*>(triangle.data())[ 9] = t.v3.x;
+        reinterpret_cast<float*>(triangle.data())[10] = t.v3.y;
+        reinterpret_cast<float*>(triangle.data())[11] = t.v3.z;
+        file.write(reinterpret_cast<const char*>(triangle.data()), triangle.size());
+    }
 }
 
 } // namespace pstack::files

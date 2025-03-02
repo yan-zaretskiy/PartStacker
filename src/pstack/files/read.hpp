@@ -5,7 +5,7 @@
 
 namespace pstack::files {
 
-std::string read_file(const std::string& file_name);
+std::string read_file(const std::string& file_path);
 
 } // namespace pstack::files
 

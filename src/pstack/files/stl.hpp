@@ -6,8 +6,8 @@
 
 namespace pstack::files {
 
-calc::mesh from_stl(const std::string& from_file);
-void to_stl(const calc::mesh& mesh, const std::string& to_file);
+calc::mesh from_stl(const std::string& file_path);
+void to_stl(const calc::mesh& mesh, const std::string& file_path);
 
 } // namespace pstack::files
 
