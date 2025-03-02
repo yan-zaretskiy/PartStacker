@@ -2,6 +2,16 @@
 
 namespace pstack::calc {
 
+void mesh::add(const mesh& m, const geo::vector3<float> translation) {
+    _triangles.reserve(_triangles.size() + m._triangles.size());
+    for (const auto& t : m._triangles) {
+        auto& triangle = _triangles.emplace_back(t);
+        triangle.v1 += translation;
+        triangle.v2 += translation;
+        triangle.v3 += translation;
+    }
+}
+
 void mesh::mirror_x() {
     for (auto& t : _triangles) {
         t.normal.x = -t.normal.x;
@@ -9,6 +19,23 @@ void mesh::mirror_x() {
         t.v2.x = -t.v2.x;
         t.v3.x = -t.v3.x;
         std::swap(t.v2, t.v3);
+    }
+}
+
+void mesh::scale(const double factor) {
+    for (auto& t : _triangles) {
+        t.v1 = geo::origin3<float> + (factor * t.v1.as_vector());
+        t.v2 = geo::origin3<float> + (factor * t.v2.as_vector());
+        t.v3 = geo::origin3<float> + (factor * t.v3.as_vector());
+    }
+}
+
+void mesh::rotate(const geo::matrix3<float>& rotation) {
+    for (auto& t : _triangles) {
+        t.normal = rotation * t.normal;
+        t.v1 = geo::origin3<float> + (rotation * t.v1.as_vector());
+        t.v2 = geo::origin3<float> + (rotation * t.v2.as_vector());
+        t.v3 = geo::origin3<float> + (rotation * t.v3.as_vector());
     }
 }
 

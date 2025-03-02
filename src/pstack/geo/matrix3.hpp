@@ -41,6 +41,15 @@ constexpr matrix3<T> operator*(const matrix3<T>& lhs, const matrix3<T>& rhs) {
 }
 
 template <class T>
+constexpr vector3<T> operator*(const matrix3<T>& lhs, const vector3<T>& rhs) {
+    vector3<T> v;
+    v.x = (lhs.xx * rhs.x) + (lhs.xy * rhs.y) + (lhs.xz * rhs.z);
+    v.y = (lhs.yx * rhs.x) + (lhs.yy * rhs.y) + (lhs.yz * rhs.z);
+    v.z = (lhs.zx * rhs.x) + (lhs.zy * rhs.y) + (lhs.zz * rhs.z);
+    return v;
+}
+
+template <class T>
 constexpr matrix3<T> operator*(const matrix3<T>& lhs, const std::type_identity_t<T>& rhs) {
     return { lhs.xx * rhs, lhs.xy * rhs, lhs.xz * rhs,
              lhs.yx * rhs, lhs.yy * rhs, lhs.yz * rhs,

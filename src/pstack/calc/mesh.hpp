@@ -3,6 +3,7 @@
 
 #include "pstack/calc/sinterbox.hpp"
 #include "pstack/geo/functions.hpp"
+#include "pstack/geo/matrix3.hpp"
 #include "pstack/geo/triangle.hpp"
 #include <vector>
 
@@ -20,11 +21,12 @@ public:
     const std::vector<geo::triangle>& triangles() const& {
         return _triangles;
     }
-    std::vector<geo::triangle>&& take_triangles() && {
-        return std::move(_triangles);
-    }
+
+    void add(const mesh& m, const geo::vector3<float> translation);
 
     void mirror_x();
+    void scale(double factor);
+    void rotate(const geo::matrix3<float>& rotation);
     void set_baseline(const geo::point3<float> baseline);
 
     void add_sinterbox(const sinterbox_parameters& params) {
