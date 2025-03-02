@@ -15,6 +15,7 @@ part_properties make_properties(std::string mesh_file, bool mirrored) {
     properties.mesh_file = std::move(mesh_file);
     properties.name = std::filesystem::path(properties.mesh_file).stem().string();
     properties.mesh = files::from_stl(properties.mesh_file);
+    properties.mesh.set_baseline({ 0, 0, 0 });
 
     properties.quantity = [name = properties.name]() mutable -> int {
         char looking_for = '.';

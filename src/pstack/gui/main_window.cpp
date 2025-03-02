@@ -221,8 +221,8 @@ void main_window::on_stacking_success(calc::mesh mesh) {
         const double offset = _thickness_spinner->GetValue() + _clearance_spinner->GetValue();
         _last_result->set_baseline(geo::origin3<float> + offset);
         const calc::sinterbox_parameters params {
-            .min = bounding.min,
-            .max = bounding.max,
+            .min = bounding.min + offset,
+            .max = bounding.max + offset,
             .clearance = _clearance_spinner->GetValue(),
             .thickness = _thickness_spinner->GetValue(),
             .width = _width_spinner->GetValue(),
@@ -624,6 +624,7 @@ void main_window::make_tab_part_settings(wxPanel* panel) {
         _mirror_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
             _current_part->mirrored = not _current_part->mirrored;
             _current_part->mesh.mirror_x();
+            _current_part->mesh.set_baseline({ 0, 0, 0 });
             _parts_list.reload_text(_current_part_index.value());
             set_part(_current_part_index.value());
         });

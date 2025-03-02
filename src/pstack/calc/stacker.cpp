@@ -186,6 +186,7 @@ std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atom
             mesh m = state.ordered_parts[i].mesh;
             m.scale(scale_factor);
             m.rotate(base_rotation * rotations[j]);
+            m.set_baseline({ 0, 0, 0 });
 
             auto bounding = m.bounding();
             const auto box_size = bounding.box_size;
