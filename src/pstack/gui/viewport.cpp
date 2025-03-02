@@ -34,22 +34,25 @@ constexpr auto vertex_shader_source = R"(
     #version 330 core
     layout (location = 0) in vec3 aPos;
     layout (location = 1) in vec3 aNormal;
-    out vec4 fragNormal;
+    out vec4 frag_normal;
     uniform mat4 transform_vertices;
     uniform mat4 transform_normals;
     void main() {
         gl_Position = transform_vertices * vec4(aPos, 1.0);
-        fragNormal = transform_normals * vec4(aNormal, 1.0);
+        frag_normal = transform_normals * vec4(aNormal, 1.0);
     }
 )";
 
 constexpr auto fragment_shader_source = R"(
     #version 330 core
-    in vec4 fragNormal;
-    out vec4 fragColour;
+    in vec4 frag_normal;
+    out vec4 frag_colour;
     void main() {
-        float shade = (-fragNormal.z / 4) + 0.75;
-        fragColour = vec4(shade, shade, shade, 1.0);
+        const float shade_min = 63.0 / 255.0;
+        const float shade_max = 206.0 / 255.0;
+        const float shade_factor = shade_min - shade_max; // This is negative
+        float shade = (frag_normal.z * shade_factor) + shade_min;
+        frag_colour = vec4(shade, shade, shade, 1.0);
     }
 )";
 
