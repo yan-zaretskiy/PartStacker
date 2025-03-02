@@ -1,3 +1,4 @@
+#include "pstack/calc/bool.hpp"
 #include "pstack/calc/mesh.hpp"
 #include "pstack/calc/stacker.hpp"
 #include "pstack/util/mdarray.hpp"
@@ -7,20 +8,6 @@
 namespace pstack::calc {
 
 namespace {
-
-class Bool {
-private:
-    bool value;
-public:
-    Bool() : value() {}
-    Bool(bool b) : value(b) {}
-    operator bool&() & {
-        return value;
-    }
-    operator bool() const {
-        return value;
-    }
-};
 
 void place(const util::mdspan<Bool, 3> space, const int index, const util::mdspan<const int, 3> obj, const int x, const int y, const int z) {
     const int max_i = std::min(x + obj.extent(0), space.extent(0));

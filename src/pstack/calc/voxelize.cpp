@@ -1,3 +1,4 @@
+#include "pstack/calc/bool.hpp"
 #include "pstack/calc/voxelize.hpp"
 #include "pstack/util/mdarray.hpp"
 #include <algorithm>
@@ -9,24 +10,6 @@
 #include <vector>
 
 namespace pstack::calc {
-
-namespace {
-
-class Bool {
-private:
-    bool value;
-public:
-    Bool() : value() {}
-    Bool(bool b) : value(b) {}
-    operator bool&() & {
-        return value;
-    }
-    operator bool() const {
-        return value;
-    }
-};
-
-} // namespace
 
 int voxelize(const mesh& mesh, const std::mdspan<int, std::dextents<std::size_t, 3>> voxels, const int index, const std::size_t carver_size) {
     util::mdarray<Bool, 3> actual_triangles(voxels.extents());
