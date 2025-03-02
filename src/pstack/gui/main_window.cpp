@@ -181,22 +181,33 @@ void main_window::on_stacking_start() {
         .parts = _parts_list.get_all(),
 
         .set_progress = [this](double progress, double total) {
-            _progress_bar->SetValue((int)(100 * progress / total));
+            CallAfter([=] {
+                _progress_bar->SetValue(static_cast<int>(100 * progress / total));
+            });
         },
         .display_mesh = [this](const calc::mesh& mesh, int max_x, int max_y, int max_z) {
-            _viewport->set_mesh(mesh, { max_x / 2.0f, max_y / 2.0f, max_z / 2.0f });
+            CallAfter([=] {
+                // Make a copy of `mesh`, otherwise we encounter a data race
+                _viewport->set_mesh(mesh, { max_x / 2.0f, max_y / 2.0f, max_z / 2.0f });
+            });
         },
         .on_success = [this](calc::mesh mesh) {
-            on_stacking_success(std::move(mesh));
-            _export_button->Enable();
+            CallAfter([=, mesh = std::move(mesh)] {
+                on_stacking_success(std::move(mesh));
+                _export_button->Enable();
+            });
         },
         .on_failure = [this] {
-            _export_button->Disable();
-            _last_result.reset();
-            wxMessageBox("Did not manage to stack parts within maximum bounding box", "Stacking failed");
+            CallAfter([=] {
+                _export_button->Disable();
+                _last_result.reset();
+                wxMessageBox("Did not manage to stack parts within maximum bounding box", "Stacking failed");
+            });
         },
         .on_finish = [this] {
-            enable_on_stacking(false);
+            CallAfter([=] {
+                enable_on_stacking(false);
+            });
         },
         
         .resolution = _min_clearance_spinner->GetValue(),
