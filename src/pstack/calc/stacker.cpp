@@ -57,26 +57,27 @@ int can_place(const util::mdspan<const Bool, 3> space, int possible, const util:
     return possible;
 }
 
-int try_place(const stacker_parameters& params, stack_state& state, int p, const geo::point3<int> max, int total_parts, int& current_count) {
+std::size_t try_place(const stacker_parameters& params, stack_state& state, const std::size_t part_index, const std::size_t to_place, const geo::point3<int> max) {
+    std::size_t placed = 0;
     for (int s = 0; s <= max.x + max.y + max.z; ++s) {
         for (int r = std::max(0, s - max.z); r <= std::min(s, max.x + max.y); ++r) {
             const int z = s - r;
             for (int x = std::max(0, r - max.y); x <= std::min(r, max.x); ++x) {
                 const int y = r - x;
-                const std::span rotations = rotation_sets[state.ordered_parts[p].rotation_index];
+                const std::span rotations = rotation_sets[state.ordered_parts[part_index].rotation_index];
 
                 // Calculate which orientations fit in bounding box
                 int bit_index = 1;
                 int possible = 0;
                 for (int i = 0; i < rotations.size(); ++i) {
-                    const auto& box_size = state.meshes[p][i].bounding.box_size;
+                    const auto& box_size = state.meshes[part_index][i].bounding.box_size;
                     if (x + box_size.x < max.x && y + box_size.y < max.y && z + box_size.z < max.z) {
                         possible |= bit_index;
                     }
                     bit_index *= 2;
                 }
 
-                possible = can_place(state.space, possible, state.voxels[p], x, y, z);
+                possible = can_place(state.space, possible, state.voxels[part_index], x, y, z);
 
                 if (possible != 0) { // If it fits, figure out which rotation to use
                     bit_index = 1;
@@ -85,22 +86,14 @@ int try_place(const stacker_parameters& params, stack_state& state, int p, const
                             bit_index *= 2;
                             continue;
                         } else {
-                            state.result.add(state.meshes[p][i].mesh, { (float)x, (float)y, (float)z });
-                            place(state.space, bit_index, state.voxels[p], x, y, z); // Mark voxels as occupied
-
-                            ++current_count;
-                            params.set_progress(current_count, total_parts);
-                            params.display_mesh(state.result, max.x, max.y, max.z);
-
-                            --state.ordered_parts[p].quantity; // Move to next instance of part
-                            if (state.ordered_parts[p].quantity == 0) { // All instances placed, try next part
-                                p--;
-                                if (p < 0) {
-                                    return -1;
-                                }
+                            state.result.add(state.meshes[part_index][i].mesh, { (float)x, (float)y, (float)z });
+                            place(state.space, bit_index, state.voxels[part_index], x, y, z); // Mark voxels as occupied
+                            ++placed;
+                            if (to_place == placed) { // All instances of this part placed, move to next part
+                                return placed;
+                            } else { // Move to next instance of part
+                                break;
                             }
-
-                            break;
                         }
                     }
                 }
@@ -109,9 +102,8 @@ int try_place(const stacker_parameters& params, stack_state& state, int p, const
     }
 
     // Reached the end of the box, return the part we're currently at.
-    return p;
+    return placed;
 }
-
 
 std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atomic<bool>& running) {
     stack_state state{};
@@ -229,91 +221,91 @@ std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atom
 
     params.set_progress(0, 1);
 
-    int current_count = 0;
-    int part_index = state.meshes.size() - 1;
-    while (part_index >= 0) {
-        const int old_part_index = part_index;
-
-        part_index = try_place(params, state, part_index, { max_x, max_y, max_z }, total_parts, current_count);
-        if (part_index < 0) {
-            break; // Done!
-        }
-
-        // If pIndex has not changed it means there are no more ways to place an instance of the current part in the box: it must be enlarged
-        if (part_index == old_part_index) {
-            int best = std::numeric_limits<int>::max();
-            int new_x = state.space.extent(0);
-            int new_y = state.space.extent(1);
-            int new_z = state.space.extent(2);
-
-            int min_box_x = std::numeric_limits<int>::max();
-            int min_box_y = std::numeric_limits<int>::max();
-            int min_box_z = std::numeric_limits<int>::max();
-            for (const auto& [_, bounding] : state.meshes[part_index]) {
-                min_box_x = std::min(bounding.box_size.x, min_box_x);
-                min_box_y = std::min(bounding.box_size.y, min_box_y);
-                min_box_z = std::min(bounding.box_size.z, min_box_z);
+    std::size_t total_placed = 0;
+    for (std::size_t part_index = 0; part_index != state.ordered_parts.size(); ++part_index) {
+        std::size_t to_place = state.ordered_parts[part_index].quantity;
+        while (to_place > 0) {
+            if (not running) {
+                return std::nullopt;
             }
+            const std::size_t placed = try_place(params, state, part_index, to_place, { max_x, max_y, max_z });
+            to_place -= placed;
+            total_placed += placed;
+            params.set_progress(total_placed, total_parts);
+            params.display_mesh(state.result, max_x, max_y, max_z);
 
-            for (int s = 0; s < state.space.extent(0) + state.space.extent(1) + state.space.extent(2) - min_box_x - min_box_y - min_box_z; ++s) {
-                for (int r = std::max<std::size_t>(0, s - state.space.extent(2) - min_box_z); r <= std::min<std::size_t>(s, state.space.extent(0) + state.space.extent(1) - min_box_x - min_box_y); ++r) {
-                    const int z = s - r;
-                    if (std::max(z + min_box_z, max_z) * max_y * max_x > best) {
-                        break;
-                    }
+            // If we have not placed a part, it means there are no more ways to place an instance of the current part in the box: it must be enlarged
+            if (placed == 0) {
+                int best = std::numeric_limits<int>::max();
+                int new_x = state.space.extent(0);
+                int new_y = state.space.extent(1);
+                int new_z = state.space.extent(2);
 
-                    for (int x = std::max<std::size_t>(0, r - state.space.extent(1) - min_box_y); x <= std::min<std::size_t>(r, state.space.extent(0) - min_box_z); ++x) {
-                        const int y = r - x;
-                        if (std::max(x + min_box_x, max_x) * std::max(y + min_box_y, max_y) * std::max(z + min_box_z, max_z) > best) {
-                            continue;
+                int min_box_x = std::numeric_limits<int>::max();
+                int min_box_y = std::numeric_limits<int>::max();
+                int min_box_z = std::numeric_limits<int>::max();
+                for (const auto& [_, bounding] : state.meshes[part_index]) {
+                    min_box_x = std::min(bounding.box_size.x, min_box_x);
+                    min_box_y = std::min(bounding.box_size.y, min_box_y);
+                    min_box_z = std::min(bounding.box_size.z, min_box_z);
+                }
+
+                for (int s = 0; s < state.space.extent(0) + state.space.extent(1) + state.space.extent(2) - min_box_x - min_box_y - min_box_z; ++s) {
+                    for (int r = std::max<std::size_t>(0, s - state.space.extent(2) - min_box_z); r <= std::min<std::size_t>(s, state.space.extent(0) + state.space.extent(1) - min_box_x - min_box_y); ++r) {
+                        const int z = s - r;
+                        if (std::max(z + min_box_z, max_z) * max_y * max_x > best) {
+                            break;
                         }
 
-                        const std::span rotations = rotation_sets[state.ordered_parts[part_index].rotation_index];
-
-                        // Calculate which orientations fit in bounding box
-                        int bit_index = 1;
-                        int possible = 0;
-                        for (int i = 0; i < rotations.size(); ++i) {
-                            const auto& box_size = state.meshes[part_index][i].bounding.box_size;
-                            if (x + box_size.x < state.space.extent(0) && y + box_size.y < state.space.extent(1) && z + box_size.z < state.space.extent(2)) {
-                                possible |= bit_index;
+                        for (int x = std::max<std::size_t>(0, r - state.space.extent(1) - min_box_y); x <= std::min<std::size_t>(r, state.space.extent(0) - min_box_z); ++x) {
+                            const int y = r - x;
+                            if (std::max(x + min_box_x, max_x) * std::max(y + min_box_y, max_y) * std::max(z + min_box_z, max_z) > best) {
+                                continue;
                             }
-                            bit_index *= 2;
-                        }
-                                
-                        possible = can_place(state.space, possible, state.voxels[part_index], x, y, z);
 
-                        if (possible != 0) { // If it fits, figure out which rotation to use
-                            bit_index = 1;
+                            const std::span rotations = rotation_sets[state.ordered_parts[part_index].rotation_index];
+
+                            // Calculate which orientations fit in bounding box
+                            int bit_index = 1;
+                            int possible = 0;
                             for (int i = 0; i < rotations.size(); ++i) {
-                                if ((possible & bit_index) != 0) {
-                                    const auto& box_size = state.meshes[part_index][i].bounding.box_size;
-                                    const int new_box = std::max(max_x, x + box_size.x) * std::max(max_y, y + box_size.y) * std::max(max_z, z + box_size.z);
-                                    if (new_box < best) {
-                                        best = new_box;
-                                        new_x = x + box_size.x;
-                                        new_y = y + box_size.y;
-                                        new_z = z + box_size.z;
-                                    }
+                                const auto& box_size = state.meshes[part_index][i].bounding.box_size;
+                                if (x + box_size.x < state.space.extent(0) && y + box_size.y < state.space.extent(1) && z + box_size.z < state.space.extent(2)) {
+                                    possible |= bit_index;
                                 }
                                 bit_index *= 2;
+                            }
+                                
+                            possible = can_place(state.space, possible, state.voxels[part_index], x, y, z);
+
+                            if (possible != 0) { // If it fits, figure out which rotation to use
+                                bit_index = 1;
+                                for (int i = 0; i < rotations.size(); ++i) {
+                                    if ((possible & bit_index) != 0) {
+                                        const auto& box_size = state.meshes[part_index][i].bounding.box_size;
+                                        const int new_box = std::max(max_x, x + box_size.x) * std::max(max_y, y + box_size.y) * std::max(max_z, z + box_size.z);
+                                        if (new_box < best) {
+                                            best = new_box;
+                                            new_x = x + box_size.x;
+                                            new_y = y + box_size.y;
+                                            new_z = z + box_size.z;
+                                        }
+                                    }
+                                    bit_index *= 2;
+                                }
                             }
                         }
                     }
                 }
+
+                if (best == std::numeric_limits<int>::max()) {
+                    return mesh{};
+                }
+
+                max_x = std::max(max_x, new_x + 2);
+                max_y = std::max(max_y, new_y + 2);
+                max_z = std::max(max_z, new_z + 2);
             }
-
-            if (best == std::numeric_limits<int>::max()) {
-                return mesh{};
-            }
-
-            max_x = std::max(max_x, new_x + 2);
-            max_y = std::max(max_y, new_y + 2);
-            max_z = std::max(max_z, new_z + 2);
-        }
-
-        if (not running) {
-            return std::nullopt;
         }
     }
 
