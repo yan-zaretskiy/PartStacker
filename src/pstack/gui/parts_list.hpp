@@ -36,8 +36,8 @@ public:
     part_properties& at(std::size_t row) {
         return _properties.at(row);
     }
-    std::vector<part_properties*> get_all() {
-        std::vector<part_properties*> out{};
+    std::vector<const part_properties*> get_all() {
+        std::vector<const part_properties*> out{};
         out.reserve(_properties.size());
         for (auto& part : _properties) {
             out.push_back(&part);

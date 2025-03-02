@@ -178,7 +178,6 @@ void main_window::on_stacking_start() {
     }
 
     calc::stacker_parameters params {
-        .initial_triangles = triangles + 2,
         .parts = _parts_list.get_all(),
 
         .set_progress = [this](double progress, double total) {

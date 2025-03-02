@@ -9,8 +9,7 @@
 namespace pstack::calc {
 
 struct stacker_parameters {
-    std::size_t initial_triangles;
-    std::vector<part_properties*> parts;
+    std::vector<const part_properties*> parts;
 
     std::function<void(double, double)> set_progress;
     std::function<void(const mesh&, int, int, int)> display_mesh;
@@ -39,7 +38,7 @@ public:
 
     void stack(stacker_parameters params);
 
-    void stop() {
+    void abort() {
         _running = false;
     }
 

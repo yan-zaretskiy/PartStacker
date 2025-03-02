@@ -74,6 +74,10 @@ public:
         return _span[indices...];
     }
 
+    constexpr std::size_t extent(std::size_t dimension) {
+        return _span.extent(dimension);
+    }
+
 private:
     std::vector<std::remove_const_t<T>> _data{};
     mdspan<T, Rank> _span{};

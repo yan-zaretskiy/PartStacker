@@ -28,7 +28,7 @@ public:
     }
     
     void stop() {
-        _stacker.stop();
+        _stacker.abort();
         if (_thread.has_value()) {
             _thread->join();
         }
