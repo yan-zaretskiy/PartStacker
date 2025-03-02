@@ -30,10 +30,12 @@ int voxelize(const mesh& mesh, const std::mdspan<int, std::dextents<std::size_t,
         for (float p = 0; p < 1; p += db) {
             for (float q = 0; q < 1 - p; q += dc) {
                 const geo::vector3 pos = a + p * b + q * c;
-                const auto x = std::nearbyint(pos.x);
-                const auto y = std::nearbyint(pos.y);
-                const auto z = std::nearbyint(pos.z);
-                actual_triangles[static_cast<std::size_t>(x), static_cast<std::size_t>(y), static_cast<std::size_t>(z)] = true;
+                // Round to the nearest integer
+                // This is a hot path, so `std::round()`, `std::nearbyint()`, `std::floor()` are much slower
+                const auto x = static_cast<std::size_t>(pos.x + 0.5f);
+                const auto y = static_cast<std::size_t>(pos.y + 0.5f);
+                const auto z = static_cast<std::size_t>(pos.z + 0.5f);
+                actual_triangles[x, y, z] = true;
             }
         }
     }
