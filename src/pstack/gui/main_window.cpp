@@ -206,6 +206,7 @@ void main_window::on_stacking_start() {
         },
         .on_finish = [this] {
             CallAfter([=] {
+                _stacker_thread.stop();
                 enable_on_stacking(false);
             });
         },
