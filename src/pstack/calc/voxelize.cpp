@@ -57,7 +57,7 @@ int voxelize(const mesh& mesh, const std::mdspan<int, std::dextents<std::size_t,
             stack.pop();
 
             // Check if we need to do work here
-            if (visited[x, y, z] || x < 0 || y < 0 || z < 0 || x > voxels.extent(0) - carver_size || y > voxels.extent(1) - carver_size || z > voxels.extent(2) - carver_size) {
+            if (x < 0 || y < 0 || z < 0 || x > voxels.extent(0) - carver_size || y > voxels.extent(1) - carver_size || z > voxels.extent(2) - carver_size || visited[x, y, z]) {
                 continue;
             }
             visited[x, y, z] = true;
