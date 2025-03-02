@@ -8,9 +8,14 @@
 namespace pstack::util {
 
 template <class T, std::size_t Rank>
+using mdspan = std::mdspan<T, std::dextents<std::size_t, Rank>>;
+
+template <class T, std::size_t Rank>
 requires (not std::is_reference_v<T>)
 class mdarray {
 public:
+    constexpr mdarray() = default;
+
     template <std::convertible_to<std::size_t>... Extents>
     constexpr mdarray(Extents... extents)
         : _data((... * static_cast<std::size_t>(extents)), std::remove_const_t<T>{})
@@ -22,7 +27,7 @@ public:
     constexpr mdarray(const std::extents<IndexType, Extents...>& extents) {
         [&]<std::size_t... Is>(std::index_sequence<Is...>) {
             _data = std::vector<std::remove_const_t<T>>((... * extents.extent(Is)), std::remove_const_t<T>{});
-            _span = std::mdspan<T, std::dextents<std::size_t, Rank>>(_data.data(), extents);
+            _span = mdspan<T, Rank>(_data.data(), extents);
         }(std::make_index_sequence<Rank>{});
     }
 
@@ -40,20 +45,22 @@ public:
 
     constexpr mdarray& operator=(const mdarray& that) {
         _data = that._data;
-        _span = std::mdspan<T, std::dextents<std::size_t, Rank>>(_data.data(), that._span.extents());
+        _span = mdspan<T, Rank>(_data.data(), that._span.extents());
+        return *this;
     }
 
     constexpr mdarray& operator=(mdarray&& that) {
         _data = std::move(that._data);
-        _span = std::mdspan<T, std::dextents<std::size_t, Rank>>(_data.data(), that._span.extents());
+        _span = mdspan<T, Rank>(_data.data(), that._span.extents());
         that._span = {};
+        return *this;
     }
 
-    constexpr operator std::mdspan<T, std::dextents<std::size_t, Rank>>() & {
+    constexpr operator mdspan<T, Rank>() & {
         return _span;
     }
 
-    constexpr operator std::mdspan<const T, std::dextents<std::size_t, Rank>>() & {
+    constexpr operator mdspan<const T, Rank>() & {
         return _span;
     }
 
@@ -68,8 +75,8 @@ public:
     }
 
 private:
-    std::vector<std::remove_const_t<T>> _data;
-    std::mdspan<T, std::dextents<std::size_t, Rank>> _span;
+    std::vector<std::remove_const_t<T>> _data{};
+    mdspan<T, Rank> _span{};
 };
 
 } // namespace pstack::util

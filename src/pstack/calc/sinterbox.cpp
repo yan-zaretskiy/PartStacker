@@ -7,7 +7,7 @@ namespace pstack::calc {
 
 namespace {
 
-void append_side(std::vector<geo::triangle>& triangles, const std::mdspan<const geo::point3<float>, std::dextents<std::size_t, 2>> points, const geo::vector3<float>& normal, const geo::vector3<float>& dir1, const geo::vector3<float>& dir2, double thickness_value) {
+void append_side(std::vector<geo::triangle>& triangles, const util::mdspan<const geo::point3<float>, 2> points, const geo::vector3<float>& normal, const geo::vector3<float>& dir1, const geo::vector3<float>& dir2, double thickness_value) {
     const auto thickness = normal * -thickness_value;
 
     const bool condition = normal.x + normal.y + normal.z > 0;
