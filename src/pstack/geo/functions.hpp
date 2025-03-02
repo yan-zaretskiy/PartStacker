@@ -1,6 +1,7 @@
 #ifndef PSTACK_GEO_FUNCTIONS_HPP
 #define PSTACK_GEO_FUNCTIONS_HPP
 
+#include <bit>
 #include <concepts>
 #include <cstdint>
 #include <numbers>
@@ -79,6 +80,26 @@ template <std::floating_point T>
 constexpr int ceil(const T value) {
     const int i = static_cast<int>(value);
     return value > i ? i + 1 : i;
+}
+
+template <std::size_t iterations = 4>
+constexpr float inverse_sqrt(const float value) {
+    const std::uint32_t i = std::bit_cast<std::uint32_t>(value);
+    float d = std::bit_cast<float>(0x5F37642F - (i >> 1));
+    for (int iter = 0; iter < iterations; ++iter) {
+        d = 0.5 * d * (3 - value * d * d);
+    }
+    return d;
+}
+
+template <std::size_t iterations = 4>
+constexpr double inverse_sqrt(const double value) {
+    const std::uint64_t i = std::bit_cast<std::uint64_t>(value);
+    double d = std::bit_cast<double>(0x5FE6EB50C7B537A9 - (i >> 1));
+    for (int iter = 0; iter < iterations; ++iter) {
+        d = 0.5 * d * (3 - value * d * d);
+    }
+    return d;
 }
 
 } // namespace pstack::geo

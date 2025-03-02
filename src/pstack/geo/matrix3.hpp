@@ -2,6 +2,7 @@
 #define PSTACK_GEO_MATRIX3_HPP
 
 #include "pstack/geo/functions.hpp"
+#include "pstack/geo/vector3.hpp"
 
 namespace pstack::geo {
 
@@ -11,6 +12,18 @@ struct matrix3 {
     T yx, yy, yz;
     T zx, zy, zz;
 };
+
+template <class T>
+inline constexpr matrix3<T> eye3 = { 1,  0,  0,
+                                     0,  1,  0,
+                                     0,  0,  1 };
+
+template <class T>
+constexpr matrix3<T> operator+(const matrix3<T>& lhs, const matrix3<T>& rhs) {
+    return { lhs.xx + rhs.xx, lhs.xy + rhs.xy, lhs.xz + rhs.xz,
+             lhs.yx + rhs.yx, lhs.yy + rhs.yy, lhs.yz + rhs.yz,
+             lhs.zx + rhs.zx, lhs.zy + rhs.zy, lhs.zz + rhs.zz };
+}
 
 template <class T>
 constexpr matrix3<T> operator*(const matrix3<T>& lhs, const matrix3<T>& rhs) {
@@ -28,9 +41,30 @@ constexpr matrix3<T> operator*(const matrix3<T>& lhs, const matrix3<T>& rhs) {
 }
 
 template <class T>
-inline constexpr matrix3<T> eye3 = { 1,  0,  0,
-                                     0,  1,  0,
-                                     0,  0,  1 };
+constexpr matrix3<T> operator*(const matrix3<T>& lhs, const std::type_identity_t<T>& rhs) {
+    return { lhs.xx * rhs, lhs.xy * rhs, lhs.xz * rhs,
+             lhs.yx * rhs, lhs.yy * rhs, lhs.yz * rhs,
+             lhs.zx * rhs, lhs.zy * rhs, lhs.zz * rhs };
+}
+
+template <class T>
+constexpr matrix3<T> operator*(const std::type_identity_t<T>& lhs, const matrix3<T>& rhs) {
+    return { lhs * rhs.xx, lhs * rhs.xy, lhs * rhs.xz,
+             lhs * rhs.yx, lhs * rhs.yy, lhs * rhs.yz,
+             lhs * rhs.zx, lhs * rhs.zy, lhs * rhs.zz };
+}
+
+template <class T>
+constexpr matrix3<T> rot3(const vector3<T>& axis, const std::type_identity_t<T> theta) {
+    const T c = static_cast<T>(cos(theta));
+    const T s = static_cast<T>(sin(theta));
+    const auto n = normalize(axis);
+    const matrix3<T> K = {    0, -n.z,  n.y,
+                            n.z,    0, -n.x,
+                           -n.y,  n.x,    0 };
+    // Rodrigues's rotation formula: R = I + sin(t)*K + (1 - cos(t))*K^2
+    return eye3<T> + (s * K) + ((1 - c) * K * K);
+}
 
 template <class T>
 constexpr matrix3<T> rot3_x(const T theta) {

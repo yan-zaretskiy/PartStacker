@@ -1,6 +1,7 @@
 #ifndef PSTACK_GEO_VECTOR3_HPP
 #define PSTACK_GEO_VECTOR3_HPP
 
+#include "pstack/geo/functions.hpp"
 #include <type_traits>
 
 namespace pstack::geo {
@@ -85,6 +86,12 @@ constexpr T dot(const vector3<T>& lhs, const vector3<T>& rhs) {
 template <class T>
 constexpr vector3<T> cross(const vector3<T>& lhs, const vector3<T>& rhs) {
     return { lhs.y * rhs.z - lhs.z * rhs.y, lhs.z * rhs.x - lhs.x * rhs.z, lhs.x * rhs.y - lhs.y * rhs.x };
+}
+
+template <class T>
+constexpr vector3<T> normalize(const vector3<T>& v) {
+    const auto length_squared = (v.x * v.x) + (v.y * v.y) + (v.z * v.z);
+    return v * inverse_sqrt(length_squared);
 }
 
 } // namespace pstack::geo
