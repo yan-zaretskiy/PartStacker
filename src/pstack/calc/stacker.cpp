@@ -38,13 +38,13 @@ void place(const util::mdspan<Bool, 3> space, const int index, const util::mdspa
     }
 }
 
-int can_place(const util::mdspan<const Bool, 3> space, int possible, const util::mdspan<const int, 3> obj, const int x, const int y, const int z) {
-    const int max_i = std::min(x + obj.extent(0), space.extent(0));
-    const int max_j = std::min(y + obj.extent(1), space.extent(1));
-    const int max_k = std::min(z + obj.extent(2), space.extent(2));
-    for (int i = x; i < max_i; ++i) {
-        for (int j = y; j < max_j; ++j) {
-            for (int k = z; k < max_k; ++k) {
+int can_place(const util::mdspan<const Bool, 3> space, int possible, const util::mdspan<const int, 3> obj, const std::size_t x, const std::size_t y, const std::size_t z) {
+    const std::size_t max_i = std::min(x + obj.extent(0), space.extent(0));
+    const std::size_t max_j = std::min(y + obj.extent(1), space.extent(1));
+    const std::size_t max_k = std::min(z + obj.extent(2), space.extent(2));
+    for (std::size_t i = x; i < max_i; ++i) {
+        for (std::size_t j = y; j < max_j; ++j) {
+            for (std::size_t k = z; k < max_k; ++k) {
                 if (space[i, j, k]) {
                     possible &= (possible ^ obj[i - x, j - y, k - z]);
                     if (possible == 0) {
