@@ -5,8 +5,21 @@ add_library(pstack_calc STATIC
     stacker.cpp
     voxelize.cpp
 )
+target_sources(pstack_calc PUBLIC FILE_SET headers TYPE HEADERS FILES
+    bool.hpp
+    mesh.hpp
+    part_properties.hpp
+    rotations.hpp
+    sinterbox.hpp
+    stacker_thread.hpp
+    stacker.hpp
+    voxelize.hpp
+)
 
+set_target_properties(pstack_calc PROPERTIES
+    PROJECT_LABEL "calc"
+)
 target_link_libraries(pstack_calc
     PUBLIC pstack_geo pstack_util
 )
-target_include_directories(pstack_calc PRIVATE "${PROJECT_SOURCE_DIR}/src")
+target_include_directories(pstack_calc PUBLIC "${PROJECT_SOURCE_DIR}/src")

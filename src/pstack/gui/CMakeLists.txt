@@ -5,7 +5,17 @@ add_executable(pstack_gui WIN32 MACOSX_BUNDLE
     parts_list.cpp
     viewport.cpp
 )
+target_sources(pstack_gui PUBLIC FILE_SET headers TYPE HEADERS FILES
+    list_view.hpp
+    main_window.hpp
+    parts_list.hpp
+    transformation.hpp
+    viewport.hpp
+)
 
+set_target_properties(pstack_gui PROPERTIES
+    PROJECT_LABEL "gui"
+)
 target_link_libraries(pstack_gui PRIVATE
     wx::net
     wx::core
