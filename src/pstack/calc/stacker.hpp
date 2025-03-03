@@ -3,6 +3,7 @@
 
 #include "pstack/calc/part_properties.hpp"
 #include <atomic>
+#include <chrono>
 #include <functional>
 #include <vector>
 
@@ -13,7 +14,7 @@ struct stacker_parameters {
 
     std::function<void(double, double)> set_progress;
     std::function<void(const mesh&, int, int, int)> display_mesh;
-    std::function<void(mesh)> on_success;
+    std::function<void(mesh, std::chrono::duration<double>)> on_success;
     std::function<void()> on_failure;
     std::function<void()> on_finish;
     

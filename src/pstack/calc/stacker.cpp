@@ -319,12 +319,14 @@ void stacker::stack(const stacker_parameters params) {
     if (_running.exchange(true)) {
         return;
     }
+    const auto start = std::chrono::system_clock::now();
     std::optional<mesh> result = stack_impl(params, _running);
+    const auto elapsed = std::chrono::system_clock::now() - start;
     if (result.has_value()) {
         if (result->triangles().empty()) {
             params.on_failure();
         } else {
-            params.on_success(std::move(*result));
+            params.on_success(std::move(*result), std::chrono::duration_cast<std::chrono::duration<double>>(elapsed));
         }
     }
     params.on_finish();

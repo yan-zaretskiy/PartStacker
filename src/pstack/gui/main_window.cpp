@@ -172,7 +172,7 @@ void main_window::on_stacking_start() {
     if (triangles == 0) {
         return;
     } else if (triangles > 1'000'000) {
-        if (wxMessageBox("The finished model will exceed 1,000,000 triangles. Continue stacking?", "Warning", wxYES_NO | wxYES_DEFAULT) != wxYES) {
+        if (wxMessageBox("The finished model will exceed 1,000,000 triangles. Continue stacking?", "Warning", wxYES_NO | wxYES_DEFAULT | wxICON_INFORMATION) != wxYES) {
             return;
         }
     }
@@ -191,9 +191,9 @@ void main_window::on_stacking_start() {
                 _viewport->set_mesh(mesh, { max_x / 2.0f, max_y / 2.0f, max_z / 2.0f });
             });
         },
-        .on_success = [this](calc::mesh mesh) {
+        .on_success = [this](calc::mesh mesh, const std::chrono::duration<double> elapsed) {
             CallAfter([=, mesh = std::move(mesh)] {
-                on_stacking_success(std::move(mesh));
+                on_stacking_success(std::move(mesh), elapsed);
                 _export_button->Enable();
             });
         },
@@ -201,7 +201,7 @@ void main_window::on_stacking_start() {
             CallAfter([=] {
                 _export_button->Disable();
                 _last_result.reset();
-                wxMessageBox("Did not manage to stack parts within maximum bounding box", "Stacking failed");
+                wxMessageBox("Could not stack parts within maximum bounding box", "Stacking failed");
             });
         },
         .on_finish = [this] {
@@ -221,12 +221,12 @@ void main_window::on_stacking_start() {
 }
     
 void main_window::on_stacking_stop() {
-    if (wxMessageBox("Abort stacking?", "Abort", wxYES_NO | wxNO_DEFAULT) == wxYES) {
+    if (wxMessageBox("Abort stacking?", "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_WARNING) == wxYES) {
         _stacker_thread.stop();
     }
 }
 
-void main_window::on_stacking_success(calc::mesh mesh) {
+void main_window::on_stacking_success(calc::mesh mesh, const std::chrono::duration<double> elapsed) {
     _last_result.emplace(std::move(mesh));
     auto bounding = _last_result->bounding();
     if (_sinterbox_checkbox->GetValue()) {
@@ -252,9 +252,9 @@ void main_window::on_stacking_success(calc::mesh mesh) {
     const double percent_volume = 100 * volume / (size.x * size.y * size.z);
 
     auto message = std::format(
-        "Done stacking! Final bounding box: {:.1f}x{:.1f}x{:.1f}mm ({:.1f}% density).\n\nWould you like to save the result now?",
-        size.x, size.y, size.z, percent_volume);
-    if (wxMessageBox(std::move(message), "Stacking complete", wxYES_NO | wxYES_DEFAULT) == wxYES) {
+        "Stacking complete!\n\nElapsed time: {:.1f}s\n\nFinal bounding box: {:.1f}x{:.1f}x{:.1f}mm ({:.1f}% density).\n\nWould you like to save the result now?",
+        elapsed.count(), size.x, size.y, size.z, percent_volume);
+    if (wxMessageBox(std::move(message), "Stacking complete", wxYES_NO | wxYES_DEFAULT | wxICON_INFORMATION) == wxYES) {
         on_export();
     }
 }
@@ -314,11 +314,11 @@ wxMenuBar* main_window::make_menu_bar() {
                 return on_new(event);
             }
             case menu_item::open: {
-                wxMessageBox("Not yet implemented");
+                wxMessageBox("Not yet implemented", "Error", wxICON_WARNING);
                 break;
             }
             case menu_item::save: {
-                wxMessageBox("Not yet implemented");
+                wxMessageBox("Not yet implemented", "Error", wxICON_WARNING);
                 break;
             }
             case menu_item::close: {
@@ -371,8 +371,8 @@ wxMenuBar* main_window::make_menu_bar() {
 void main_window::on_new(wxCommandEvent& event) {
     if (_parts_list.rows() == 0 or 
         wxMessageBox("Clear the current working session?",
-                     "New",
-                     wxYES_NO | wxNO_DEFAULT) == wxYES)
+                     "Warning",
+                     wxYES_NO | wxNO_DEFAULT | wxICON_INFORMATION) == wxYES)
     {
         reset_fields();
         _parts_list.delete_all();
@@ -387,8 +387,8 @@ void main_window::on_new(wxCommandEvent& event) {
 void main_window::on_close(wxCloseEvent& event) {
     if (_parts_list.rows() != 0 and event.CanVeto()) {
         if (wxMessageBox("Close PartStacker?",
-                         "Close",
-                         wxYES_NO | wxNO_DEFAULT) != wxYES)
+                         "Warning",
+                         wxYES_NO | wxNO_DEFAULT | wxICON_INFORMATION) != wxYES)
         {
             event.Veto();
             return;
@@ -405,7 +405,7 @@ void main_window::on_export(wxCommandEvent& event) {
 
 void main_window::on_export() {
     if (not _last_result.has_value()) {
-        wxMessageBox("Nothing to export", "Error");
+        wxMessageBox("Nothing to export", "Error", wxICON_WARNING);
         return;
     }
 
@@ -448,8 +448,8 @@ void main_window::on_import(wxCommandEvent& event) {
 void main_window::on_delete(wxCommandEvent& event) {
     static thread_local std::vector<std::size_t> selected{};
     _parts_list.get_selected(selected);
-    auto message = std::format("Are you sure you want to delete {} {} item{}?", selected.size() == 1 ? "this" : "these", selected.size(), selected.size() == 1 ? "" : "s");
-    wxMessageDialog dialog(this, std::move(message), "Delete items", wxYES_NO | wxNO_DEFAULT);
+    auto message = std::format("Delete {} {} item{}?", selected.size() == 1 ? "this" : "these", selected.size(), selected.size() == 1 ? "" : "s");
+    wxMessageDialog dialog(this, std::move(message), "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_WARNING);
     if (dialog.ShowModal() == wxID_YES) {
         _parts_list.delete_selected();
         _parts_list.update_label();
@@ -635,7 +635,7 @@ void main_window::make_tab_part_settings(wxPanel* panel) {
         _preview_button = new wxButton(panel, wxID_ANY, "Preview");
         _preview_button->SetMinSize(panel->FromDIP(button_size));
         _preview_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
-            wxMessageBox("Not yet implemented");
+            wxMessageBox("Not yet implemented", "Error", wxICON_WARNING);
         });
         _copy_button = new wxButton(panel, wxID_ANY, "Copy");
         _copy_button->SetMinSize(panel->FromDIP(button_size));

@@ -65,7 +65,7 @@ private:
     void on_stacking(wxCommandEvent& event);
     void on_stacking_start();
     void on_stacking_stop();
-    void on_stacking_success(calc::mesh mesh);
+    void on_stacking_success(calc::mesh mesh, std::chrono::duration<double> elapsed);
     void enable_on_stacking(bool starting);
     std::optional<calc::mesh> _last_result = {};
     wxSpinCtrlDouble* _min_clearance_spinner = nullptr;
