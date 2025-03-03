@@ -1,4 +1,4 @@
-add_executable(gui WIN32 MACOSX_BUNDLE
+add_executable(pstack_gui WIN32 MACOSX_BUNDLE
     app.cpp
     list_view.cpp
     main_window.cpp
@@ -6,7 +6,7 @@ add_executable(gui WIN32 MACOSX_BUNDLE
     viewport.cpp
 )
 
-target_link_libraries(gui PRIVATE
+target_link_libraries(pstack_gui PRIVATE
     wx::net
     wx::core
     wx::base
@@ -16,5 +16,7 @@ target_link_libraries(gui PRIVATE
     pstack_geo
     pstack_graphics
 )
-target_include_directories(gui PRIVATE "${PROJECT_SOURCE_DIR}/src")
-add_dependencies(gui partstacker_copy_wx_headers)
+target_include_directories(pstack_gui PRIVATE "${PROJECT_SOURCE_DIR}/src")
+add_dependencies(pstack_gui pstack_gui_copy_wx_headers)
+
+set_target_properties(pstack_gui PROPERTIES OUTPUT_NAME "PartStackerGUI")

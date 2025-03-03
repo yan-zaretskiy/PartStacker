@@ -11,7 +11,7 @@ if(WIN32)
     elseif(CMAKE_BUILD_TYPE MATCHES "Release")
         set(PARTSTACKER_COPY_WXWIDGETS_HEADERS_DIRECTORY "mswu")
     endif()
-    add_custom_target(partstacker_copy_wx_headers
+    add_custom_target(pstack_gui_copy_wx_headers
         COMMAND ${CMAKE_COMMAND} -E copy
             "${CMAKE_CURRENT_BINARY_DIR}/wxWidgets/lib/vc_x64_lib/${PARTSTACKER_COPY_WXWIDGETS_HEADERS_DIRECTORY}/wx/setup.h"
             "${PROJECT_SOURCE_DIR}/external/wxWidgets/lib/vc_x64_lib/${PARTSTACKER_COPY_WXWIDGETS_HEADERS_DIRECTORY}/wx/setup.h"
