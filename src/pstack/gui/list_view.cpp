@@ -20,8 +20,10 @@ void list_view::append(const std::vector<wxString> items) {
 
     const auto row_index = _rows++;
     _list->InsertItem(row_index, items.at(0));
-    for (const auto& [column, item] : items | std::views::enumerate | std::views::drop(1)) {
+    std::size_t column = 1;
+    for (const wxString& item : items | std::views::drop(1)) {
         _list->SetItem(row_index, column, item);
+        ++column;
     }
 }
 
@@ -33,8 +35,10 @@ void list_view::replace(const std::size_t row_index, const std::vector<wxString>
         throw std::runtime_error("Parts list row index out of bounds.");
     }
 
-    for (const auto& [column, item] : items | std::views::enumerate) {
+    std::size_t column = 0;
+    for (const wxString& item : items) {
         _list->SetItem(row_index, column, item);
+        ++column;
     }
 }
 

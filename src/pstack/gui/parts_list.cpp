@@ -133,10 +133,12 @@ void parts_list::delete_selected() {
 
 void parts_list::get_selected(std::vector<std::size_t>& vec) {
     vec.clear();
-    for (const auto [index, value] : _selected | std::views::enumerate) {
+    std::size_t index = 0;
+    for (const bool value : _selected) {
         if (value) {
             vec.push_back(index);
         }
+        ++index;
     }
 }
 
