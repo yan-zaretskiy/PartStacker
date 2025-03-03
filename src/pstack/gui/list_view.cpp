@@ -30,7 +30,7 @@ void list_view::replace(const std::size_t row_index, const std::vector<wxString>
         throw std::runtime_error("Wrong number of items in the parts list.");
     }
     if (row_index >= _rows) {
-        throw std::runtime_error("Wrong number of items in the parts list.");
+        throw std::runtime_error("Parts list row index out of bounds.");
     }
 
     for (const auto& [column, item] : items | std::views::enumerate) {
@@ -40,7 +40,7 @@ void list_view::replace(const std::size_t row_index, const std::vector<wxString>
 
 void list_view::delete_row(const std::size_t row_index) {
     if (row_index >= _rows) {
-        throw std::runtime_error("Wrong number of items in the parts list.");
+        throw std::runtime_error("Parts list row index out of bounds.");
     }
     _list->DeleteItem(row_index);
     --_rows;
