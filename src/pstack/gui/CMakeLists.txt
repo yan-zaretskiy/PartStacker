@@ -1,4 +1,4 @@
-add_executable(pstack_gui WIN32 MACOSX_BUNDLE
+add_executable(pstack_gui WIN32
     app.cpp
     list_view.cpp
     main_window.cpp
@@ -33,4 +33,9 @@ set_target_properties(pstack_gui PROPERTIES OUTPUT_NAME "PartStackerGUI")
 
 if(WIN32)
     target_sources(pstack_gui PRIVATE "${CMAKE_CURRENT_LIST_DIR}/../resource.rc")
+elseif(APPLE)
+    set_target_properties(pstack_gui PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_LIST_DIR}/../Info.plist"
+    )
 endif()
