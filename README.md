@@ -32,4 +32,4 @@ cmake . -B build
 cmake --build build
 ```
 
-The PartStacker GUI will be an executable called `gui`
+The PartStacker GUI will be an executable called `PartStackerGUI`
