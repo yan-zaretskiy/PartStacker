@@ -1,3 +1,6 @@
-[submodule "Dependencies/MonoGame"]
-	path = Dependencies/MonoGame
-	url = https://github.com/MonoGame/MonoGame
+[submodule "external/glew"]
+	path = external/glew
+	url = https://github.com/nigels-com/glew.git
+[submodule "external/wxWidgets"]
+	path = external/wxWidgets
+	url = https://github.com/wxWidgets/wxWidgets.git
