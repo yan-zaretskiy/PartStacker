@@ -29,13 +29,7 @@ target_link_libraries(pstack_gui PRIVATE
 target_include_directories(pstack_gui PRIVATE "${PROJECT_SOURCE_DIR}/src")
 add_dependencies(pstack_gui pstack_gui_copy_wx_headers)
 
-set_target_properties(pstack_gui PROPERTIES OUTPUT_NAME "PartStackerGUI")
-
-if(WIN32)
-    target_sources(pstack_gui PRIVATE "${CMAKE_CURRENT_LIST_DIR}/../resource.rc")
-elseif(APPLE)
-    set_target_properties(pstack_gui PROPERTIES
-        MACOSX_BUNDLE TRUE
-        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_LIST_DIR}/../Info.plist"
-    )
-endif()
+set(PSTACK_OUTPUT_TYPE "GUI")
+set(PSTACK_OUTPUT_FILE_NAME "PartStackerGUI")
+pstack_configure_target_info(pstack_gui)
+set_target_properties(pstack_gui PROPERTIES OUTPUT_NAME ${PSTACK_OUTPUT_FILE_NAME})

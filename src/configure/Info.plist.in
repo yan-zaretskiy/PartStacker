@@ -3,15 +3,15 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>
-    <string>PartStacker Community Edition GUI</string>
+    <string>PartStacker Community Edition ${PSTACK_OUTPUT_TYPE}</string>
     <key>CFBundleDisplayName</key>
     <string>PartStacker Community Edition</string>
     <key>CFBundleIdentifier</key>
-    <string>com.partstackercommunity.partstackergui</string>
+    <string>com.partstackercommunity.${PSTACK_OUTPUT_FILE_NAME}</string>
     <key>CFBundleVersion</key>
-    <string>0.2.0</string>
+    <string>${PSTACK_VERSION_MAJOR}.${PSTACK_VERSION_MINOR}.${PSTACK_VERSION_PATCH}</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.2.0</string>
+    <string>${PSTACK_VERSION_MAJOR}.${PSTACK_VERSION_MINOR}.${PSTACK_VERSION_PATCH}</string>
     <key>NSHumanReadableCopyright</key>
     <string>Copyright (c) 2025 Braden Ganetsky</string>
 </dict>
