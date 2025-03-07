@@ -123,15 +123,15 @@ void main_window::set_part(const std::size_t index) {
             break;
         }
         case 1: {
-            _radio_none->SetValue(false);
             _radio_cubic->SetValue(true);
+            _radio_none->SetValue(false);
             _radio_arbitrary->SetValue(false);
             break;
         }
         case 2: {
+            _radio_arbitrary->SetValue(true);
             _radio_none->SetValue(false);
             _radio_cubic->SetValue(false);
-            _radio_arbitrary->SetValue(true);
             break;
         }
         default: std::unreachable();
