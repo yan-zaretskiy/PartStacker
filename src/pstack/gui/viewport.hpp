@@ -53,4 +53,4 @@ private:
 
 } // namespace pstack::gui
 
-#endif // PSTACK_GUI_TRANSFORMATION_HPP
+#endif // PSTACK_GUI_VIEWPORT_HPP
