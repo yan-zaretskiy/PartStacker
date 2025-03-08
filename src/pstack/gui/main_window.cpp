@@ -3,6 +3,7 @@
 #include "pstack/gui/parts_list.hpp"
 #include "pstack/gui/viewport.hpp"
 
+#include <cstdlib>
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/colourdata.h>
@@ -36,16 +37,17 @@ main_window::main_window(const wxString& title)
     SetBackgroundColour(background_colour);
     SetMenuBar(make_menu_bar());
 
-    auto sizer = new wxBoxSizer(wxHORIZONTAL);
-
     wxGLAttributes attrs;
     attrs.PlatformDefaults().Defaults().EndList();
-
-    if (wxGLCanvas::IsDisplaySupported(attrs)) {
-        _viewport = new viewport(this, attrs);
-        _viewport->SetMinSize(FromDIP(wxSize(640, -1)));
-        sizer->Add(_viewport, 1, wxEXPAND);
+    if (not wxGLCanvas::IsDisplaySupported(attrs)) {
+        wxMessageBox("wxGLCanvas::IsDisplaySupported() returned false", "PartStacker fatal error", wxICON_ERROR);
+        std::exit(EXIT_FAILURE);
     }
+    _viewport = new viewport(this, attrs);
+    _viewport->SetMinSize(FromDIP(wxSize(640, -1)));
+
+    auto sizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(_viewport, 1, wxEXPAND);
 
     _parts_list.update_label();
 
