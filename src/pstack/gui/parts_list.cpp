@@ -1,6 +1,7 @@
 #include "pstack/files/stl.hpp"
 #include "pstack/gui/main_window.hpp"
 #include "pstack/gui/parts_list.hpp"
+#include <charconv>
 #include <cmath>
 #include <filesystem>
 #include <format>
