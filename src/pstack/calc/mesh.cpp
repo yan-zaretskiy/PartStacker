@@ -1,4 +1,5 @@
 #include "pstack/calc/mesh.hpp"
+#include <limits>
 
 namespace pstack::calc {
 

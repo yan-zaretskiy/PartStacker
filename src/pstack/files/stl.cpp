@@ -2,26 +2,12 @@
 #include "pstack/files/stl.hpp"
 #include "pstack/geo/triangle.hpp"
 #include <array>
-#include <charconv>
 #include <fstream>
 #include <ranges>
 #include <sstream>
 #include <string>
 
 namespace pstack::files {
-
-namespace {
-
-template <std::ranges::contiguous_range R>
-requires std::ranges::sized_range<R> and std::same_as<char, std::ranges::range_value_t<R>>
-float parse_float(R&& r) {
-    float result{};
-    const char* data = &*r.begin();
-    std::from_chars(data, data + r.size(), result);
-    return result;
-}
-
-} // namespace
 
 calc::mesh from_stl(const std::string& file_path) {
     std::string file = read_file(file_path);
@@ -68,14 +54,15 @@ calc::mesh from_stl(const std::string& file_path) {
 
         for (std::size_t i = 1; i < lines.size() - 1; i += 7) {
             static constexpr auto parse_point = [](const std::string& line) {
-                const auto vec = line
-                    | std::views::split(' ')
-                    | std::ranges::to<std::vector>();
+                auto vec_view = line
+                              | std::views::split(' ')
+                              | std::views::transform([](auto&& x) { return std::string(x.begin(), x.end()); });
+                const auto vec = std::vector<std::string>(vec_view.begin(), vec_view.end());
                 auto view = vec | std::views::reverse;
                 return geo::point3<float>{
-                    parse_float(view[2]),
-                    parse_float(view[1]),
-                    parse_float(view[0]),
+                    std::stof(view[2]),
+                    std::stof(view[1]),
+                    std::stof(view[0]),
                 };
             };
             geo::vector3<float> normal = parse_point(lines[i]).as_vector();

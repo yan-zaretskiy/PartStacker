@@ -131,9 +131,9 @@ std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atom
         geo::matrix3 base_rotation = geo::eye3<float>;
 
         if (state.ordered_parts[i].rotate_min_box) {
-            mesh reduced_mesh{ state.ordered_parts[i].mesh.triangles()
-                             | std::views::stride(15)
-                             | std::ranges::to<std::vector>() };
+            auto reduced_view = state.ordered_parts[i].mesh.triangles()
+                              | std::views::filter([i = 0](auto&&) mutable { return i++ % 16 == 0; });
+            mesh reduced_mesh{ std::vector<geo::triangle>(reduced_view.begin(), reduced_view.end()) };
 
             static constexpr std::size_t sections = 20;
             static constexpr double angle_diff = 2 * geo::pi / sections;
