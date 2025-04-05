@@ -8,6 +8,9 @@ target_sources(pstack_graphics PUBLIC FILE_SET headers TYPE HEADERS FILES
     global.hpp
     shader.hpp
 )
+target_compile_definitions(pstack_graphics PRIVATE
+    GLEW_NO_GLU
+)
 
 set_target_properties(pstack_graphics PROPERTIES
     PROJECT_LABEL "graphics"
