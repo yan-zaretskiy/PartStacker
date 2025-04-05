@@ -24,4 +24,4 @@ struct part_properties {
 
 } // namespace pstack::calc
 
-#endif PSTACK_CALC_PART_PROPERTIES_HPP
+#endif // PSTACK_CALC_PART_PROPERTIES_HPP

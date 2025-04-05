@@ -76,4 +76,4 @@ private:
 
 } // namespace pstack::gui
 
-#endif PSTACK_GUI_PARTS_LIST_HPP
+#endif // PSTACK_GUI_PARTS_LIST_HPP

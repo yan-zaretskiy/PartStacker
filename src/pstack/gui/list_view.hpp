@@ -42,4 +42,4 @@ private:
 
 } // namespace pstack::gui
 
-#endif PSTACK_GUI_LIST_VIEW_HPP
+#endif // PSTACK_GUI_LIST_VIEW_HPP
