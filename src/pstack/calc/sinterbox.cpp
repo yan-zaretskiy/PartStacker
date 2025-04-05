@@ -1,6 +1,5 @@
 #include "pstack/calc/sinterbox.hpp"
 #include "pstack/util/mdarray.hpp"
-#include <mdspan>
 #include <vector>
 
 namespace pstack::calc {

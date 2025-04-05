@@ -1,14 +1,26 @@
 #ifndef PSTACK_UTIL_MDARRAY_HPP
 #define PSTACK_UTIL_MDARRAY_HPP
 
-#include <mdspan>
 #include <type_traits>
 #include <vector>
 
+#if defined(__cpp_lib_mdspan) and __cpp_lib_mdspan >= 202207L
+#include <mdspan>
+#else
+#include "mdspan/mdspan.hpp"
+#endif
+
 namespace pstack::util {
 
+#if defined(__cpp_lib_mdspan) and __cpp_lib_mdspan >= 202207L
 template <class T, std::size_t Rank>
 using mdspan = std::mdspan<T, std::dextents<std::size_t, Rank>>;
+using std::extents;
+#else
+template <class T, std::size_t Rank>
+using mdspan = MDSPAN_IMPL_STANDARD_NAMESPACE::mdspan<T, MDSPAN_IMPL_STANDARD_NAMESPACE::dextents<std::size_t, Rank>>;
+using MDSPAN_IMPL_STANDARD_NAMESPACE::extents;
+#endif
 
 template <class T, std::size_t Rank>
 requires (not std::is_reference_v<T>)
@@ -24,7 +36,7 @@ public:
     
     template <class IndexType, std::size_t... Extents>
     requires (sizeof...(Extents) == Rank)
-    constexpr mdarray(const std::extents<IndexType, Extents...>& extents) {
+    constexpr mdarray(const extents<IndexType, Extents...>& extents) {
         [&]<std::size_t... Is>(std::index_sequence<Is...>) {
             _data = std::vector<std::remove_const_t<T>>((... * extents.extent(Is)), std::remove_const_t<T>{});
             _span = mdspan<T, Rank>(_data.data(), extents);
