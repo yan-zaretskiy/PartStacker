@@ -78,12 +78,20 @@ public:
 
     template <std::convertible_to<std::size_t>... Indices>
     constexpr T& operator[](Indices... indices) {
+#if defined(MDSPAN_USE_BRACKET_OPERATOR) and MDSPAN_USE_BRACKET_OPERATOR == 0
+        return _span(indices...);
+#else
         return _span[indices...];
+#endif
     }
 
     template <std::convertible_to<std::size_t>... Indices>
     constexpr const T& operator[](Indices... indices) const {
+#if defined(MDSPAN_USE_BRACKET_OPERATOR) and MDSPAN_USE_BRACKET_OPERATOR == 0
+        return _span(indices...);
+#else
         return _span[indices...];
+#endif
     }
 
     constexpr std::size_t extent(std::size_t dimension) {

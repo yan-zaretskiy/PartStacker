@@ -179,6 +179,15 @@ int voxelize(const mesh& mesh, const util::mdspan<int, 3> voxels, const int inde
         for (std::size_t y = 0; y < voxels.extent(1) - 1; ++y) {
             for (std::size_t z = 0; z < voxels.extent(2) - 1; ++z) {
                 if (not carved[x, y, z] and actual_triangles[x, y, z]) {
+#if defined(MDSPAN_USE_BRACKET_OPERATOR) and MDSPAN_USE_BRACKET_OPERATOR == 0
+                    voxels(x + 1, y + 1, z + 1) |= index;
+                    voxels(x + 1, y + 1, z) |= index;
+                    voxels(x + 1, y, z + 1) |= index;
+                    voxels(x + 1, y, z) |= index;
+                    voxels(x, y + 1, z) |= index;
+                    voxels(x, y + 1, z + 1) |= index;
+                    voxels(x, y, z + 1) |= index;
+#else
                     voxels[x + 1, y + 1, z + 1] |= index;
                     voxels[x + 1, y + 1, z] |= index;
                     voxels[x + 1, y, z + 1] |= index;
@@ -186,6 +195,7 @@ int voxelize(const mesh& mesh, const util::mdspan<int, 3> voxels, const int inde
                     voxels[x, y + 1, z] |= index;
                     voxels[x, y + 1, z + 1] |= index;
                     voxels[x, y, z + 1] |= index;
+#endif
                 }
             }
         }

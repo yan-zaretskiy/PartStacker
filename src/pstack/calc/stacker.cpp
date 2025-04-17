@@ -32,7 +32,11 @@ void place(const util::mdspan<Bool, 3> space, const int index, const util::mdspa
     for (int i = x; i < max_i; ++i) {
         for (int j = y; j < max_j; ++j) {
             for (int k = z; k < max_k; ++k) {
+#if defined(MDSPAN_USE_BRACKET_OPERATOR) and MDSPAN_USE_BRACKET_OPERATOR == 0
+                space(i, j, k) |= (obj(i - x, j - y, k - z) & index) != 0;
+#else
                 space[i, j, k] |= (obj[i - x, j - y, k - z] & index) != 0;
+#endif
             }
         }
     }
@@ -45,8 +49,13 @@ int can_place(const util::mdspan<const Bool, 3> space, int possible, const util:
     for (std::size_t i = x; i < max_i; ++i) {
         for (std::size_t j = y; j < max_j; ++j) {
             for (std::size_t k = z; k < max_k; ++k) {
+#if defined(MDSPAN_USE_BRACKET_OPERATOR) and MDSPAN_USE_BRACKET_OPERATOR == 0
+                if (space(i, j, k)) {
+                    possible &= (possible ^ obj(i - x, j - y, k - z));
+#else
                 if (space[i, j, k]) {
                     possible &= (possible ^ obj[i - x, j - y, k - z]);
+#endif
                     if (possible == 0) {
                         return 0;
                     }

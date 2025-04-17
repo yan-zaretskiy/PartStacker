@@ -20,10 +20,17 @@ void append_side(std::vector<geo::triangle>& triangles, const util::mdspan<const
 
     for (std::size_t i = 0; i < points.extent(0) - 1; ++i) {
         for (std::size_t j = 0; j < points.extent(1) - 1; ++j) {
+#if defined(MDSPAN_USE_BRACKET_OPERATOR) and MDSPAN_USE_BRACKET_OPERATOR == 0
+            const auto& p00 = points(i, j);
+            const auto& p01 = points(i, j + 1);
+            const auto& p10 = points(i + 1, j);
+            const auto& p11 = points(i + 1, j + 1);
+#else
             const auto& p00 = points[i, j];
             const auto& p01 = points[i, j + 1];
             const auto& p10 = points[i + 1, j];
             const auto& p11 = points[i + 1, j + 1];
+#endif
             if (i % 2 == 1 && j % 2 == 1) {
                 triangles.push_back(make_triangle(dir2, p00, p10, p00 + thickness));
                 triangles.push_back(make_triangle(dir2, p10 + thickness, p00 + thickness, p10));
