@@ -20,10 +20,17 @@ void append_side(std::vector<geo::triangle>& triangles, const util::mdspan<const
 
     for (std::size_t i = 0; i < points.extent(0) - 1; ++i) {
         for (std::size_t j = 0; j < points.extent(1) - 1; ++j) {
+#if defined(MDSPAN_USE_BRACKET_OPERATOR) and MDSPAN_USE_BRACKET_OPERATOR == 0
+            const auto& p00 = points(i, j);
+            const auto& p01 = points(i, j + 1);
+            const auto& p10 = points(i + 1, j);
+            const auto& p11 = points(i + 1, j + 1);
+#else
             const auto& p00 = points[i, j];
             const auto& p01 = points[i, j + 1];
             const auto& p10 = points[i + 1, j];
             const auto& p11 = points[i + 1, j + 1];
+#endif
             if (i % 2 == 1 && j % 2 == 1) {
                 triangles.push_back(make_triangle(dir2, p00, p10, p00 + thickness));
                 triangles.push_back(make_triangle(dir2, p10 + thickness, p00 + thickness, p10));
@@ -53,11 +60,11 @@ std::tuple<std::vector<float>, std::vector<float>, std::vector<float>> make_posi
     // Number of bars in the given direction
     const geo::vector3 N = [&] {
         auto n = (size + (2 * clearance) - desired_spacing) / (width + desired_spacing);
-        return geo::vector3{ (float)(int)n.x, (float)(int)n.y, (float)(int)n.z }; // Round down
+        return geo::vector3<float>{ (float)(int)n.x, (float)(int)n.y, (float)(int)n.z }; // Round down
     }();
 
     const geo::vector3 _numerators = size + (2 * clearance) - (N * width);
-    const geo::vector3 real_spacing = {
+    const geo::vector3<float> real_spacing = {
         _numerators.x / (N.x + 1),
         _numerators.y / (N.y + 1),
         _numerators.z / (N.z + 1)
@@ -66,7 +73,9 @@ std::tuple<std::vector<float>, std::vector<float>, std::vector<float>> make_posi
     const geo::point3 lower_bound = min - clearance;
     const geo::point3 upper_bound = max + clearance;
 
-    const auto make_vector = [&](auto elem) -> std::vector<float> {
+    // Todo: Simplify the capture in Xcode 16
+    // P1091R3 and P1381R1, C++20 feature, no feature test macro
+    const auto make_vector = [&, thickness, width](auto elem) -> std::vector<float> {
         std::vector<float> out;
         out.reserve(4 * (int)elem(N) * 2);
         out.push_back(elem(lower_bound) - thickness);
@@ -89,8 +98,8 @@ std::tuple<std::vector<float>, std::vector<float>, std::vector<float>> make_posi
 
 void append_sinterbox(std::vector<geo::triangle>& triangles, const sinterbox_parameters& params) {
     const auto [positions_x, positions_y, positions_z] = make_positions(params);
-    const geo::point3 lower_bound = { positions_x.at(1), positions_y.at(1), positions_z.at(1) };
-    const geo::point3 upper_bound = { positions_x.at(positions_x.size() - 2), positions_y.at(positions_y.size() - 2), positions_z.at(positions_z.size() - 2) };
+    const geo::point3<float> lower_bound = { positions_x.at(1), positions_y.at(1), positions_z.at(1) };
+    const geo::point3<float> upper_bound = { positions_x.at(positions_x.size() - 2), positions_y.at(positions_y.size() - 2), positions_z.at(positions_z.size() - 2) };
 
     // XY sides
     {

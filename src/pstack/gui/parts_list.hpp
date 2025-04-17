@@ -44,7 +44,7 @@ public:
         }
         return out;
     }
-    
+
     void update_label();
     wxWindow* label() const {
         return _label;

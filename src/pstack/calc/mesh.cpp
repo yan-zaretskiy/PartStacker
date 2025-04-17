@@ -79,7 +79,7 @@ mesh::volume_and_centroid_t mesh::volume_and_centroid() const {
         total_centroid += volume_piece * (t.v1.as_vector() + t.v2.as_vector() + t.v3.as_vector());
     }
     // The `/6` and `/4` should actually go on the two calculation lines above,
-    // but they're factored out to the final result for efficiency. 
+    // but they're factored out to the final result for efficiency.
     return { .volume = total_volume / 6, .centroid = ((total_centroid / 4) / total_volume) + geo::origin3<float> };
 }
 

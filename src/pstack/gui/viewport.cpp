@@ -4,9 +4,7 @@
 #include "pstack/gui/viewport.hpp"
 #include <wx/dcclient.h>
 #include <wx/msgdlg.h>
-
-#include <format>
-#include <iostream>
+#include <wx/string.h>
 
 namespace pstack::gui {
 
@@ -25,8 +23,8 @@ viewport::viewport(main_window* parent, const wxGLAttributes& canvasAttrs)
 
     Bind(wxEVT_PAINT, &viewport::on_paint, this);
     Bind(wxEVT_SIZE, &viewport::on_size, this);
-    
-	Bind(wxEVT_LEFT_DOWN, &viewport::on_left_down, this);
+
+    Bind(wxEVT_LEFT_DOWN, &viewport::on_left_down, this);
     Bind(wxEVT_MOUSEWHEEL, &viewport::on_scroll, this);
 }
 
@@ -66,7 +64,7 @@ bool viewport::initialize() {
     if (const auto err = graphics::initialize();
         not err.has_value())
     {
-        wxMessageBox(std::format("OpenGL GLEW initialization failed with message: \"{}\"", err.error()),
+        wxMessageBox(wxString::Format("OpenGL GLEW initialization failed with message: \"%s\"", err.error()),
                      "OpenGL initialization error", wxOK | wxICON_ERROR, this);
         return false;
     }
@@ -74,7 +72,7 @@ bool viewport::initialize() {
     if (const auto err = _shader.initialize(vertex_shader_source, fragment_shader_source);
         not err.has_value())
     {
-        wxMessageBox(std::format("Error in creating OpenGL shader.\n{}", err.error()),
+        wxMessageBox(wxString::Format("Error in creating OpenGL shader.\n%s", err.error()),
                      "OpenGL shader error", wxOK | wxICON_ERROR, this);
         return false;
     }
@@ -87,12 +85,12 @@ bool viewport::initialize() {
 
 void viewport::on_paint(wxPaintEvent&) {
     wxPaintDC dc(this);
-	render(dc);
+    render(dc);
 }
 
 void viewport::render() {
-	wxClientDC dc(this);
-	render(dc);
+    wxClientDC dc(this);
+    render(dc);
 }
 
 void viewport::render(wxDC& dc) {
@@ -137,7 +135,7 @@ void viewport::set_mesh(const calc::mesh& mesh, const geo::point3<float>& centro
     _vao.clear();
 
     using vector3 = geo::vector3<float>;
-    
+
     std::vector<vector3> vertices;
     std::vector<vector3> normals;
     for (const auto& t : mesh.triangles()) {
@@ -179,10 +177,10 @@ void viewport::remove_mesh() {
 
 void viewport::on_left_down(wxMouseEvent& evt) {
     starting_pos = evt.GetPosition();
-	Bind(wxEVT_LEFT_UP, &viewport::on_left_up, this);
-	Bind(wxEVT_MOTION, &viewport::on_motion, this);
-	Bind(wxEVT_MOUSE_CAPTURE_LOST, &viewport::on_capture_lost, this);
-	CaptureMouse();
+    Bind(wxEVT_LEFT_UP, &viewport::on_left_up, this);
+    Bind(wxEVT_MOTION, &viewport::on_motion, this);
+    Bind(wxEVT_MOUSE_CAPTURE_LOST, &viewport::on_capture_lost, this);
+    CaptureMouse();
 }
 
 void viewport::on_motion(wxMouseEvent& evt) {
@@ -199,7 +197,7 @@ void viewport::on_capture_lost(wxMouseCaptureLostEvent& evt) {
 }
 
 void viewport::on_scroll(wxMouseEvent& evt) {
-    const float zoom_factor = (float)std::pow(2.0, ((double)evt.GetWheelRotation() / (double)evt.GetWheelDelta()) / 4);    
+    const float zoom_factor = (float)std::pow(2.0, ((double)evt.GetWheelRotation() / (double)evt.GetWheelDelta()) / 4);
     _transform.zoom_by(zoom_factor);
     _shader.set_uniform("transform_vertices", _transform.for_vertices());
     _shader.set_uniform("transform_normals", _transform.for_normals());
@@ -216,12 +214,12 @@ void viewport::on_move_by(wxPoint position) {
 }
 
 void viewport::on_finish_move() {
-	if (HasCapture()) {
-		ReleaseMouse();
-	}
-	Unbind(wxEVT_LEFT_UP, &viewport::on_left_up, this);
-	Unbind(wxEVT_MOTION, &viewport::on_motion, this);
-	Unbind(wxEVT_MOUSE_CAPTURE_LOST, &viewport::on_capture_lost, this);
+    if (HasCapture()) {
+        ReleaseMouse();
+    }
+    Unbind(wxEVT_LEFT_UP, &viewport::on_left_up, this);
+    Unbind(wxEVT_MOTION, &viewport::on_motion, this);
+    Unbind(wxEVT_MOUSE_CAPTURE_LOST, &viewport::on_capture_lost, this);
 }
 
 } // namespace pstack::gui

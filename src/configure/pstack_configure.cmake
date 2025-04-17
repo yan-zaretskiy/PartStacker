@@ -13,7 +13,7 @@ macro(pstack_configure_target_info target)
         pstack_configure_file("resource.rc.in" "resource.rc")
         target_sources("${target}" PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/pstack_generated/resource.rc")
     elseif(APPLE)
-        pstack_configure_file("Info.plist.in"  "Info.plist")    
+        pstack_configure_file("Info.plist.in"  "Info.plist")
         set_target_properties("${target}" PROPERTIES
             MACOSX_BUNDLE TRUE
             MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_BINARY_DIR}/pstack_generated/Info.plist"

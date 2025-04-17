@@ -20,17 +20,17 @@ constexpr matrix4<T> operator*(const matrix4<T>& lhs, const matrix4<T>& rhs) {
     m.xy = (lhs.xx * rhs.xy) + (lhs.xy * rhs.yy) + (lhs.xz * rhs.zy) + (lhs.xw * rhs.wy);
     m.xz = (lhs.xx * rhs.xz) + (lhs.xy * rhs.yz) + (lhs.xz * rhs.zz) + (lhs.xw * rhs.wz);
     m.xw = (lhs.xx * rhs.xw) + (lhs.xy * rhs.yw) + (lhs.xz * rhs.zw) + (lhs.xw * rhs.ww);
-    
+
     m.yx = (lhs.yx * rhs.xx) + (lhs.yy * rhs.yx) + (lhs.yz * rhs.zx) + (lhs.yw * rhs.wx);
     m.yy = (lhs.yx * rhs.xy) + (lhs.yy * rhs.yy) + (lhs.yz * rhs.zy) + (lhs.yw * rhs.wy);
     m.yz = (lhs.yx * rhs.xz) + (lhs.yy * rhs.yz) + (lhs.yz * rhs.zz) + (lhs.yw * rhs.wz);
     m.yw = (lhs.yx * rhs.xw) + (lhs.yy * rhs.yw) + (lhs.yz * rhs.zw) + (lhs.yw * rhs.ww);
-    
+
     m.zx = (lhs.zx * rhs.xx) + (lhs.zy * rhs.yx) + (lhs.zz * rhs.zx) + (lhs.zw * rhs.wx);
     m.zy = (lhs.zx * rhs.xy) + (lhs.zy * rhs.yy) + (lhs.zz * rhs.zy) + (lhs.zw * rhs.wy);
     m.zz = (lhs.zx * rhs.xz) + (lhs.zy * rhs.yz) + (lhs.zz * rhs.zz) + (lhs.zw * rhs.wz);
     m.zw = (lhs.zx * rhs.xw) + (lhs.zy * rhs.yw) + (lhs.zz * rhs.zw) + (lhs.zw * rhs.ww);
-    
+
     m.wx = (lhs.wx * rhs.xx) + (lhs.wy * rhs.yx) + (lhs.wz * rhs.zx) + (lhs.ww * rhs.wx);
     m.wy = (lhs.wx * rhs.xy) + (lhs.wy * rhs.yy) + (lhs.wz * rhs.zy) + (lhs.ww * rhs.wy);
     m.wz = (lhs.wx * rhs.xz) + (lhs.wy * rhs.yz) + (lhs.wz * rhs.zz) + (lhs.ww * rhs.wz);

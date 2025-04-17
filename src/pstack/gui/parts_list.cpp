@@ -1,10 +1,10 @@
 #include "pstack/files/stl.hpp"
 #include "pstack/gui/main_window.hpp"
 #include "pstack/gui/parts_list.hpp"
+#include <wx/string.h>
 #include <charconv>
 #include <cmath>
 #include <filesystem>
-#include <format>
 #include <ranges>
 
 namespace pstack::gui {
@@ -36,7 +36,7 @@ part_properties make_properties(std::string mesh_file, bool mirrored) {
         std::from_chars(number.data(), number.data() + number.size(), out);
         return out;
     }();
-    
+
     auto volume_and_centroid = properties.mesh.volume_and_centroid();
     properties.volume = volume_and_centroid.volume;
     properties.centroid = volume_and_centroid.centroid;
@@ -78,7 +78,7 @@ void parts_list::append(part_properties properties) {
     _list.append({
         properties.name,
         std::to_string(properties.quantity),
-        std::format("{:.2f}", properties.volume / 1000),
+        wxString::Format("%.2f", properties.volume / 1000),
         std::to_string(properties.triangle_count),
         (properties.mirrored ? "Mirrored" : "")
     });
@@ -102,7 +102,7 @@ void parts_list::reload_text(const std::size_t row) {
     _list.replace(row, {
         properties.name,
         std::to_string(properties.quantity),
-        std::format("{:.2f}", properties.volume / 1000),
+        wxString::Format("%.2f", properties.volume / 1000),
         std::to_string(properties.triangle_count),
         (properties.mirrored ? "Mirrored" : "")
     });
@@ -152,7 +152,7 @@ void parts_list::update_label() {
         _total_volume += properties.quantity * properties.volume;
         _total_triangles += properties.quantity * properties.triangle_count;
     }
-    _label->SetLabelText(std::format("Parts: {} - Volume: {:.1f} - Triangles: {}", _total_parts, _total_volume / 1000, _total_triangles));
+    _label->SetLabelText(wxString::Format("Parts: %zu - Volume: %.1f - Triangles: %zu", _total_parts, _total_volume / 1000, _total_triangles));
 }
 
 } // namespace pstack::gui

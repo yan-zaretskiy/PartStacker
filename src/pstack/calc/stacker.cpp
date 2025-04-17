@@ -32,7 +32,11 @@ void place(const util::mdspan<Bool, 3> space, const int index, const util::mdspa
     for (int i = x; i < max_i; ++i) {
         for (int j = y; j < max_j; ++j) {
             for (int k = z; k < max_k; ++k) {
+#if defined(MDSPAN_USE_BRACKET_OPERATOR) and MDSPAN_USE_BRACKET_OPERATOR == 0
+                space(i, j, k) |= (obj(i - x, j - y, k - z) & index) != 0;
+#else
                 space[i, j, k] |= (obj[i - x, j - y, k - z] & index) != 0;
+#endif
             }
         }
     }
@@ -45,8 +49,13 @@ int can_place(const util::mdspan<const Bool, 3> space, int possible, const util:
     for (std::size_t i = x; i < max_i; ++i) {
         for (std::size_t j = y; j < max_j; ++j) {
             for (std::size_t k = z; k < max_k; ++k) {
+#if defined(MDSPAN_USE_BRACKET_OPERATOR) and MDSPAN_USE_BRACKET_OPERATOR == 0
+                if (space(i, j, k)) {
+                    possible &= (possible ^ obj(i - x, j - y, k - z));
+#else
                 if (space[i, j, k]) {
                     possible &= (possible ^ obj[i - x, j - y, k - z]);
+#endif
                     if (possible == 0) {
                         return 0;
                     }
@@ -186,7 +195,11 @@ std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atom
             max_box_size.y = std::max(box_size.y, max_box_size.y);
             max_box_size.z = std::max(box_size.z, max_box_size.z);
 
+#if defined(__cpp_aggregate_paren_init) and __cpp_aggregate_paren_init >= 201902L
             state.meshes[i].emplace_back(std::move(m), std::move(bounding));
+#else
+            state.meshes[i].push_back(stack_state::mesh_entry{std::move(m), std::move(bounding)});
+#endif
 
             progress += state.ordered_parts[i].triangle_count / 2;
             params.set_progress(progress, triangles);
@@ -275,7 +288,7 @@ std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atom
                                 }
                                 bit_index *= 2;
                             }
-                                
+
                             possible = can_place(state.space, possible, state.voxels[part_index], x, y, z);
 
                             if (possible != 0) { // If it fits, figure out which rotation to use
