@@ -307,6 +307,7 @@ void main_window::enable_on_stacking(const bool starting) {
 wxMenuBar* main_window::make_menu_bar() {
     auto menu_bar = new wxMenuBar();
     enum class menu_item {
+        _ = 0, // Menu items cannot be 0 on Mac
         new_, open, save, close,
         import, export_,
         about, website,
