@@ -2,7 +2,7 @@
 #include "pstack/graphics/shader.hpp"
 
 #include <cassert>
-#include <format>
+#include <string>
 
 namespace pstack::graphics {
 
@@ -19,7 +19,9 @@ std::expected<GLuint, std::string> make_shader(const GLchar* const source, const
     glGetShaderiv(handle, GL_COMPILE_STATUS, &result);
     if (GL_FALSE == result) {
         glGetShaderInfoLog(handle, std::size(buffer), nullptr, buffer);
-        return std::unexpected(std::format("Error compiling shader of type {}: \"{}\"", type, buffer));
+        char message[1024];
+        std::snprintf(message, std::size(message), "Error compiling shader of type %d: \"%s\"", type, buffer);
+        return std::unexpected(message);
     }
 
     return handle;
@@ -57,14 +59,18 @@ std::expected<void, std::string> shader::initialize(const char* vertex_source, c
     glGetProgramiv(_program, GL_LINK_STATUS, &result);
     if (GL_FALSE == result) {
         glGetProgramInfoLog(_program, std::size(buffer), nullptr, buffer);
-        return std::unexpected(std::format("Error linking shader program: \"{}\"", buffer));
+        char message[1024];
+        std::snprintf(message, std::size(message), "Error linking shader program: \"%s\"", buffer);
+        return std::unexpected(message);
     }
 
     glValidateProgram(_program);
     glGetProgramiv(_program, GL_VALIDATE_STATUS, &result);
     if (GL_FALSE == result) {
         glGetProgramInfoLog(_program, std::size(buffer), nullptr, buffer);
-        return std::unexpected(std::format("Invalid shader program: \"{}\"", buffer));
+        char message[1024];
+        std::snprintf(message, std::size(message), "Invalid shader program: \"%s\"", buffer);
+        return std::unexpected(message);
     }
 
     glDetachShader(_program, *vertex_shader);

@@ -1,7 +1,7 @@
 #include "pstack/gui/main_window.hpp"
 #include "pstack/version.hpp"
 #include <wx/app.h>
-#include <format>
+#include <wx/string.h>
 #include <string>
 
 namespace pstack::gui {
@@ -13,9 +13,9 @@ public:
             return false;
         }
 
-        const std::string version_string = (version::patch == 0)
-            ? std::format("v{}.{}", version::major, version::minor)
-            : std::format("v{}.{}.{}", version::major, version::minor, version::patch);
+        const wxString version_string = (version::patch == 0)
+            ? wxString::Format("v%d.%d", version::major, version::minor)
+            : wxString::Format("v%d.%d.%d", version::major, version::minor, version::patch);
 
         auto main = new main_window("PartStacker Community Edition " + version_string);
         main->Show();

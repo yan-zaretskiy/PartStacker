@@ -4,9 +4,7 @@
 #include "pstack/gui/viewport.hpp"
 #include <wx/dcclient.h>
 #include <wx/msgdlg.h>
-
-#include <format>
-#include <iostream>
+#include <wx/string.h>
 
 namespace pstack::gui {
 
@@ -66,7 +64,7 @@ bool viewport::initialize() {
     if (const auto err = graphics::initialize();
         not err.has_value())
     {
-        wxMessageBox(std::format("OpenGL GLEW initialization failed with message: \"{}\"", err.error()),
+        wxMessageBox(wxString::Format("OpenGL GLEW initialization failed with message: \"%s\"", err.error()),
                      "OpenGL initialization error", wxOK | wxICON_ERROR, this);
         return false;
     }
@@ -74,7 +72,7 @@ bool viewport::initialize() {
     if (const auto err = _shader.initialize(vertex_shader_source, fragment_shader_source);
         not err.has_value())
     {
-        wxMessageBox(std::format("Error in creating OpenGL shader.\n{}", err.error()),
+        wxMessageBox(wxString::Format("Error in creating OpenGL shader.\n%s", err.error()),
                      "OpenGL shader error", wxOK | wxICON_ERROR, this);
         return false;
     }

@@ -19,6 +19,7 @@
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
+#include <wx/string.h>
 
 namespace pstack::gui {
 
@@ -253,10 +254,10 @@ void main_window::on_stacking_success(calc::mesh mesh, const std::chrono::durati
     const double volume = _last_result->volume_and_centroid().volume;
     const double percent_volume = 100 * volume / (size.x * size.y * size.z);
 
-    auto message = std::format(
-        "Stacking complete!\n\nElapsed time: {:.1f}s\n\nFinal bounding box: {:.1f}x{:.1f}x{:.1f}mm ({:.1f}% density).\n\nWould you like to save the result now?",
+    const auto message = wxString::Format(
+        "Stacking complete!\n\nElapsed time: %.1fs\n\nFinal bounding box: %.1fx%.1fx%.1fmm (%.1f%% density).\n\nWould you like to save the result now?",
         elapsed.count(), size.x, size.y, size.z, percent_volume);
-    if (wxMessageBox(std::move(message), "Stacking complete", wxYES_NO | wxYES_DEFAULT | wxICON_INFORMATION) == wxYES) {
+    if (wxMessageBox(message, "Stacking complete", wxYES_NO | wxYES_DEFAULT | wxICON_INFORMATION) == wxYES) {
         on_export();
     }
 }
@@ -450,8 +451,8 @@ void main_window::on_import(wxCommandEvent& event) {
 void main_window::on_delete(wxCommandEvent& event) {
     static thread_local std::vector<std::size_t> selected{};
     _parts_list.get_selected(selected);
-    auto message = std::format("Delete {} {} item{}?", selected.size() == 1 ? "this" : "these", selected.size(), selected.size() == 1 ? "" : "s");
-    wxMessageDialog dialog(this, std::move(message), "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_WARNING);
+    const auto message = wxString::Format("Delete %s %d item%s?", selected.size() == 1 ? "this" : "these", selected.size(), selected.size() == 1 ? "" : "s");
+    wxMessageDialog dialog(this, message, "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_WARNING);
     if (dialog.ShowModal() == wxID_YES) {
         _parts_list.delete_selected();
         _parts_list.update_label();
