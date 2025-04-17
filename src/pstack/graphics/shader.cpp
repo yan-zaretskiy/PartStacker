@@ -64,6 +64,9 @@ std::expected<void, std::string> shader::initialize(const char* vertex_source, c
         return std::unexpected(message);
     }
 
+    // Todo: Move this validation elsewhere.
+    // It causes an error on Mac, as it happens too early in the program.
+#if 0
     glValidateProgram(_program);
     glGetProgramiv(_program, GL_VALIDATE_STATUS, &result);
     if (GL_FALSE == result) {
@@ -72,6 +75,7 @@ std::expected<void, std::string> shader::initialize(const char* vertex_source, c
         std::snprintf(message, std::size(message), "Invalid shader program: \"%s\"", buffer);
         return std::unexpected(message);
     }
+#endif
 
     glDetachShader(_program, *vertex_shader);
     glDetachShader(_program, *fragment_shader);
