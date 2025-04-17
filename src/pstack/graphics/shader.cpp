@@ -60,15 +60,15 @@ std::expected<void, std::string> shader::initialize(const char* vertex_source, c
         return std::unexpected(std::format("Error linking shader program: \"{}\"", buffer));
     }
 
-	glValidateProgram(_program);
-	glGetProgramiv(_program, GL_VALIDATE_STATUS, &result);
-	if (GL_FALSE == result) {
+    glValidateProgram(_program);
+    glGetProgramiv(_program, GL_VALIDATE_STATUS, &result);
+    if (GL_FALSE == result) {
         glGetProgramInfoLog(_program, std::size(buffer), nullptr, buffer);
         return std::unexpected(std::format("Invalid shader program: \"{}\"", buffer));
-	}
+    }
 
-	glDetachShader(_program, *vertex_shader);
-	glDetachShader(_program, *fragment_shader);
+    glDetachShader(_program, *vertex_shader);
+    glDetachShader(_program, *fragment_shader);
 
     glDeleteShader(*vertex_shader);
     glDeleteShader(*fragment_shader);

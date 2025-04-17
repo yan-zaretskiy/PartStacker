@@ -11,9 +11,9 @@ std::expected<void, std::string> initialize() {
 
     glEnable(GL_CULL_FACE);   // Front faces are CCW by default, and back faces are the ones being culled by default
     glEnable(GL_DEPTH_TEST);  // This enables the z buffer, so faces get drawn in order automatically
-	// glEnable(GL_LINE_SMOOTH); // This is for anti aliasing of the lines
-	// glEnable(GL_BLEND);
-	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // glEnable(GL_LINE_SMOOTH); // This is for anti aliasing of the lines
+    // glEnable(GL_BLEND);
+    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     return {};
 }

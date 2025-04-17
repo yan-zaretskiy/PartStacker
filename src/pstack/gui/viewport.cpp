@@ -26,7 +26,7 @@ viewport::viewport(main_window* parent, const wxGLAttributes& canvasAttrs)
     Bind(wxEVT_PAINT, &viewport::on_paint, this);
     Bind(wxEVT_SIZE, &viewport::on_size, this);
 
-	Bind(wxEVT_LEFT_DOWN, &viewport::on_left_down, this);
+    Bind(wxEVT_LEFT_DOWN, &viewport::on_left_down, this);
     Bind(wxEVT_MOUSEWHEEL, &viewport::on_scroll, this);
 }
 
@@ -87,12 +87,12 @@ bool viewport::initialize() {
 
 void viewport::on_paint(wxPaintEvent&) {
     wxPaintDC dc(this);
-	render(dc);
+    render(dc);
 }
 
 void viewport::render() {
-	wxClientDC dc(this);
-	render(dc);
+    wxClientDC dc(this);
+    render(dc);
 }
 
 void viewport::render(wxDC& dc) {
@@ -179,10 +179,10 @@ void viewport::remove_mesh() {
 
 void viewport::on_left_down(wxMouseEvent& evt) {
     starting_pos = evt.GetPosition();
-	Bind(wxEVT_LEFT_UP, &viewport::on_left_up, this);
-	Bind(wxEVT_MOTION, &viewport::on_motion, this);
-	Bind(wxEVT_MOUSE_CAPTURE_LOST, &viewport::on_capture_lost, this);
-	CaptureMouse();
+    Bind(wxEVT_LEFT_UP, &viewport::on_left_up, this);
+    Bind(wxEVT_MOTION, &viewport::on_motion, this);
+    Bind(wxEVT_MOUSE_CAPTURE_LOST, &viewport::on_capture_lost, this);
+    CaptureMouse();
 }
 
 void viewport::on_motion(wxMouseEvent& evt) {
@@ -216,12 +216,12 @@ void viewport::on_move_by(wxPoint position) {
 }
 
 void viewport::on_finish_move() {
-	if (HasCapture()) {
-		ReleaseMouse();
-	}
-	Unbind(wxEVT_LEFT_UP, &viewport::on_left_up, this);
-	Unbind(wxEVT_MOTION, &viewport::on_motion, this);
-	Unbind(wxEVT_MOUSE_CAPTURE_LOST, &viewport::on_capture_lost, this);
+    if (HasCapture()) {
+        ReleaseMouse();
+    }
+    Unbind(wxEVT_LEFT_UP, &viewport::on_left_up, this);
+    Unbind(wxEVT_MOTION, &viewport::on_motion, this);
+    Unbind(wxEVT_MOUSE_CAPTURE_LOST, &viewport::on_capture_lost, this);
 }
 
 } // namespace pstack::gui

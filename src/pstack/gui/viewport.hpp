@@ -30,10 +30,10 @@ public:
     void set_mesh(const calc::mesh& mesh, const geo::point3<float>& centroid);
     void remove_mesh();
 
-	void on_left_down(wxMouseEvent& evt);
-	void on_motion(wxMouseEvent& evt);
-	void on_left_up(wxMouseEvent& evt);
-	void on_capture_lost(wxMouseCaptureLostEvent& evt);
+    void on_left_down(wxMouseEvent& evt);
+    void on_motion(wxMouseEvent& evt);
+    void on_left_up(wxMouseEvent& evt);
+    void on_capture_lost(wxMouseCaptureLostEvent& evt);
     void on_scroll(wxMouseEvent& evt);
 
     wxPoint starting_pos;
