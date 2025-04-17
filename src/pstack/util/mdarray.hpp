@@ -33,7 +33,7 @@ public:
         : _data((... * static_cast<std::size_t>(extents)), std::remove_const_t<T>{})
         , _span(_data.data(), static_cast<std::size_t>(extents)...)
     {}
-    
+
     template <class IndexType, std::size_t... Extents>
     requires (sizeof...(Extents) == Rank)
     constexpr mdarray(const extents<IndexType, Extents...>& extents) {

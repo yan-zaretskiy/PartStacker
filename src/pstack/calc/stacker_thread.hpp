@@ -24,7 +24,7 @@ public:
             _stacker.stack(std::move(params));
         });
     }
-    
+
     void stop() {
         _stacker.abort();
         if (_thread.has_value() and _thread->joinable()) {

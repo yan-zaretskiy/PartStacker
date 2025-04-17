@@ -17,7 +17,7 @@ struct stacker_parameters {
     std::function<void(mesh, std::chrono::duration<double>)> on_success;
     std::function<void()> on_failure;
     std::function<void()> on_finish;
-    
+
     double resolution;
     int x_min, x_max;
     int y_min, y_max;

@@ -25,7 +25,7 @@ viewport::viewport(main_window* parent, const wxGLAttributes& canvasAttrs)
 
     Bind(wxEVT_PAINT, &viewport::on_paint, this);
     Bind(wxEVT_SIZE, &viewport::on_size, this);
-    
+
 	Bind(wxEVT_LEFT_DOWN, &viewport::on_left_down, this);
     Bind(wxEVT_MOUSEWHEEL, &viewport::on_scroll, this);
 }
@@ -137,7 +137,7 @@ void viewport::set_mesh(const calc::mesh& mesh, const geo::point3<float>& centro
     _vao.clear();
 
     using vector3 = geo::vector3<float>;
-    
+
     std::vector<vector3> vertices;
     std::vector<vector3> normals;
     for (const auto& t : mesh.triangles()) {
@@ -199,7 +199,7 @@ void viewport::on_capture_lost(wxMouseCaptureLostEvent& evt) {
 }
 
 void viewport::on_scroll(wxMouseEvent& evt) {
-    const float zoom_factor = (float)std::pow(2.0, ((double)evt.GetWheelRotation() / (double)evt.GetWheelDelta()) / 4);    
+    const float zoom_factor = (float)std::pow(2.0, ((double)evt.GetWheelRotation() / (double)evt.GetWheelDelta()) / 4);
     _transform.zoom_by(zoom_factor);
     _shader.set_uniform("transform_vertices", _transform.for_vertices());
     _shader.set_uniform("transform_normals", _transform.for_normals());

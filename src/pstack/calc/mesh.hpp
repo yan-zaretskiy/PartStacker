@@ -17,7 +17,7 @@ public:
     mesh() = default;
     mesh(std::vector<geo::triangle> triangles)
         : _triangles(std::move(triangles)) {}
-    
+
     const std::vector<geo::triangle>& triangles() const& {
         return _triangles;
     }

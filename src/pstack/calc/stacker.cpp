@@ -275,7 +275,7 @@ std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atom
                                 }
                                 bit_index *= 2;
                             }
-                                
+
                             possible = can_place(state.space, possible, state.voxels[part_index], x, y, z);
 
                             if (possible != 0) { // If it fits, figure out which rotation to use

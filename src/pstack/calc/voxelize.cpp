@@ -159,7 +159,7 @@ int voxelize(const mesh& mesh, const util::mdspan<int, 3> voxels, const int inde
         // #endregion
     }
 
-    // Expand by one voxel in all directions            
+    // Expand by one voxel in all directions
     for (std::size_t x = 0; x < voxels.extent(0) - 1; ++x) {
         for (std::size_t y = 0; y < voxels.extent(1) - 1; ++y) {
             for (std::size_t z = 0; z < voxels.extent(2) - 1; ++z) {
@@ -182,5 +182,5 @@ int voxelize(const mesh& mesh, const util::mdspan<int, 3> voxels, const int inde
         return (i & index) != 0;
     });
 }
-        
+
 } // namespace pstack::calc

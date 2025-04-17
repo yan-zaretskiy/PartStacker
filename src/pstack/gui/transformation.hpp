@@ -9,7 +9,7 @@ namespace pstack::gui {
 class transformation {
 public:
     transformation() = default;
-    
+
     const geo::matrix4<float>& for_normals() const {
         return _result_normals;
     }
@@ -41,7 +41,7 @@ public:
 private:
     // OpenGL uses a left-handed coordinate system, but meshes are typically from a right-handed coordinate system
     static constexpr geo::matrix4<float> _mirror_z = geo::scale4(1.0f, 1.0f, -1.0f);
-    
+
     geo::matrix4<float> _orientation = geo::eye4<float>;
     geo::matrix4<float> _mesh_scale = geo::eye4<float>;
     geo::matrix4<float> _zoom_scale = geo::eye4<float>;

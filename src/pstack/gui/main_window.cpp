@@ -87,7 +87,7 @@ void main_window::reset_fields() {
     _thickness_spinner->SetValue(0.8);
     _width_spinner->SetValue(1.1);
     _sinterbox_checkbox->SetValue(true);
-    
+
     _initial_x_spinner->SetValue(150);
     _initial_y_spinner->SetValue(150);
     _initial_z_spinner->SetValue(30);
@@ -165,7 +165,7 @@ void main_window::on_stacking(wxCommandEvent& event) {
         on_stacking_stop();
     } else {
         on_stacking_start();
-    } 
+    }
     event.Skip();
 }
 
@@ -212,7 +212,7 @@ void main_window::on_stacking_start() {
                 enable_on_stacking(false);
             });
         },
-        
+
         .resolution = _min_clearance_spinner->GetValue(),
         .x_min = _initial_x_spinner->GetValue(), .x_max = _maximum_x_spinner->GetValue(),
         .y_min = _initial_y_spinner->GetValue(), .y_max = _maximum_y_spinner->GetValue(),
@@ -221,7 +221,7 @@ void main_window::on_stacking_start() {
     enable_on_stacking(true);
     _stacker_thread.start(std::move(params));
 }
-    
+
 void main_window::on_stacking_stop() {
     if (wxMessageBox("Abort stacking?", "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_WARNING) == wxYES) {
         _stacker_thread.stop();
@@ -245,7 +245,7 @@ void main_window::on_stacking_success(calc::mesh mesh, const std::chrono::durati
         _last_result->add_sinterbox(params);
         bounding = _last_result->bounding();
     }
-    
+
     const auto size = bounding.max - bounding.min;
     const auto centroid = (size / 2) + geo::origin3<float>;
     _viewport->set_mesh(*_last_result, centroid);
@@ -288,7 +288,7 @@ void main_window::enable_on_stacking(const bool starting) {
     _thickness_spinner->Enable(enable);
     _width_spinner->Enable(enable);
     _sinterbox_checkbox->Enable(enable);
-    
+
     _initial_x_spinner->Enable(enable);
     _initial_y_spinner->Enable(enable);
     _initial_z_spinner->Enable(enable);
@@ -371,7 +371,7 @@ wxMenuBar* main_window::make_menu_bar() {
 }
 
 void main_window::on_new(wxCommandEvent& event) {
-    if (_parts_list.rows() == 0 or 
+    if (_parts_list.rows() == 0 or
         wxMessageBox("Clear the current working session?",
                      "Warning",
                      wxYES_NO | wxNO_DEFAULT | wxICON_INFORMATION) == wxYES)
@@ -443,7 +443,7 @@ void main_window::on_import(wxCommandEvent& event) {
         auto& part = _parts_list.at(_parts_list.rows() - 1);
         _viewport->set_mesh(part.mesh, part.centroid);
     }
-    
+
     event.Skip();
 }
 
@@ -534,7 +534,7 @@ wxSizer* main_window::make_bottom_section1() {
     _export_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) { return on_export(event); });
     _export_button->Disable();
     sizer->Add(_export_button, wxGBPosition(1, 3));
-    
+
     sizer->AddGrowableCol(2, 1);
     return sizer;
 }

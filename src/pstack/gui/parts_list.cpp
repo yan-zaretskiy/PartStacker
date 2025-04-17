@@ -36,7 +36,7 @@ part_properties make_properties(std::string mesh_file, bool mirrored) {
         std::from_chars(number.data(), number.data() + number.size(), out);
         return out;
     }();
-    
+
     auto volume_and_centroid = properties.mesh.volume_and_centroid();
     properties.volume = volume_and_centroid.volume;
     properties.centroid = volume_and_centroid.centroid;
