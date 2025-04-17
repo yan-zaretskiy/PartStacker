@@ -452,7 +452,7 @@ void main_window::on_import(wxCommandEvent& event) {
 void main_window::on_delete(wxCommandEvent& event) {
     static thread_local std::vector<std::size_t> selected{};
     _parts_list.get_selected(selected);
-    const auto message = wxString::Format("Delete %s %d item%s?", selected.size() == 1 ? "this" : "these", selected.size(), selected.size() == 1 ? "" : "s");
+    const auto message = wxString::Format("Delete %s %zu item%s?", selected.size() == 1 ? "this" : "these", selected.size(), selected.size() == 1 ? "" : "s");
     wxMessageDialog dialog(this, message, "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_WARNING);
     if (dialog.ShowModal() == wxID_YES) {
         _parts_list.delete_selected();

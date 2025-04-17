@@ -20,7 +20,7 @@ std::expected<GLuint, std::string> make_shader(const GLchar* const source, const
     if (GL_FALSE == result) {
         glGetShaderInfoLog(handle, std::size(buffer), nullptr, buffer);
         char message[1024];
-        std::snprintf(message, std::size(message), "Error compiling shader of type %d: \"%s\"", type, buffer);
+        std::snprintf(message, std::size(message), "Error compiling shader of type %u: \"%s\"", type, buffer);
         return std::unexpected(message);
     }
 
