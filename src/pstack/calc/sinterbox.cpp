@@ -66,7 +66,9 @@ std::tuple<std::vector<float>, std::vector<float>, std::vector<float>> make_posi
     const geo::point3 lower_bound = min - clearance;
     const geo::point3 upper_bound = max + clearance;
 
-    const auto make_vector = [&](auto elem) -> std::vector<float> {
+    // Todo: Simplify the capture in Xcode 16
+    // P1091R3 and P1381R1, C++20 feature, no feature test macro
+    const auto make_vector = [&, thickness, width](auto elem) -> std::vector<float> {
         std::vector<float> out;
         out.reserve(4 * (int)elem(N) * 2);
         out.push_back(elem(lower_bound) - thickness);
