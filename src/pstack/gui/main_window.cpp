@@ -28,14 +28,18 @@ constexpr int tab_padding = 7;
 constexpr int inner_border = 5;
 constexpr int button_height = 25;
 const wxSize button_size = wxSize(-1, button_height);
+#ifdef _WIN32
 const wxColour background_colour = wxColour(0xF0, 0xF0, 0xF0);
+#endif
 
 main_window::main_window(const wxString& title)
     : wxFrame(nullptr, wxID_ANY, title, wxDefaultPosition, wxDefaultSize)
 {
-    Bind(wxEVT_CLOSE_WINDOW, &main_window::on_close, this);
-
+#ifdef _WIN32
     SetBackgroundColour(background_colour);
+#endif
+
+    Bind(wxEVT_CLOSE_WINDOW, &main_window::on_close, this);
     SetMenuBar(make_menu_bar());
 
     wxGLAttributes attrs;
