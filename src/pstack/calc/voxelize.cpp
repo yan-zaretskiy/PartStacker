@@ -47,7 +47,11 @@ int voxelize(const mesh& mesh, const util::mdspan<int, 3> voxels, const int inde
             for (int y = 0; y < voxels.extent(1); ++y) {
                 for (int z = 0; z < voxels.extent(2); ++z) {
                     if (x == 0 || y == 0 || z == 0 || x == voxels.extent(0) - carver_size || y == voxels.extent(1) - carver_size || z == voxels.extent(2) - carver_size) {
+#if defined(__cpp_aggregate_paren_init) and __cpp_aggregate_paren_init >= 201902L
                         stack.emplace(x, y, z);
+#else
+                        stack.push(geo::point3<int>{x, y, z});
+#endif
                     }
                 }
             }
@@ -87,6 +91,7 @@ int voxelize(const mesh& mesh, const util::mdspan<int, 3> voxels, const int inde
                 }
             }
 
+#if defined(__cpp_aggregate_paren_init) and __cpp_aggregate_paren_init >= 201902L
             stack.emplace(x - 1, y, z);
             stack.emplace(x + 1, y, z);
 
@@ -95,6 +100,16 @@ int voxelize(const mesh& mesh, const util::mdspan<int, 3> voxels, const int inde
 
             stack.emplace(x, y, z - 1);
             stack.emplace(x, y, z + 1);
+#else
+            stack.push(geo::point3<int>{x - 1, y, z});
+            stack.push(geo::point3<int>{x + 1, y, z});
+
+            stack.push(geo::point3<int>{x, y - 1, z});
+            stack.push(geo::point3<int>{x, y + 1, z});
+
+            stack.push(geo::point3<int>{x, y, z - 1});
+            stack.push(geo::point3<int>{x, y, z + 1});
+#endif
         }
 
         // #region convexivy

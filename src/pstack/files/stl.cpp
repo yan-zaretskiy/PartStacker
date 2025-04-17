@@ -69,7 +69,12 @@ calc::mesh from_stl(const std::string& file_path) {
             geo::point3<float> v1 = parse_point(lines[i + 2]);
             geo::point3<float> v2 = parse_point(lines[i + 3]);
             geo::point3<float> v3 = parse_point(lines[i + 4]);
+
+#if defined(__cpp_aggregate_paren_init) and __cpp_aggregate_paren_init >= 201902L
             triangles.emplace_back(normal, v1, v2, v3);
+#else
+            triangles.push_back(geo::triangle{normal, v1, v2, v3});
+#endif
         }
     }
 

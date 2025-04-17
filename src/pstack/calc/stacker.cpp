@@ -186,7 +186,11 @@ std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atom
             max_box_size.y = std::max(box_size.y, max_box_size.y);
             max_box_size.z = std::max(box_size.z, max_box_size.z);
 
+#if defined(__cpp_aggregate_paren_init) and __cpp_aggregate_paren_init >= 201902L
             state.meshes[i].emplace_back(std::move(m), std::move(bounding));
+#else
+            state.meshes[i].push_back(stack_state::mesh_entry{std::move(m), std::move(bounding)});
+#endif
 
             progress += state.ordered_parts[i].triangle_count / 2;
             params.set_progress(progress, triangles);
