@@ -53,11 +53,11 @@ std::tuple<std::vector<float>, std::vector<float>, std::vector<float>> make_posi
     // Number of bars in the given direction
     const geo::vector3 N = [&] {
         auto n = (size + (2 * clearance) - desired_spacing) / (width + desired_spacing);
-        return geo::vector3{ (float)(int)n.x, (float)(int)n.y, (float)(int)n.z }; // Round down
+        return geo::vector3<float>{ (float)(int)n.x, (float)(int)n.y, (float)(int)n.z }; // Round down
     }();
 
     const geo::vector3 _numerators = size + (2 * clearance) - (N * width);
-    const geo::vector3 real_spacing = {
+    const geo::vector3<float> real_spacing = {
         _numerators.x / (N.x + 1),
         _numerators.y / (N.y + 1),
         _numerators.z / (N.z + 1)
@@ -91,8 +91,8 @@ std::tuple<std::vector<float>, std::vector<float>, std::vector<float>> make_posi
 
 void append_sinterbox(std::vector<geo::triangle>& triangles, const sinterbox_parameters& params) {
     const auto [positions_x, positions_y, positions_z] = make_positions(params);
-    const geo::point3 lower_bound = { positions_x.at(1), positions_y.at(1), positions_z.at(1) };
-    const geo::point3 upper_bound = { positions_x.at(positions_x.size() - 2), positions_y.at(positions_y.size() - 2), positions_z.at(positions_z.size() - 2) };
+    const geo::point3<float> lower_bound = { positions_x.at(1), positions_y.at(1), positions_z.at(1) };
+    const geo::point3<float> upper_bound = { positions_x.at(positions_x.size() - 2), positions_y.at(positions_y.size() - 2), positions_z.at(positions_z.size() - 2) };
 
     // XY sides
     {
