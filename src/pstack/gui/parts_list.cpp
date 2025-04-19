@@ -29,7 +29,7 @@ calc::part make_part(std::string mesh_file, bool mirrored) {
         if (number_length == 0 or not (name.size() > number_length and name[name.size() - number_length - 1] == looking_for)) {
             return std::nullopt;
         }
-        std::string_view number{ name.data() + (name.size() - number_length), name.data() + name.size() };
+        std::string_view number{ name.data() + (name.size() - number_length), number_length };
         int out{-1};
         std::from_chars(number.data(), number.data() + number.size(), out);
         return out;
