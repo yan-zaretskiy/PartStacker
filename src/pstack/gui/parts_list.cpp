@@ -132,7 +132,7 @@ void parts_list::delete_selected() {
 std::vector<std::shared_ptr<const calc::part>> parts_list::get_all() const {
     std::vector<std::shared_ptr<const calc::part>> out{};
     out.reserve(_parts.size());
-    std::ranges::copy(_parts, std::back_inserter(out));
+    std::copy(_parts.begin(), _parts.end(), std::back_inserter(out));
     return out;
 }
 
