@@ -43,11 +43,6 @@ main_window::main_window(const wxString& title)
     SetSizerAndFit(sizer);
 }
 
-void main_window::after_show() {
-    _viewport->on_move_by({0, 0});
-    _viewport->render();
-}
-
 void main_window::on_select_parts(const std::vector<std::size_t>& indices) {
     const auto size = indices.size();
     _controls.delete_button->Enable(size != 0);
@@ -353,7 +348,7 @@ void main_window::bind_all_controls() {
     _controls.preview_bounding_box_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         wxMessageBox("Not yet implemented", "Error", wxICON_WARNING);
     });
-    
+
     _controls.section_view_checkbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& event) {
         wxMessageBox("Not yet implemented", "Error", wxICON_WARNING);
     });
@@ -641,7 +636,7 @@ void main_window::arrange_tab_results(wxPanel* panel) {
         sinterbox_sizer->Add(checkbox_sizer, 0, wxALIGN_LEFT | wxALIGN_TOP | wxUP, panel->FromDIP(4));
         sinterbox_sizer->AddStretchSpacer();
     }
-    
+
     sizer->Add(sinterbox_sizer_, 0, wxEXPAND | wxLEFT | wxRIGHT);
 }
 

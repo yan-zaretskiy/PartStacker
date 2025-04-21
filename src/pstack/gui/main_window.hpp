@@ -20,7 +20,6 @@ class viewport;
 class main_window : public wxFrame {
 public:
     main_window(const wxString& title);
-    void after_show();
 
 private:
     viewport* _viewport = nullptr;

@@ -20,15 +20,18 @@ class viewport : public wxGLCanvas {
 public:
     viewport(main_window* parent, const wxGLAttributes& canvasAttrs);
 
+private:
     bool initialize();
 
-    void on_paint(wxPaintEvent&);
-    void render();
-    void render(wxDC& dc);
-    void on_size(wxSizeEvent& event);
-
+public:
     void set_mesh(const calc::mesh& mesh, const geo::point3<float>& centroid);
     void remove_mesh();
+    void render();
+
+private:
+    void render(wxDC& dc);
+    void on_paint(wxPaintEvent&);
+    void on_size(wxSizeEvent& event);
 
     void on_left_down(wxMouseEvent& evt);
     void on_motion(wxMouseEvent& evt);
@@ -36,11 +39,10 @@ public:
     void on_capture_lost(wxMouseCaptureLostEvent& evt);
     void on_scroll(wxMouseEvent& evt);
 
-    wxPoint starting_pos;
+    wxPoint _cached_position;
     void on_move_by(wxPoint position);
     void on_finish_move();
 
-private:
     std::unique_ptr<wxGLContext> _opengl_context = nullptr;
     bool _opengl_initialized = false;
 
