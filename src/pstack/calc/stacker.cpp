@@ -74,13 +74,11 @@ std::size_t try_place(const stack_parameters& params, stack_state& state, const 
             const int z = s - r;
             for (int x = std::max(0, r - max.y); x <= std::min(r, max.x); ++x) {
                 const int y = r - x;
-                const std::span rotations = rotation_sets[state.ordered_parts[part_index]->rotation_index];
 
                 // Calculate which orientations fit in bounding box
                 int bit_index = 1;
                 int possible = 0;
-                for (int i = 0; i < rotations.size(); ++i) {
-                    const auto& box_size = state.meshes[part_index][i].box_size;
+                for (const auto& [mesh, box_size, piece] : state.meshes[part_index]) {
                     if (x + box_size.x < max.x && y + box_size.y < max.y && z + box_size.z < max.z) {
                         possible |= bit_index;
                     }
@@ -91,15 +89,15 @@ std::size_t try_place(const stack_parameters& params, stack_state& state, const 
 
                 if (possible != 0) { // If it fits, figure out which rotation to use
                     bit_index = 1;
-                    for (int i = 0; i < rotations.size(); ++i) {
+                    for (const auto& [mesh, box_size, piece] : state.meshes[part_index]) {
                         if ((possible & bit_index) == 0) {
                             bit_index *= 2;
                             continue;
                         } else {
                             const geo::vector3<float> translation = { (float)x, (float)y, (float)z };
-                            state.result.mesh.add(state.meshes[part_index][i].mesh, translation);
-                            auto& piece = state.result.pieces.emplace_back(state.meshes[part_index][i].piece);
-                            piece.translation += translation;
+                            state.result.mesh.add(mesh, translation);
+                            auto& new_piece = state.result.pieces.emplace_back(piece);
+                            new_piece.translation += translation;
                             place(state.space, bit_index, state.voxels[part_index], x, y, z); // Mark voxels as occupied
                             ++placed;
                             if (to_place == placed) { // All instances of this part placed, move to next part
@@ -170,14 +168,14 @@ std::optional<stack_result> stack_impl(const stack_parameters& params, const std
         }
 
         // Set up array of parts
-        const std::span rotations = rotation_sets[state.ordered_parts[i]->rotation_index];
+        const auto rotations = rotation_sets[state.ordered_parts[i]->rotation_index];
         state.meshes[i].reserve(rotations.size());
 
         // Track bounding box size
         geo::vector3<int> max_box_size = { 1, 1, 1 };
 
         // Calculate all the rotations
-        for (int j = 0; j < rotations.size(); ++j) {
+        for (const auto& rotation : rotations) {
             if (not running) {
                 return std::nullopt;
             }
@@ -185,8 +183,8 @@ std::optional<stack_result> stack_impl(const stack_parameters& params, const std
             const std::shared_ptr<const part> part = state.ordered_parts[i];
             mesh m = part->mesh;
             m.scale(scale_factor);
-            auto rotation = base_rotation * rotations[j];
-            m.rotate(rotation);
+            auto total_rotation = base_rotation * rotation;
+            m.rotate(total_rotation);
             auto offset = m.set_baseline({ 0, 0, 0 });
 
             const auto box_size = m.bounding().box_size;
@@ -194,7 +192,7 @@ std::optional<stack_result> stack_impl(const stack_parameters& params, const std
             max_box_size.y = std::max(box_size.y, max_box_size.y);
             max_box_size.z = std::max(box_size.z, max_box_size.z);
 
-            stack_result::piece piece = { .part = part, .rotation = rotation, .translation = offset };
+            stack_result::piece piece = { .part = part, .rotation = total_rotation, .translation = offset };
 #if defined(__cpp_aggregate_paren_init) and __cpp_aggregate_paren_init >= 201902L
             state.meshes[i].emplace_back(std::move(m), box_size, std::move(piece));
 #else
@@ -276,13 +274,10 @@ std::optional<stack_result> stack_impl(const stack_parameters& params, const std
                                 continue;
                             }
 
-                            const std::span rotations = rotation_sets[state.ordered_parts[part_index]->rotation_index];
-
                             // Calculate which orientations fit in bounding box
                             int bit_index = 1;
                             int possible = 0;
-                            for (int i = 0; i < rotations.size(); ++i) {
-                                const auto& box_size = state.meshes[part_index][i].box_size;
+                            for (const auto& [mesh, box_size, piece] : state.meshes[part_index]) {
                                 if (x + box_size.x < state.space.extent(0) && y + box_size.y < state.space.extent(1) && z + box_size.z < state.space.extent(2)) {
                                     possible |= bit_index;
                                 }
@@ -293,9 +288,8 @@ std::optional<stack_result> stack_impl(const stack_parameters& params, const std
 
                             if (possible != 0) { // If it fits, figure out which rotation to use
                                 bit_index = 1;
-                                for (int i = 0; i < rotations.size(); ++i) {
+                                for (const auto& [mesh, box_size, piece] : state.meshes[part_index]) {
                                     if ((possible & bit_index) != 0) {
-                                        const auto& box_size = state.meshes[part_index][i].box_size;
                                         const int new_box = std::max(max_x, x + box_size.x) * std::max(max_y, y + box_size.y) * std::max(max_z, z + box_size.z);
                                         if (new_box < best) {
                                             best = new_box;
