@@ -1,0 +1,53 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 23,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "default",
+            "hidden": true,
+            "displayName": "PartStacker default",
+            "cacheVariables": {
+                "CMAKE_CXX_STANDARD": "23",
+                "CMAKE_CXX_STANDARD_REQUIRED": "ON"
+            }
+        },
+        {
+            "name": "Release",
+            "displayName": "PartStacker Release Build",
+            "inherits": "default",
+            "binaryDir": "build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        },
+        {
+            "name": "Debug",
+            "displayName": "PartStacker Debug Build",
+            "inherits": "default",
+            "binaryDir": "build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "Release",
+            "displayName": "PartStacker Release Build",
+            "targets": "pstack_gui",
+            "configurePreset": "Release",
+            "configuration": "Release"
+        },
+        {
+            "name": "Debug",
+            "displayName": "PartStacker Debug Build",
+            "targets": "pstack_gui",
+            "configurePreset": "Debug",
+            "configuration": "Debug"
+        }
+    ]
+}

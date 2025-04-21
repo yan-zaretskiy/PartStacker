@@ -34,12 +34,6 @@ To see if CMake is properly installed
     * Either close and reopen PowerShell
     * Or try installing again
 
-### Install WSL (needed for `make` command)
-
-This is a fairly heavyweight requirement for such a small usage, so hopefully it can be removed in the future
-
-* Follow the instructions at https://learn.microsoft.com/en-us/windows/wsl/install
-
 ### Install Visual Studio 2022 Community Edition
 
 * If you don't have Visual Studio 2022 yet, visit [this download link](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=Community&channel=Release&version=VS2022) for the installer
@@ -93,36 +87,23 @@ git pull --recurse-submodules
 
 ## Build and run PartStacker
 
-### Configure the dependency GLEW
-
-* Open WSL
-* ![](./windows/wsl.png)
-* Navigate to the PartStacker directory
-    * Assuming your PartStacker directory is at `C:\Users\{your-username}\Documents\PartStacker`
-    * Type in `cd /mnt/c/Users/{your-username}/Documents/PartStacker`
-    * Note that the back slashes turned into forward slashes, and "C:" turned into "/mnt/c"
-* After navigating to the PartStacker directory, type `cd external/glew/auto`
-* Then type `make`
-* Wait until it finishes
-* Now you can close WSL
-
 ### Build PartStacker
 
 * Open Windows PowerShell
 * Navigate to the PartStacker directory
-* Type `cmake . -B build`, and wait for it to finish
-* Then type `cmake --build build`, and wait again
-    * The first time you build, this will take a long time
+* Type `cmake --preset Release`, and wait for it to finish
+* Then type `cmake --build --preset Release`, and wait again
+* The first time you build, both of these commands will take longer
 
 If you choose to make edits to the code, repeat these steps to rebuild PartStacker
 
-* Make sure you've closed out of the PartStacker if you have it running
+* Make sure you've exited PartStacker before building again
 
 ### Run PartStacker
 
 After building, the PartStacker GUI will be in the PartStacker directory
 
-* It will either be located at `{PartStacker-directory}\build\src\pstack\gui\Debug\PartStackerGUI.exe` or at `{PartStacker-directory}\build\src\pstack\gui\Release\PartStackerGUI.exe`
+* It will be located in `{PartStacker-directory}\bin`
 * Navigate to that location in your regular file explorer or in Windows PowerShell
 * Run the application!
 

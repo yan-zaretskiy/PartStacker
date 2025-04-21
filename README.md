@@ -6,7 +6,7 @@ A community rewrite of Tom van der Zanden's beloved [PartStacker](https://github
 
 ## Download the latest release
 
-[**Click here**](https://github.com/PartStackerCommunity/PartStacker/releases/tag/v0.1) for the latest release.
+[**Click here**](https://github.com/PartStackerCommunity/PartStacker/releases/tag/v0.2) for the latest release.
 
 ## Build this project
 
@@ -23,13 +23,11 @@ First, clone the repo with its submodules
 git clone --recurse-submodules https://github.com/PartStackerCommunity/PartStacker.git
 ```
 
-Navigate to `./external/glew/auto`, and run `make`
-
-Then, back at the root directory, configure and build with CMake
+Then, configure and build with CMake by running these 2 commands in order
 
 ```
-cmake . -B build
-cmake --build build
+cmake --preset Release
+cmake --build --preset Release
 ```
 
-The PartStacker GUI will be an executable called `PartStackerGUI`
+The PartStacker GUI will be an executable called `PartStackerGUI`, placed in `./bin/`
