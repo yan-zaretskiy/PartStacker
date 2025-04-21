@@ -58,7 +58,7 @@ void main_window::on_select_parts(const std::vector<std::size_t>& indices) {
 
 void main_window::set_part(const std::size_t index) {
     enable_part_settings(true);
-    _current_part = &_parts_list.at(index);
+    _current_part = _parts_list.at(index);
     _current_part_index.emplace(index);
     _controls.quantity_spinner->SetValue(_current_part->quantity);
     _controls.min_hole_spinner->SetValue(_current_part->min_hole);
@@ -69,8 +69,8 @@ void main_window::set_part(const std::size_t index) {
 
 void main_window::unset_part() {
     enable_part_settings(false);
-    _current_part = nullptr;
-    _current_part_index = std::nullopt;
+    _current_part.reset();
+    _current_part_index.reset();
     return;
 }
 
@@ -424,7 +424,7 @@ void main_window::on_import(wxCommandEvent& event) {
     }
     _parts_list.update_label();
     if (paths.size() == 1) {
-        auto& part = _parts_list.at(_parts_list.rows() - 1);
+        const calc::part& part = *_parts_list.at(_parts_list.rows() - 1);
         _viewport->set_mesh(part.mesh, part.centroid);
     }
 

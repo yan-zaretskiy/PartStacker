@@ -1,7 +1,7 @@
 #ifndef PSTACK_CALC_STACKER_HPP
 #define PSTACK_CALC_STACKER_HPP
 
-#include "pstack/calc/part_properties.hpp"
+#include "pstack/calc/part.hpp"
 #include <atomic>
 #include <chrono>
 #include <functional>
@@ -11,7 +11,7 @@ namespace pstack::calc {
 
 struct stack_result {
     struct piece {
-        const part_properties* part;
+        std::shared_ptr<const part> part;
         geo::matrix3<float> rotation;
         geo::vector3<float> translation;
     };
@@ -20,7 +20,7 @@ struct stack_result {
 };
 
 struct stack_parameters {
-    std::vector<const part_properties*> parts;
+    std::vector<std::shared_ptr<const part>> parts;
 
     std::function<void(double, double)> set_progress;
     std::function<void(const mesh&, int, int, int)> display_mesh;

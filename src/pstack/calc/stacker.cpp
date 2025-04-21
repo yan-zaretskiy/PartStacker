@@ -22,7 +22,7 @@ struct stack_state {
     std::vector<std::vector<mesh_entry>> meshes;
     std::vector<util::mdarray<int, 3>> voxels;
     util::mdarray<Bool, 3> space;
-    std::vector<const part_properties*> ordered_parts;
+    std::vector<std::shared_ptr<const part>> ordered_parts;
     stack_result result;
 };
 
@@ -120,21 +120,15 @@ std::size_t try_place(const stack_parameters& params, stack_state& state, const 
 
 std::optional<stack_result> stack_impl(const stack_parameters& params, const std::atomic<bool>& running) {
     stack_state state{};
-    {
-        auto parts = params.parts;
-        std::ranges::sort(parts, std::greater{}, &part_properties::volume);
-        state.ordered_parts.reserve(parts.size());
-        for (const part_properties* part : parts) {
-            state.ordered_parts.push_back(part);
-        }
-    }
+    state.ordered_parts = params.parts;
+    std::ranges::sort(state.ordered_parts, std::greater{}, &part::volume);
     state.meshes.assign(state.ordered_parts.size(), {});
     state.voxels.assign(state.ordered_parts.size(), {});
 
     double triangles = 0;
     const double scale_factor = 1 / params.resolution;
     int total_parts = 0;
-    for (const part_properties* part : state.ordered_parts) {
+    for (const std::shared_ptr<const part> part : state.ordered_parts) {
         triangles += part->triangle_count * rotation_sets[part->rotation_index].size();
         total_parts += part->quantity;
     }
@@ -188,7 +182,7 @@ std::optional<stack_result> stack_impl(const stack_parameters& params, const std
                 return std::nullopt;
             }
 
-            const part_properties* const part = state.ordered_parts[i];
+            const std::shared_ptr<const part> part = state.ordered_parts[i];
             mesh m = part->mesh;
             m.scale(scale_factor);
             auto rotation = base_rotation * rotations[j];

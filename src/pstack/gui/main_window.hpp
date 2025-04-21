@@ -7,6 +7,7 @@
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
 #include <wx/string.h>
+#include <memory>
 #include <optional>
 #include <vector>
 #include "pstack/calc/stacker_thread.hpp"
@@ -29,7 +30,7 @@ private:
     void set_part(std::size_t index);
     void unset_part();
     parts_list _parts_list{};
-    part_properties* _current_part = nullptr;
+    std::shared_ptr<calc::part> _current_part = nullptr;
     std::optional<std::size_t> _current_part_index = std::nullopt;
     void enable_part_settings(bool enable);
 
