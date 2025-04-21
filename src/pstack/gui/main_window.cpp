@@ -43,11 +43,6 @@ main_window::main_window(const wxString& title)
     SetSizerAndFit(sizer);
 }
 
-void main_window::after_show() {
-    _viewport->on_move_by({0, 0});
-    _viewport->render();
-}
-
 void main_window::on_select_parts(const std::vector<std::size_t>& indices) {
     const auto size = indices.size();
     _controls.delete_button->Enable(size != 0);
@@ -63,7 +58,7 @@ void main_window::on_select_parts(const std::vector<std::size_t>& indices) {
 
 void main_window::set_part(const std::size_t index) {
     enable_part_settings(true);
-    _current_part = &_parts_list.at(index);
+    _current_part = _parts_list.at(index);
     _current_part_index.emplace(index);
     _controls.quantity_spinner->SetValue(_current_part->quantity);
     _controls.min_hole_spinner->SetValue(_current_part->min_hole);
@@ -74,8 +69,8 @@ void main_window::set_part(const std::size_t index) {
 
 void main_window::unset_part() {
     enable_part_settings(false);
-    _current_part = nullptr;
-    _current_part_index = std::nullopt;
+    _current_part.reset();
+    _current_part_index.reset();
     return;
 }
 
@@ -107,7 +102,7 @@ void main_window::on_stacking_start() {
         }
     }
 
-    calc::stacker_parameters params {
+    calc::stack_parameters params {
         .parts = _parts_list.get_all(),
 
         .set_progress = [this](double progress, double total) {
@@ -121,9 +116,9 @@ void main_window::on_stacking_start() {
                 _viewport->set_mesh(mesh, { max_x / 2.0f, max_y / 2.0f, max_z / 2.0f });
             });
         },
-        .on_success = [this](calc::mesh mesh, const std::chrono::duration<double> elapsed) {
-            CallAfter([=, mesh = std::move(mesh)] {
-                on_stacking_success(std::move(mesh), elapsed);
+        .on_success = [this](calc::stack_result result, const std::chrono::system_clock::duration elapsed) {
+            CallAfter([=, result = std::move(result)] {
+                on_stacking_success(std::move(result), elapsed);
                 _controls.export_button->Enable();
             });
         },
@@ -156,12 +151,12 @@ void main_window::on_stacking_stop() {
     }
 }
 
-void main_window::on_stacking_success(calc::mesh mesh, const std::chrono::duration<double> elapsed) {
-    _last_result.emplace(std::move(mesh));
-    auto bounding = _last_result->bounding();
+void main_window::on_stacking_success(calc::stack_result result, const std::chrono::system_clock::duration elapsed) {
+    _last_result.emplace(std::move(result));
+    auto bounding = _last_result->mesh.bounding();
     if (_controls.sinterbox_checkbox->GetValue()) {
         const double offset = _controls.thickness_spinner->GetValue() + _controls.clearance_spinner->GetValue();
-        _last_result->set_baseline(geo::origin3<float> + offset);
+        _last_result->mesh.set_baseline(geo::origin3<float> + offset);
         const calc::sinterbox_parameters params {
             .min = bounding.min + offset,
             .max = bounding.max + offset,
@@ -170,20 +165,20 @@ void main_window::on_stacking_success(calc::mesh mesh, const std::chrono::durati
             .width = _controls.width_spinner->GetValue(),
             .spacing = _controls.spacing_spinner->GetValue() + 0.00013759,
         };
-        _last_result->add_sinterbox(params);
-        bounding = _last_result->bounding();
+        _last_result->mesh.add_sinterbox(params);
+        bounding = _last_result->mesh.bounding();
     }
 
     const auto size = bounding.max - bounding.min;
     const auto centroid = (size / 2) + geo::origin3<float>;
-    _viewport->set_mesh(*_last_result, centroid);
+    _viewport->set_mesh(_last_result->mesh, centroid);
 
-    const double volume = _last_result->volume_and_centroid().volume;
+    const double volume = _last_result->mesh.volume_and_centroid().volume;
     const double percent_volume = 100 * volume / (size.x * size.y * size.z);
 
     const auto message = wxString::Format(
         "Stacking complete!\n\nElapsed time: %.1fs\n\nFinal bounding box: %.1fx%.1fx%.1fmm (%.1f%% density).\n\nWould you like to save the result now?",
-        elapsed.count(), size.x, size.y, size.z, percent_volume);
+        std::chrono::duration_cast<std::chrono::duration<double>>(elapsed).count(), size.x, size.y, size.z, percent_volume);
     if (wxMessageBox(message, "Stacking complete", wxYES_NO | wxYES_DEFAULT | wxICON_INFORMATION) == wxYES) {
         on_export();
     }
@@ -353,7 +348,7 @@ void main_window::bind_all_controls() {
     _controls.preview_bounding_box_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         wxMessageBox("Not yet implemented", "Error", wxICON_WARNING);
     });
-    
+
     _controls.section_view_checkbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& event) {
         wxMessageBox("Not yet implemented", "Error", wxICON_WARNING);
     });
@@ -409,7 +404,7 @@ void main_window::on_export() {
     }
 
     const wxString path = dialog.GetPath();
-    files::to_stl(*_last_result, path.ToStdString());
+    files::to_stl(_last_result->mesh, path.ToStdString());
 }
 
 void main_window::on_import(wxCommandEvent& event) {
@@ -429,7 +424,7 @@ void main_window::on_import(wxCommandEvent& event) {
     }
     _parts_list.update_label();
     if (paths.size() == 1) {
-        auto& part = _parts_list.at(_parts_list.rows() - 1);
+        const calc::part& part = *_parts_list.at(_parts_list.rows() - 1);
         _viewport->set_mesh(part.mesh, part.centroid);
     }
 
@@ -641,7 +636,7 @@ void main_window::arrange_tab_results(wxPanel* panel) {
         sinterbox_sizer->Add(checkbox_sizer, 0, wxALIGN_LEFT | wxALIGN_TOP | wxUP, panel->FromDIP(4));
         sinterbox_sizer->AddStretchSpacer();
     }
-    
+
     sizer->Add(sinterbox_sizer_, 0, wxEXPAND | wxLEFT | wxRIGHT);
 }
 

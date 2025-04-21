@@ -19,7 +19,6 @@ public:
 
         auto main = new main_window("PartStacker Community Edition " + version_string);
         main->Show();
-        main->after_show();
 
         return true;
     }

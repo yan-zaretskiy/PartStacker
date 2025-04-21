@@ -1,12 +1,12 @@
-#ifndef PSTACK_CALC_PART_PROPERTIES_HPP
-#define PSTACK_CALC_PART_PROPERTIES_HPP
+#ifndef PSTACK_CALC_PART_HPP
+#define PSTACK_CALC_PART_HPP
 
 #include <string>
 #include "pstack/calc/mesh.hpp"
 
 namespace pstack::calc {
 
-struct part_properties {
+struct part {
     std::string mesh_file;
     std::string name;
     mesh mesh;
@@ -24,4 +24,4 @@ struct part_properties {
 
 } // namespace pstack::calc
 
-#endif // PSTACK_CALC_PART_PROPERTIES_HPP
+#endif // PSTACK_CALC_PART_HPP

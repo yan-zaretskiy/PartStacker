@@ -15,14 +15,15 @@ namespace {
 struct stack_state {
     struct mesh_entry {
         mesh mesh;
-        mesh::bounding_t bounding;
+        geo::vector3<int> box_size;
+        stack_result::piece piece;
     };
 
     std::vector<std::vector<mesh_entry>> meshes;
     std::vector<util::mdarray<int, 3>> voxels;
     util::mdarray<Bool, 3> space;
-    std::vector<part_properties> ordered_parts;
-    mesh result;
+    std::vector<std::shared_ptr<const part>> ordered_parts;
+    stack_result result;
 };
 
 void place(const util::mdspan<Bool, 3> space, const int index, const util::mdspan<const int, 3> obj, const int x, const int y, const int z) {
@@ -66,20 +67,18 @@ int can_place(const util::mdspan<const Bool, 3> space, int possible, const util:
     return possible;
 }
 
-std::size_t try_place(const stacker_parameters& params, stack_state& state, const std::size_t part_index, const std::size_t to_place, const geo::point3<int> max) {
+std::size_t try_place(const stack_parameters& params, stack_state& state, const std::size_t part_index, const std::size_t to_place, const geo::point3<int> max) {
     std::size_t placed = 0;
     for (int s = 0; s <= max.x + max.y + max.z; ++s) {
         for (int r = std::max(0, s - max.z); r <= std::min(s, max.x + max.y); ++r) {
             const int z = s - r;
             for (int x = std::max(0, r - max.y); x <= std::min(r, max.x); ++x) {
                 const int y = r - x;
-                const std::span rotations = rotation_sets[state.ordered_parts[part_index].rotation_index];
 
                 // Calculate which orientations fit in bounding box
                 int bit_index = 1;
                 int possible = 0;
-                for (int i = 0; i < rotations.size(); ++i) {
-                    const auto& box_size = state.meshes[part_index][i].bounding.box_size;
+                for (const auto& [mesh, box_size, piece] : state.meshes[part_index]) {
                     if (x + box_size.x < max.x && y + box_size.y < max.y && z + box_size.z < max.z) {
                         possible |= bit_index;
                     }
@@ -90,12 +89,15 @@ std::size_t try_place(const stacker_parameters& params, stack_state& state, cons
 
                 if (possible != 0) { // If it fits, figure out which rotation to use
                     bit_index = 1;
-                    for (int i = 0; i < rotations.size(); ++i) {
+                    for (const auto& [mesh, box_size, piece] : state.meshes[part_index]) {
                         if ((possible & bit_index) == 0) {
                             bit_index *= 2;
                             continue;
                         } else {
-                            state.result.add(state.meshes[part_index][i].mesh, { (float)x, (float)y, (float)z });
+                            const geo::vector3<float> translation = { (float)x, (float)y, (float)z };
+                            state.result.mesh.add(mesh, translation);
+                            auto& new_piece = state.result.pieces.emplace_back(piece);
+                            new_piece.translation += translation;
                             place(state.space, bit_index, state.voxels[part_index], x, y, z); // Mark voxels as occupied
                             ++placed;
                             if (to_place == placed) { // All instances of this part placed, move to next part
@@ -114,33 +116,27 @@ std::size_t try_place(const stacker_parameters& params, stack_state& state, cons
     return placed;
 }
 
-std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atomic<bool>& running) {
+std::optional<stack_result> stack_impl(const stack_parameters& params, const std::atomic<bool>& running) {
     stack_state state{};
-    {
-        auto parts = params.parts;
-        std::ranges::sort(parts, std::greater{}, &part_properties::volume);
-        state.ordered_parts.reserve(parts.size());
-        for (const part_properties* part : parts) {
-            state.ordered_parts.push_back(*part);
-        }
-    }
+    state.ordered_parts = params.parts;
+    std::ranges::sort(state.ordered_parts, std::greater{}, &part::volume);
     state.meshes.assign(state.ordered_parts.size(), {});
     state.voxels.assign(state.ordered_parts.size(), {});
 
     double triangles = 0;
     const double scale_factor = 1 / params.resolution;
     int total_parts = 0;
-    for (const part_properties& part : state.ordered_parts) {
-        triangles += part.triangle_count * rotation_sets[part.rotation_index].size();
-        total_parts += part.quantity;
+    for (const std::shared_ptr<const part> part : state.ordered_parts) {
+        triangles += part->triangle_count * rotation_sets[part->rotation_index].size();
+        total_parts += part->quantity;
     }
 
     double progress = 0;
     for (int i = 0; i < state.ordered_parts.size(); ++i) {
         geo::matrix3 base_rotation = geo::eye3<float>;
 
-        if (state.ordered_parts[i].rotate_min_box) {
-            auto reduced_view = state.ordered_parts[i].mesh.triangles()
+        if (state.ordered_parts[i]->rotate_min_box) {
+            auto reduced_view = state.ordered_parts[i]->mesh.triangles()
                               | std::views::filter([i = 0](auto&&) mutable { return i++ % 16 == 0; });
             mesh reduced_mesh{ std::vector<geo::triangle>(reduced_view.begin(), reduced_view.end()) };
 
@@ -172,36 +168,38 @@ std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atom
         }
 
         // Set up array of parts
-        const std::span rotations = rotation_sets[state.ordered_parts[i].rotation_index];
+        const auto rotations = rotation_sets[state.ordered_parts[i]->rotation_index];
         state.meshes[i].reserve(rotations.size());
 
         // Track bounding box size
         geo::vector3<int> max_box_size = { 1, 1, 1 };
 
         // Calculate all the rotations
-        for (int j = 0; j < rotations.size(); ++j) {
+        for (const auto& rotation : rotations) {
             if (not running) {
                 return std::nullopt;
             }
 
-            mesh m = state.ordered_parts[i].mesh;
+            const std::shared_ptr<const part> part = state.ordered_parts[i];
+            mesh m = part->mesh;
             m.scale(scale_factor);
-            m.rotate(base_rotation * rotations[j]);
-            m.set_baseline({ 0, 0, 0 });
+            auto total_rotation = base_rotation * rotation;
+            m.rotate(total_rotation);
+            auto offset = m.set_baseline({ 0, 0, 0 });
 
-            auto bounding = m.bounding();
-            const auto box_size = bounding.box_size;
+            const auto box_size = m.bounding().box_size;
             max_box_size.x = std::max(box_size.x, max_box_size.x);
             max_box_size.y = std::max(box_size.y, max_box_size.y);
             max_box_size.z = std::max(box_size.z, max_box_size.z);
 
+            stack_result::piece piece = { .part = part, .rotation = total_rotation, .translation = offset };
 #if defined(__cpp_aggregate_paren_init) and __cpp_aggregate_paren_init >= 201902L
-            state.meshes[i].emplace_back(std::move(m), std::move(bounding));
+            state.meshes[i].emplace_back(std::move(m), box_size, std::move(piece));
 #else
-            state.meshes[i].push_back(stack_state::mesh_entry{std::move(m), std::move(bounding)});
+            state.meshes[i].push_back(stack_state::mesh_entry{std::move(m), box_size, std::move(piece)});
 #endif
 
-            progress += state.ordered_parts[i].triangle_count / 2;
+            progress += part->triangle_count / 2;
             params.set_progress(progress, triangles);
         }
 
@@ -210,15 +208,15 @@ std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atom
 
         // Voxelize each rotated instance of this part
         int bit_index = 1;
-        for (const auto& [mesh, _] : state.meshes[i]) {
+        for (const auto& [mesh, box_size, piece] : state.meshes[i]) {
             if (not running) {
                 return std::nullopt;
             }
 
-            voxelize(mesh, state.voxels[i], bit_index, state.ordered_parts[i].min_hole);
+            voxelize(mesh, state.voxels[i], bit_index, state.ordered_parts[i]->min_hole);
             bit_index *= 2;
 
-            progress += state.ordered_parts[i].triangle_count / 2;
+            progress += state.ordered_parts[i]->triangle_count / 2;
             params.set_progress(progress, triangles);
         }
     }
@@ -236,7 +234,7 @@ std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atom
 
     std::size_t total_placed = 0;
     for (std::size_t part_index = 0; part_index != state.ordered_parts.size(); ++part_index) {
-        std::size_t to_place = state.ordered_parts[part_index].quantity;
+        std::size_t to_place = state.ordered_parts[part_index]->quantity;
         while (to_place > 0) {
             if (not running) {
                 return std::nullopt;
@@ -245,7 +243,7 @@ std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atom
             to_place -= placed;
             total_placed += placed;
             params.set_progress(total_placed, total_parts);
-            params.display_mesh(state.result, max_x, max_y, max_z);
+            params.display_mesh(state.result.mesh, max_x, max_y, max_z);
 
             // If we have not placed a part, it means there are no more ways to place an instance of the current part in the box: it must be enlarged
             if (placed == 0) {
@@ -257,10 +255,10 @@ std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atom
                 int min_box_x = std::numeric_limits<int>::max();
                 int min_box_y = std::numeric_limits<int>::max();
                 int min_box_z = std::numeric_limits<int>::max();
-                for (const auto& [_, bounding] : state.meshes[part_index]) {
-                    min_box_x = std::min(bounding.box_size.x, min_box_x);
-                    min_box_y = std::min(bounding.box_size.y, min_box_y);
-                    min_box_z = std::min(bounding.box_size.z, min_box_z);
+                for (const auto& [mesh, box_size, piece] : state.meshes[part_index]) {
+                    min_box_x = std::min(box_size.x, min_box_x);
+                    min_box_y = std::min(box_size.y, min_box_y);
+                    min_box_z = std::min(box_size.z, min_box_z);
                 }
 
                 for (int s = 0; s < state.space.extent(0) + state.space.extent(1) + state.space.extent(2) - min_box_x - min_box_y - min_box_z; ++s) {
@@ -276,13 +274,10 @@ std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atom
                                 continue;
                             }
 
-                            const std::span rotations = rotation_sets[state.ordered_parts[part_index].rotation_index];
-
                             // Calculate which orientations fit in bounding box
                             int bit_index = 1;
                             int possible = 0;
-                            for (int i = 0; i < rotations.size(); ++i) {
-                                const auto& box_size = state.meshes[part_index][i].bounding.box_size;
+                            for (const auto& [mesh, box_size, piece] : state.meshes[part_index]) {
                                 if (x + box_size.x < state.space.extent(0) && y + box_size.y < state.space.extent(1) && z + box_size.z < state.space.extent(2)) {
                                     possible |= bit_index;
                                 }
@@ -293,9 +288,8 @@ std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atom
 
                             if (possible != 0) { // If it fits, figure out which rotation to use
                                 bit_index = 1;
-                                for (int i = 0; i < rotations.size(); ++i) {
+                                for (const auto& [mesh, box_size, piece] : state.meshes[part_index]) {
                                     if ((possible & bit_index) != 0) {
-                                        const auto& box_size = state.meshes[part_index][i].bounding.box_size;
                                         const int new_box = std::max(max_x, x + box_size.x) * std::max(max_y, y + box_size.y) * std::max(max_z, z + box_size.z);
                                         if (new_box < best) {
                                             best = new_box;
@@ -312,7 +306,7 @@ std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atom
                 }
 
                 if (best == std::numeric_limits<int>::max()) {
-                    return mesh{};
+                    return stack_result{};
                 }
 
                 max_x = std::max(max_x, new_x + 2);
@@ -322,24 +316,24 @@ std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atom
         }
     }
 
-    state.result.scale(1 / scale_factor);
+    state.result.mesh.scale(1 / scale_factor);
     return { std::move(state.result) };
 }
 
 } // namespace
 
-void stacker::stack(const stacker_parameters params) {
+void stacker::stack(const stack_parameters params) {
     if (_running.exchange(true)) {
         return;
     }
     const auto start = std::chrono::system_clock::now();
-    std::optional<mesh> result = stack_impl(params, _running);
+    std::optional<stack_result> result = stack_impl(params, _running);
     const auto elapsed = std::chrono::system_clock::now() - start;
     if (result.has_value()) {
-        if (result->triangles().empty()) {
+        if (result->pieces.empty()) {
             params.on_failure();
         } else {
-            params.on_success(std::move(*result), std::chrono::duration_cast<std::chrono::duration<double>>(elapsed));
+            params.on_success(std::move(*result), elapsed);
         }
     }
     params.on_finish();

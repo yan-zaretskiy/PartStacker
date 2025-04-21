@@ -1,15 +1,14 @@
 #ifndef PSTACK_GUI_PARTS_LIST_HPP
 #define PSTACK_GUI_PARTS_LIST_HPP
 
-#include "pstack/calc/part_properties.hpp"
+#include "pstack/calc/part.hpp"
 #include "pstack/gui/list_view.hpp"
 #include <wx/stattext.h>
+#include <memory>
 #include <optional>
 #include <string_view>
 
 namespace pstack::gui {
-
-using pstack::calc::part_properties;
 
 class parts_list {
 public:
@@ -24,7 +23,7 @@ public:
         return _list.rows();
     }
     void append(std::string mesh_file);
-    void append(part_properties properties);
+    void append(calc::part part);
     void change(std::string mesh_file, std::size_t row);
     void reload_file(std::size_t row);
     void reload_text(std::size_t row);
@@ -46,17 +45,10 @@ public:
         _list.control()->Bind(wxEVT_LIST_ITEM_DESELECTED, callback);
     }
 
-    part_properties& at(std::size_t row) {
-        return _properties.at(row);
+    std::shared_ptr<calc::part> at(std::size_t row) {
+        return _parts.at(row);
     }
-    std::vector<const part_properties*> get_all() {
-        std::vector<const part_properties*> out{};
-        out.reserve(_properties.size());
-        for (auto& part : _properties) {
-            out.push_back(&part);
-        }
-        return out;
-    }
+    std::vector<std::shared_ptr<const calc::part>> get_all() const;
 
     void update_label();
     wxWindow* label() const {
@@ -78,7 +70,7 @@ public:
 
 private:
     list_view _list{};
-    std::vector<part_properties> _properties{};
+    std::vector<std::shared_ptr<calc::part>> _parts;
     std::vector<bool> _selected{};
 
     wxStaticText* _label{};

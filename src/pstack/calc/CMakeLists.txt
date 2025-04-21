@@ -8,7 +8,7 @@ add_library(pstack_calc STATIC
 target_sources(pstack_calc PUBLIC FILE_SET headers TYPE HEADERS FILES
     bool.hpp
     mesh.hpp
-    part_properties.hpp
+    part.hpp
     rotations.hpp
     sinterbox.hpp
     stacker_thread.hpp

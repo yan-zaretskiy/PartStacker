@@ -83,54 +83,6 @@ bool viewport::initialize() {
     return true;
 }
 
-void viewport::on_paint(wxPaintEvent&) {
-    wxPaintDC dc(this);
-    render(dc);
-}
-
-void viewport::render() {
-    wxClientDC dc(this);
-    render(dc);
-}
-
-void viewport::render(wxDC& dc) {
-    if (!_opengl_initialized) {
-        return;
-    }
-
-    SetCurrent(*_opengl_context);
-
-    graphics::clear(40 / 255.0, 50 / 255.0, 120 / 255.0, 1);
-    _shader.use_program();
-    _vao.bind_arrays();
-    graphics::draw_triangles(_vao[0].size());
-
-    SwapBuffers();
-}
-
-void viewport::on_size(wxSizeEvent& event) {
-    const bool first_appearance = IsShownOnScreen() && !_opengl_initialized;
-    if (first_appearance) {
-        _opengl_initialized = initialize();
-    }
-
-    if (_opengl_initialized) {
-        _viewport_size = event.GetSize() * GetContentScaleFactor();
-        graphics::viewport(0, 0, _viewport_size.x, _viewport_size.y);
-
-        static constexpr float scale_baseline = 866;
-        _transform.scale_screen(scale_baseline / _viewport_size.x, scale_baseline / _viewport_size.y);
-        _shader.set_uniform("transform_vertices", _transform.for_vertices());
-        _shader.set_uniform("transform_normals", _transform.for_normals());
-
-        if (first_appearance) {
-            render();
-        }
-    }
-
-    event.Skip();
-}
-
 void viewport::set_mesh(const calc::mesh& mesh, const geo::point3<float>& centroid) {
     _vao.clear();
 
@@ -175,8 +127,56 @@ void viewport::remove_mesh() {
     render();
 }
 
+void viewport::render() {
+    wxClientDC dc(this);
+    render(dc);
+}
+
+void viewport::render(wxDC& dc) {
+    if (!_opengl_initialized) {
+        return;
+    }
+
+    SetCurrent(*_opengl_context);
+
+    graphics::clear(40 / 255.0, 50 / 255.0, 120 / 255.0, 1);
+    _shader.use_program();
+    _vao.bind_arrays();
+    graphics::draw_triangles(_vao[0].size());
+
+    SwapBuffers();
+}
+
+void viewport::on_paint(wxPaintEvent&) {
+    wxPaintDC dc(this);
+    render(dc);
+}
+
+void viewport::on_size(wxSizeEvent& event) {
+    const bool first_appearance = IsShownOnScreen() && !_opengl_initialized;
+    if (first_appearance) {
+        _opengl_initialized = initialize();
+    }
+
+    if (_opengl_initialized) {
+        _viewport_size = event.GetSize() * GetContentScaleFactor();
+        graphics::viewport(0, 0, _viewport_size.x, _viewport_size.y);
+
+        static constexpr float scale_baseline = 866;
+        _transform.scale_screen(scale_baseline / _viewport_size.x, scale_baseline / _viewport_size.y);
+        _shader.set_uniform("transform_vertices", _transform.for_vertices());
+        _shader.set_uniform("transform_normals", _transform.for_normals());
+
+        if (first_appearance) {
+            render();
+        }
+    }
+
+    event.Skip();
+}
+
 void viewport::on_left_down(wxMouseEvent& evt) {
-    starting_pos = evt.GetPosition();
+    _cached_position = evt.GetPosition();
     Bind(wxEVT_LEFT_UP, &viewport::on_left_up, this);
     Bind(wxEVT_MOTION, &viewport::on_motion, this);
     Bind(wxEVT_MOUSE_CAPTURE_LOST, &viewport::on_capture_lost, this);
@@ -205,8 +205,8 @@ void viewport::on_scroll(wxMouseEvent& evt) {
 }
 
 void viewport::on_move_by(wxPoint position) {
-    const auto [dx, dy] = starting_pos - position;
-    starting_pos = position;
+    const auto [dx, dy] = _cached_position - position;
+    _cached_position = position;
     _transform.rotate_by((float)dy / 256, (float)dx / 256);
     _shader.set_uniform("transform_vertices", _transform.for_vertices());
     _shader.set_uniform("transform_normals", _transform.for_normals());
