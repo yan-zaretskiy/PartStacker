@@ -34,12 +34,6 @@ To see if CMake is properly installed
     * Either close and reopen PowerShell
     * Or try installing again
 
-### Install WSL (needed for `make` command)
-
-This is a fairly heavyweight requirement for such a small usage, so hopefully it can be removed in the future
-
-* Follow the instructions at https://learn.microsoft.com/en-us/windows/wsl/install
-
 ### Install Visual Studio 2022 Community Edition
 
 * If you don't have Visual Studio 2022 yet, visit [this download link](https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=Community&channel=Release&version=VS2022) for the installer
@@ -93,19 +87,6 @@ git pull --recurse-submodules
 
 ## Build and run PartStacker
 
-### Configure the dependency GLEW
-
-* Open WSL
-* ![](./windows/wsl.png)
-* Navigate to the PartStacker directory
-    * Assuming your PartStacker directory is at `C:\Users\{your-username}\Documents\PartStacker`
-    * Type in `cd /mnt/c/Users/{your-username}/Documents/PartStacker`
-    * Note that the back slashes turned into forward slashes, and "C:" turned into "/mnt/c"
-* After navigating to the PartStacker directory, type `cd external/glew/auto`
-* Then type `make`
-* Wait until it finishes
-* Now you can close WSL
-
 ### Build PartStacker
 
 * Open Windows PowerShell
@@ -116,7 +97,7 @@ git pull --recurse-submodules
 
 If you choose to make edits to the code, repeat these steps to rebuild PartStacker
 
-* Make sure you've closed out of the PartStacker if you have it running
+* Make sure you've exited PartStacker before building again
 
 ### Run PartStacker
 
