@@ -1,3 +1,4 @@
+#include "pstack/gui/constants.hpp"
 #include "pstack/gui/controls.hpp"
 #include "pstack/gui/main_window.hpp"
 
@@ -14,7 +15,7 @@ std::pair<wxNotebook*, std::vector<wxPanel*>> make_tab_panels(wxWindow* parent, 
         panel_base->SetSizer(panel_base_sizer);
         notebook->InsertPage(i, panel_base, labels[i]);
         wxPanel* const panel = new wxPanel(panel_base);
-        panel_base_sizer->Add(panel, 1, wxEXPAND | wxALL, notebook->FromDIP(tab_padding));
+        panel_base_sizer->Add(panel, 1, wxEXPAND | wxALL, notebook->FromDIP(constants::tab_padding));
         panels.push_back(panel);
     }
     return { notebook, std::move(panels) };

@@ -49,8 +49,8 @@ part_properties make_properties(std::string mesh_file, bool mirrored) {
 
 } // namespace
 
-void parts_list::initialize(wxWindow* parent, wxSize min_size) {
-    _list = list_view(parent, min_size, {
+void parts_list::initialize(wxWindow* parent) {
+    _list = list_view(parent, {
         { "Name", 105 },
         { "Quantity", 60 },
         { "Volume", 60 },

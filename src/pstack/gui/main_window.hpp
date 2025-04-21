@@ -16,8 +16,6 @@
 
 namespace pstack::gui {
 
-constexpr int tab_padding = 7;
-
 class viewport;
 
 class main_window : public wxFrame {

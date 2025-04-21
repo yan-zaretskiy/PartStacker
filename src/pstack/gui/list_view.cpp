@@ -1,11 +1,12 @@
+#include "pstack/gui/constants.hpp"
 #include "pstack/gui/list_view.hpp"
 #include <ranges>
 
 namespace pstack::gui {
 
-list_view::list_view(wxWindow* parent, const wxSize min_size, const std::vector<std::pair<wxString, int>>& columns) {
+list_view::list_view(wxWindow* parent, const std::vector<std::pair<wxString, int>>& columns) {
     _list = new wxListView(parent);
-    _list->SetMinSize(parent->FromDIP(min_size));
+    _list->SetMinSize(parent->FromDIP(constants::min_list_size));
     for (const auto& [label, width] : columns) {
         _list->AppendColumn(label, wxLIST_FORMAT_LEFT, parent->FromDIP(width));
     }

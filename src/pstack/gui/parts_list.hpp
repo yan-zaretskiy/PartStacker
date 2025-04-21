@@ -14,7 +14,7 @@ using pstack::calc::part_properties;
 class parts_list {
 public:
     parts_list() = default;
-    void initialize(wxWindow* parent, wxSize min_size);
+    void initialize(wxWindow* parent);
 
     // Non-copyable and non-movable, because of the bound callback
     parts_list(const parts_list&) = delete;

@@ -13,7 +13,7 @@ namespace pstack::gui {
 class list_view {
 public:
     list_view() = default;
-    list_view(wxWindow* parent, wxSize min_size, const std::vector<std::pair<wxString, int>>& columns);
+    list_view(wxWindow* parent, const std::vector<std::pair<wxString, int>>& columns);
 
     void append(std::vector<wxString> items);
     void replace(std::size_t row_index, std::vector<wxString> items);
