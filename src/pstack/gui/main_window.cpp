@@ -40,6 +40,7 @@ main_window::main_window(const wxString& title)
 #endif
 
     SetMenuBar(make_menu_bar());
+    initialize_all_controls();
 
     wxGLAttributes attrs;
     attrs.PlatformDefaults().Defaults().EndList();
@@ -58,7 +59,7 @@ main_window::main_window(const wxString& title)
     auto right_sizer = new wxBoxSizer(wxVERTICAL);
     right_sizer->Add(_parts_list.control(), 1, wxEXPAND);
     right_sizer->AddSpacer(FromDIP(inner_border));
-    right_sizer->Add(make_part_buttons(), 0, wxEXPAND);
+    right_sizer->Add(arrange_part_buttons(), 0, wxEXPAND);
     right_sizer->AddSpacer(FromDIP(inner_border));
     right_sizer->Add(_parts_list.label());
     right_sizer->AddSpacer(FromDIP(inner_border));
@@ -97,6 +98,77 @@ std::pair<wxNotebook*, std::vector<wxPanel*>> make_tab_panels(wxWindow* parent, 
 void main_window::after_show() {
     _viewport->on_move_by({0, 0});
     _viewport->render();
+}
+
+void main_window::initialize_all_controls() {
+    _import_button = new wxButton(this, wxID_ANY, "Import");
+    _delete_button = new wxButton(this, wxID_ANY, "Delete");
+    _delete_button->Disable();
+    _change_button = new wxButton(this, wxID_ANY, "Change");
+    _change_button->Disable();
+    _reload_button = new wxButton(this, wxID_ANY, "Reload");
+    _reload_button->Disable();
+
+    _min_clearance_spinner = new wxSpinCtrlDouble(this);
+    _min_clearance_spinner->SetDigits(2);
+    _min_clearance_spinner->SetIncrement(0.05);
+    _min_clearance_spinner->SetRange(0.5, 2);
+    _section_view_checkbox = new wxCheckBox(this, wxID_ANY, "");
+    _export_button = new wxButton(this, wxID_ANY, "Export result as STL");
+    _export_button->Disable();
+    _progress_bar = new wxGauge(this, wxID_ANY, 100);
+    _stack_button = new wxButton(this, wxID_ANY, "Start");
+    
+    std::tie(_notebook, _notebook_panels) = make_tab_panels(this, {
+        "Part Settings",
+        "Sinterbox",
+        "Bounding Box"
+    });
+    
+    {
+        const auto panel = _notebook_panels[0];
+        _quantity_spinner = new wxSpinCtrl(panel);
+        _quantity_spinner->SetRange(0, 200);
+        _min_hole_spinner = new wxSpinCtrl(panel);
+        _min_hole_spinner->SetRange(0, 100);
+        _minimize_checkbox = new wxCheckBox(panel, wxID_ANY, "");
+        _radio_none = new wxRadioButton(panel, wxID_ANY, "None");
+        _radio_arbitrary = new wxRadioButton(panel, wxID_ANY, "Arbitrary");
+        _radio_cubic = new wxRadioButton(panel, wxID_ANY, "Cubic");
+        _preview_button = new wxButton(panel, wxID_ANY, "Preview");
+        _copy_button = new wxButton(panel, wxID_ANY, "Copy");
+        _mirror_button = new wxButton(panel, wxID_ANY, "Mirror");
+    }
+
+    {
+        const auto panel = _notebook_panels[1];
+        auto make_spinner = [&panel](double minimum, double maximum, double increment) {
+            auto spinner = new wxSpinCtrlDouble(panel);
+            spinner->SetIncrement(increment);
+            spinner->SetRange(minimum, maximum);
+            return spinner;
+        };
+        _clearance_spinner = make_spinner(0.1, 4, 0.1);
+        _spacing_spinner = make_spinner(1, 20, 0.5);
+        _thickness_spinner = make_spinner(0.1, 4, 0.1);
+        _width_spinner = make_spinner(0.1, 4, 0.1);
+        _sinterbox_checkbox = new wxCheckBox(panel, wxID_ANY, "");
+    }
+
+    {
+        const auto panel = _notebook_panels[2];
+        auto make_spinner = [panel] {
+            auto spinner = new wxSpinCtrl(panel);
+            spinner->SetRange(10, 250);
+            return spinner;
+        };
+        _initial_x_spinner = make_spinner();
+        _initial_y_spinner = make_spinner();
+        _initial_z_spinner = make_spinner();
+        _maximum_x_spinner = make_spinner();
+        _maximum_y_spinner = make_spinner();
+        _maximum_z_spinner = make_spinner();
+    }
 }
 
 void main_window::reset_fields() {
@@ -569,18 +641,12 @@ void main_window::on_reload(wxCommandEvent& event) {
     event.Skip();
 }
 
-wxSizer* main_window::make_part_buttons() {
+wxSizer* main_window::arrange_part_buttons() {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
-    const auto make_button = [this](const char* text, bool enable) {
-        auto button = new wxButton(this, wxID_ANY, text);
-        button->SetMinSize(FromDIP(button_size));
-        button->Enable(enable);
-        return button;
-    };
-    _import_button = make_button("Import", true);
-    _delete_button = make_button("Delete", false);
-    _change_button = make_button("Change", false);
-    _reload_button = make_button("Reload", false);
+    _import_button->SetMinSize(FromDIP(button_size));
+    _delete_button->SetMinSize(FromDIP(button_size));
+    _change_button->SetMinSize(FromDIP(button_size));
+    _reload_button->SetMinSize(FromDIP(button_size));
     sizer->Add(_import_button, 1, wxEXPAND);
     sizer->AddSpacer(FromDIP(inner_border));
     sizer->Add(_delete_button, 1, wxEXPAND);
@@ -598,21 +664,12 @@ wxSizer* main_window::make_bottom_section1() {
     auto text2 = new wxStaticText(this, wxID_ANY, "Section view:");
     sizer->Add(text1, wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
     sizer->Add(text2, wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
-
-    _min_clearance_spinner = new wxSpinCtrlDouble(this);
-    _min_clearance_spinner->SetDigits(2);
-    _min_clearance_spinner->SetIncrement(0.05);
-    _min_clearance_spinner->SetRange(0.5, 2);
     sizer->Add(_min_clearance_spinner, wxGBPosition(0, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
-
-    _section_view_checkbox = new wxCheckBox(this, wxID_ANY, "");
     sizer->Add(_section_view_checkbox, wxGBPosition(1, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
 
     new wxGBSizerItem(sizer, wxGBPosition(1, 2), wxDefaultSpan, wxEXPAND);
 
-    _export_button = new wxButton(this, wxID_ANY, "Export result as STL");
     _export_button->SetMinSize(FromDIP(button_size));
-    _export_button->Disable();
     sizer->Add(_export_button, wxGBPosition(1, 3));
 
     sizer->AddGrowableCol(2, 1);
@@ -622,10 +679,7 @@ wxSizer* main_window::make_bottom_section1() {
 wxSizer* main_window::make_bottom_section2() {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
 
-    _progress_bar = new wxGauge(this, wxID_ANY, 100);
     _progress_bar->SetMinSize(FromDIP(button_size));
-
-    _stack_button = new wxButton(this, wxID_ANY, "Start");
     _stack_button->SetMinSize(FromDIP(button_size));
 
     sizer->Add(_progress_bar, 1, wxEXPAND);
@@ -636,15 +690,10 @@ wxSizer* main_window::make_bottom_section2() {
 }
 
 wxWindow* main_window::make_tabs() {
-    const auto [notebook, panels] = make_tab_panels(this, {
-        "Part Settings",
-        "Sinterbox",
-        "Bounding Box"
-    });
-    make_tab_part_settings(panels[0]);
-    make_tab_sinterbox(panels[1]);
-    make_tab_bounding_box(panels[2]);
-    return notebook;
+    make_tab_part_settings(_notebook_panels[0]);
+    make_tab_sinterbox(_notebook_panels[1]);
+    make_tab_bounding_box(_notebook_panels[2]);
+    return _notebook;
 }
 
 void main_window::make_tab_part_settings(wxPanel* panel) {
@@ -666,14 +715,6 @@ void main_window::make_tab_part_settings(wxPanel* panel) {
         label_sizer->Add(text3, 0, wxALIGN_CENTER_VERTICAL);
 
         auto button_sizer = new wxGridSizer(3, 1, panel->FromDIP(inner_border), panel->FromDIP(inner_border));
-        auto make_spinner = [&panel](int maximum) {
-            auto spinner = new wxSpinCtrl(panel);
-            spinner->SetRange(0, maximum);
-            return spinner;
-        };
-        _quantity_spinner = make_spinner(200);
-        _min_hole_spinner = make_spinner(100);
-        _minimize_checkbox = new wxCheckBox(panel, wxID_ANY, "");
         button_sizer->Add(_quantity_spinner, 0, wxALIGN_CENTER_VERTICAL);
         button_sizer->Add(_min_hole_spinner, 0, wxALIGN_CENTER_VERTICAL);
         button_sizer->Add(_minimize_checkbox, 0, wxALIGN_CENTER_VERTICAL);
@@ -681,9 +722,6 @@ void main_window::make_tab_part_settings(wxPanel* panel) {
         auto radio_box = new wxStaticBoxSizer(wxVERTICAL, panel, "Part rotations");
         auto radio_sizer = new wxGridSizer(2, 2, panel->FromDIP(inner_border), panel->FromDIP(inner_border));
         radio_box->Add(radio_sizer, 1, wxEXPAND | wxALL, panel->FromDIP(tab_padding));
-        _radio_none = new wxRadioButton(panel, wxID_ANY, "None");
-        _radio_arbitrary = new wxRadioButton(panel, wxID_ANY, "Arbitrary");
-        _radio_cubic = new wxRadioButton(panel, wxID_ANY, "Cubic");
         radio_sizer->Add(_radio_none, 0, wxEXPAND);
         radio_sizer->Add(_radio_arbitrary, 0, wxEXPAND);
         radio_sizer->Add(_radio_cubic, 0, wxEXPAND);
@@ -696,11 +734,8 @@ void main_window::make_tab_part_settings(wxPanel* panel) {
     }
 
     {
-        _preview_button = new wxButton(panel, wxID_ANY, "Preview");
         _preview_button->SetMinSize(panel->FromDIP(button_size));
-        _copy_button = new wxButton(panel, wxID_ANY, "Copy");
         _copy_button->SetMinSize(panel->FromDIP(button_size));
-        _mirror_button = new wxButton(panel, wxID_ANY, "Mirror");
         _mirror_button->SetMinSize(panel->FromDIP(button_size));
         bottom_sizer->Add(_preview_button);
         bottom_sizer->AddSpacer(panel->FromDIP(inner_border));
@@ -727,16 +762,6 @@ void main_window::make_tab_sinterbox(wxPanel* panel) {
     label_sizer->Add(text4, 0, wxALIGN_CENTER_VERTICAL);
 
     auto button_sizer = new wxGridSizer(4, 1, panel->FromDIP(inner_border), panel->FromDIP(inner_border));
-    auto make_spinner = [&panel](double minimum, double maximum, double increment) {
-        auto spinner = new wxSpinCtrlDouble(panel);
-        spinner->SetIncrement(increment);
-        spinner->SetRange(minimum, maximum);
-        return spinner;
-    };
-    _clearance_spinner = make_spinner(0.1, 4, 0.1);
-    _spacing_spinner = make_spinner(1, 20, 0.5);
-    _thickness_spinner = make_spinner(0.1, 4, 0.1);
-    _width_spinner = make_spinner(0.1, 4, 0.1);
     button_sizer->Add(_clearance_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
     button_sizer->Add(_spacing_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
     button_sizer->Add(_thickness_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
@@ -744,7 +769,6 @@ void main_window::make_tab_sinterbox(wxPanel* panel) {
 
     auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
     auto generate_text = new wxStaticText(panel, wxID_ANY, "Generate sinterbox:");
-    _sinterbox_checkbox = new wxCheckBox(panel, wxID_ANY, "");
     checkbox_sizer->Add(generate_text, 0, wxALIGN_CENTER_VERTICAL);
     checkbox_sizer->AddSpacer(panel->FromDIP(2 * inner_border));
     checkbox_sizer->Add(_sinterbox_checkbox, 0, wxALIGN_CENTER_VERTICAL);
@@ -760,12 +784,6 @@ void main_window::make_tab_bounding_box(wxPanel* panel) {
     auto panel_sizer = new wxBoxSizer(wxHORIZONTAL);
     panel->SetSizer(panel_sizer);
 
-    auto make_spinner = [panel]() {
-        auto spinner = new wxSpinCtrl(panel);
-        spinner->SetRange(10, 250);
-        return spinner;
-    };
-
     auto label_sizer1 = new wxGridSizer(4, 1, panel->FromDIP(inner_border), panel->FromDIP(inner_border));
     auto text1 = new wxStaticText(panel, wxID_ANY, "Initial X:");
     auto text2 = new wxStaticText(panel, wxID_ANY, "Initial Y:");
@@ -775,9 +793,6 @@ void main_window::make_tab_bounding_box(wxPanel* panel) {
     label_sizer1->Add(text3, 0, wxALIGN_CENTER_VERTICAL);
 
     auto button_sizer1 = new wxGridSizer(4, 1, panel->FromDIP(inner_border), panel->FromDIP(inner_border));
-    _initial_x_spinner = make_spinner();
-    _initial_y_spinner = make_spinner();
-    _initial_z_spinner = make_spinner();
     button_sizer1->Add(_initial_x_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
     button_sizer1->Add(_initial_y_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
     button_sizer1->Add(_initial_z_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
@@ -791,9 +806,6 @@ void main_window::make_tab_bounding_box(wxPanel* panel) {
     label_sizer2->Add(text6, 0, wxALIGN_CENTER_VERTICAL);
 
     auto button_sizer2 = new wxGridSizer(4, 1, panel->FromDIP(inner_border), panel->FromDIP(inner_border));
-    _maximum_x_spinner = make_spinner();
-    _maximum_y_spinner = make_spinner();
-    _maximum_z_spinner = make_spinner();
     button_sizer2->Add(_maximum_x_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
     button_sizer2->Add(_maximum_y_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
     button_sizer2->Add(_maximum_z_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);

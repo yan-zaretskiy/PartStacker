@@ -4,6 +4,7 @@
 #include <wx/checkbox.h>
 #include <wx/frame.h>
 #include <wx/gauge.h>
+#include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/radiobut.h>
 #include <wx/sizer.h>
@@ -26,6 +27,7 @@ public:
 private:
     viewport* _viewport = nullptr;
 
+    void initialize_all_controls();
     void reset_fields();
     void select_parts(const std::vector<std::size_t>& indices);
     void set_part(std::size_t index);
@@ -34,6 +36,9 @@ private:
     part_properties* _current_part = nullptr;
     std::optional<std::size_t> _current_part_index = std::nullopt;
     void enable_part_settings(bool enable);
+    wxNotebook* _notebook = nullptr;
+    std::vector<wxPanel*> _notebook_panels{};
+
     wxSpinCtrl* _quantity_spinner = nullptr;
     wxSpinCtrl* _min_hole_spinner = nullptr;
     wxCheckBox* _minimize_checkbox = nullptr;
@@ -78,7 +83,7 @@ private:
     wxMenuBar* make_menu_bar();
     std::vector<wxMenuItem*> _disableable_menu_items;
 
-    wxSizer* make_part_buttons();
+    wxSizer* arrange_part_buttons();
     wxSizer* make_bottom_section1();
     wxSizer* make_bottom_section2();
 
