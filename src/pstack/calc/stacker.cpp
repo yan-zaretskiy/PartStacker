@@ -16,13 +16,14 @@ struct stack_state {
     struct mesh_entry {
         mesh mesh;
         geo::vector3<int> box_size;
+        stack_result::piece piece;
     };
 
     std::vector<std::vector<mesh_entry>> meshes;
     std::vector<util::mdarray<int, 3>> voxels;
     util::mdarray<Bool, 3> space;
     std::vector<const part_properties*> ordered_parts;
-    mesh result;
+    stack_result result;
 };
 
 void place(const util::mdspan<Bool, 3> space, const int index, const util::mdspan<const int, 3> obj, const int x, const int y, const int z) {
@@ -95,7 +96,10 @@ std::size_t try_place(const stack_parameters& params, stack_state& state, const 
                             bit_index *= 2;
                             continue;
                         } else {
-                            state.result.add(state.meshes[part_index][i].mesh, { (float)x, (float)y, (float)z });
+                            const geo::vector3<float> translation = { (float)x, (float)y, (float)z };
+                            state.result.mesh.add(state.meshes[part_index][i].mesh, translation);
+                            auto& piece = state.result.pieces.emplace_back(state.meshes[part_index][i].piece);
+                            piece.translation += translation;
                             place(state.space, bit_index, state.voxels[part_index], x, y, z); // Mark voxels as occupied
                             ++placed;
                             if (to_place == placed) { // All instances of this part placed, move to next part
@@ -114,7 +118,7 @@ std::size_t try_place(const stack_parameters& params, stack_state& state, const 
     return placed;
 }
 
-std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic<bool>& running) {
+std::optional<stack_result> stack_impl(const stack_parameters& params, const std::atomic<bool>& running) {
     stack_state state{};
     {
         auto parts = params.parts;
@@ -187,18 +191,20 @@ std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic
             const part_properties* const part = state.ordered_parts[i];
             mesh m = part->mesh;
             m.scale(scale_factor);
-            m.rotate(base_rotation * rotations[j]);
-            m.set_baseline({ 0, 0, 0 });
+            auto rotation = base_rotation * rotations[j];
+            m.rotate(rotation);
+            auto offset = m.set_baseline({ 0, 0, 0 });
 
             const auto box_size = m.bounding().box_size;
             max_box_size.x = std::max(box_size.x, max_box_size.x);
             max_box_size.y = std::max(box_size.y, max_box_size.y);
             max_box_size.z = std::max(box_size.z, max_box_size.z);
 
+            stack_result::piece piece = { .part = part, .rotation = rotation, .translation = offset };
 #if defined(__cpp_aggregate_paren_init) and __cpp_aggregate_paren_init >= 201902L
-            state.meshes[i].emplace_back(std::move(m), box_size);
+            state.meshes[i].emplace_back(std::move(m), box_size, std::move(piece));
 #else
-            state.meshes[i].push_back(stack_state::mesh_entry{std::move(m), box_size});
+            state.meshes[i].push_back(stack_state::mesh_entry{std::move(m), box_size, std::move(piece)});
 #endif
 
             progress += part->triangle_count / 2;
@@ -210,7 +216,7 @@ std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic
 
         // Voxelize each rotated instance of this part
         int bit_index = 1;
-        for (const auto& [mesh, _] : state.meshes[i]) {
+        for (const auto& [mesh, box_size, piece] : state.meshes[i]) {
             if (not running) {
                 return std::nullopt;
             }
@@ -245,7 +251,7 @@ std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic
             to_place -= placed;
             total_placed += placed;
             params.set_progress(total_placed, total_parts);
-            params.display_mesh(state.result, max_x, max_y, max_z);
+            params.display_mesh(state.result.mesh, max_x, max_y, max_z);
 
             // If we have not placed a part, it means there are no more ways to place an instance of the current part in the box: it must be enlarged
             if (placed == 0) {
@@ -257,7 +263,7 @@ std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic
                 int min_box_x = std::numeric_limits<int>::max();
                 int min_box_y = std::numeric_limits<int>::max();
                 int min_box_z = std::numeric_limits<int>::max();
-                for (const auto& [_, box_size] : state.meshes[part_index]) {
+                for (const auto& [mesh, box_size, piece] : state.meshes[part_index]) {
                     min_box_x = std::min(box_size.x, min_box_x);
                     min_box_y = std::min(box_size.y, min_box_y);
                     min_box_z = std::min(box_size.z, min_box_z);
@@ -312,7 +318,7 @@ std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic
                 }
 
                 if (best == std::numeric_limits<int>::max()) {
-                    return mesh{};
+                    return stack_result{};
                 }
 
                 max_x = std::max(max_x, new_x + 2);
@@ -322,7 +328,7 @@ std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic
         }
     }
 
-    state.result.scale(1 / scale_factor);
+    state.result.mesh.scale(1 / scale_factor);
     return { std::move(state.result) };
 }
 
@@ -333,10 +339,10 @@ void stacker::stack(const stack_parameters params) {
         return;
     }
     const auto start = std::chrono::system_clock::now();
-    std::optional<mesh> result = stack_impl(params, _running);
+    std::optional<stack_result> result = stack_impl(params, _running);
     const auto elapsed = std::chrono::system_clock::now() - start;
     if (result.has_value()) {
-        if (result->triangles().empty()) {
+        if (result->pieces.empty()) {
             params.on_failure();
         } else {
             params.on_success(std::move(*result), elapsed);

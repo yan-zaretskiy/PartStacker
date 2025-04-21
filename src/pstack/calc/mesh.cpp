@@ -40,7 +40,7 @@ void mesh::rotate(const geo::matrix3<float>& rotation) {
     }
 }
 
-void mesh::set_baseline(const geo::point3<float> baseline) {
+geo::vector3<float> mesh::set_baseline(const geo::point3<float> baseline) {
     const geo::point3 min = bounding().min;
     const geo::vector3 offset = baseline - min;
     for (auto& t : _triangles) {
@@ -48,6 +48,7 @@ void mesh::set_baseline(const geo::point3<float> baseline) {
         t.v2 += offset;
         t.v3 += offset;
     }
+    return offset;
 }
 
 mesh::bounding_t mesh::bounding() const {

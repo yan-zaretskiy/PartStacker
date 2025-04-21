@@ -9,12 +9,22 @@
 
 namespace pstack::calc {
 
+struct stack_result {
+    struct piece {
+        const part_properties* part;
+        geo::matrix3<float> rotation;
+        geo::vector3<float> translation;
+    };
+    std::vector<piece> pieces;
+    mesh mesh;
+};
+
 struct stack_parameters {
     std::vector<const part_properties*> parts;
 
     std::function<void(double, double)> set_progress;
     std::function<void(const mesh&, int, int, int)> display_mesh;
-    std::function<void(mesh, std::chrono::system_clock::duration)> on_success;
+    std::function<void(stack_result, std::chrono::system_clock::duration)> on_success;
     std::function<void()> on_failure;
     std::function<void()> on_finish;
 

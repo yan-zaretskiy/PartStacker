@@ -116,9 +116,9 @@ void main_window::on_stacking_start() {
                 _viewport->set_mesh(mesh, { max_x / 2.0f, max_y / 2.0f, max_z / 2.0f });
             });
         },
-        .on_success = [this](calc::mesh mesh, const std::chrono::system_clock::duration elapsed) {
-            CallAfter([=, mesh = std::move(mesh)] {
-                on_stacking_success(std::move(mesh), elapsed);
+        .on_success = [this](calc::stack_result result, const std::chrono::system_clock::duration elapsed) {
+            CallAfter([=, result = std::move(result)] {
+                on_stacking_success(std::move(result), elapsed);
                 _controls.export_button->Enable();
             });
         },
@@ -151,12 +151,12 @@ void main_window::on_stacking_stop() {
     }
 }
 
-void main_window::on_stacking_success(calc::mesh mesh, const std::chrono::system_clock::duration elapsed) {
-    _last_result.emplace(std::move(mesh));
-    auto bounding = _last_result->bounding();
+void main_window::on_stacking_success(calc::stack_result result, const std::chrono::system_clock::duration elapsed) {
+    _last_result.emplace(std::move(result));
+    auto bounding = _last_result->mesh.bounding();
     if (_controls.sinterbox_checkbox->GetValue()) {
         const double offset = _controls.thickness_spinner->GetValue() + _controls.clearance_spinner->GetValue();
-        _last_result->set_baseline(geo::origin3<float> + offset);
+        _last_result->mesh.set_baseline(geo::origin3<float> + offset);
         const calc::sinterbox_parameters params {
             .min = bounding.min + offset,
             .max = bounding.max + offset,
@@ -165,15 +165,15 @@ void main_window::on_stacking_success(calc::mesh mesh, const std::chrono::system
             .width = _controls.width_spinner->GetValue(),
             .spacing = _controls.spacing_spinner->GetValue() + 0.00013759,
         };
-        _last_result->add_sinterbox(params);
-        bounding = _last_result->bounding();
+        _last_result->mesh.add_sinterbox(params);
+        bounding = _last_result->mesh.bounding();
     }
 
     const auto size = bounding.max - bounding.min;
     const auto centroid = (size / 2) + geo::origin3<float>;
-    _viewport->set_mesh(*_last_result, centroid);
+    _viewport->set_mesh(_last_result->mesh, centroid);
 
-    const double volume = _last_result->volume_and_centroid().volume;
+    const double volume = _last_result->mesh.volume_and_centroid().volume;
     const double percent_volume = 100 * volume / (size.x * size.y * size.z);
 
     const auto message = wxString::Format(
@@ -404,7 +404,7 @@ void main_window::on_export() {
     }
 
     const wxString path = dialog.GetPath();
-    files::to_stl(*_last_result, path.ToStdString());
+    files::to_stl(_last_result->mesh, path.ToStdString());
 }
 
 void main_window::on_import(wxCommandEvent& event) {

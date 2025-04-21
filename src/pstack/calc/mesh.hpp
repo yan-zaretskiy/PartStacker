@@ -27,7 +27,7 @@ public:
     void mirror_x();
     void scale(double factor);
     void rotate(const geo::matrix3<float>& rotation);
-    void set_baseline(const geo::point3<float> baseline);
+    geo::vector3<float> set_baseline(const geo::point3<float> baseline);
 
     void add_sinterbox(const sinterbox_parameters& params) {
         append_sinterbox(_triangles, params);

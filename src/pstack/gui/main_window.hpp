@@ -36,9 +36,9 @@ private:
     void on_stacking(wxCommandEvent& event);
     void on_stacking_start();
     void on_stacking_stop();
-    void on_stacking_success(calc::mesh mesh, std::chrono::system_clock::duration elapsed);
+    void on_stacking_success(calc::stack_result result, std::chrono::system_clock::duration elapsed);
     void enable_on_stacking(bool starting);
-    std::optional<calc::mesh> _last_result = {};
+    std::optional<calc::stack_result> _last_result = {};
     calc::stacker_thread _stacker_thread;
 
     wxMenuBar* make_menu_bar();
