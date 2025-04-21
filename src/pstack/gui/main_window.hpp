@@ -48,15 +48,6 @@ private:
     wxMenuBar* make_menu_bar();
     std::vector<wxMenuItem*> _disableable_menu_items;
 
-    wxSizer* arrange_part_buttons();
-    wxSizer* make_bottom_section1();
-    wxSizer* make_bottom_section2();
-
-    wxWindow* make_tabs();
-    void make_tab_part_settings(wxPanel* panel);
-    void make_tab_sinterbox(wxPanel* panel);
-    void make_tab_bounding_box(wxPanel* panel);
-
     void bind_all_controls();
     void on_new(wxCommandEvent& event);
     void on_close(wxCloseEvent& event);
@@ -66,6 +57,15 @@ private:
     void on_delete(wxCommandEvent& event);
     void on_change(wxCommandEvent& event);
     void on_reload(wxCommandEvent& event);
+
+    wxSizer* arrange_all_controls();
+    wxSizer* arrange_part_buttons();
+    wxSizer* arrange_bottom_section1();
+    wxSizer* arrange_bottom_section2();
+    wxNotebook* arrange_tabs();
+    void arrange_tab_part_settings(wxPanel* panel);
+    void arrange_tab_sinterbox(wxPanel* panel);
+    void arrange_tab_bounding_box(wxPanel* panel);
 };
 
 } // namespace pstack::gui

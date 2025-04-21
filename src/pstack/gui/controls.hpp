@@ -8,6 +8,7 @@
 #include <wx/panel.h>
 #include <wx/radiobut.h>
 #include <wx/spinctrl.h>
+#include <wx/stattext.h>
 #include <vector>
 
 namespace pstack::gui {

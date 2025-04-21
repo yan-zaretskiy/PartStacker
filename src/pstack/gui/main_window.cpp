@@ -4,22 +4,12 @@
 #include "pstack/gui/viewport.hpp"
 
 #include <cstdlib>
-#include <wx/button.h>
-#include <wx/checkbox.h>
 #include <wx/colourdata.h>
 #include <wx/filedlg.h>
-#include <wx/gauge.h>
 #include <wx/gbsizer.h>
-#include <wx/listctrl.h>
 #include <wx/menu.h>
 #include <wx/msgdlg.h>
-#include <wx/notebook.h>
-#include <wx/panel.h>
-#include <wx/radiobut.h>
 #include <wx/sizer.h>
-#include <wx/spinctrl.h>
-#include <wx/stattext.h>
-#include <wx/string.h>
 
 namespace pstack::gui {
 
@@ -39,7 +29,11 @@ main_window::main_window(const wxString& title)
 #endif
 
     SetMenuBar(make_menu_bar());
+
     _controls.initialize(this);
+    bind_all_controls();
+    enable_part_settings(false);
+    _parts_list.update_label();
 
     wxGLAttributes attrs;
     attrs.PlatformDefaults().Defaults().EndList();
@@ -52,26 +46,7 @@ main_window::main_window(const wxString& title)
 
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(_viewport, 1, wxEXPAND);
-
-    _parts_list.update_label();
-
-    auto right_sizer = new wxBoxSizer(wxVERTICAL);
-    right_sizer->Add(_parts_list.control(), 1, wxEXPAND);
-    right_sizer->AddSpacer(FromDIP(inner_border));
-    right_sizer->Add(arrange_part_buttons(), 0, wxEXPAND);
-    right_sizer->AddSpacer(FromDIP(inner_border));
-    right_sizer->Add(_parts_list.label());
-    right_sizer->AddSpacer(FromDIP(inner_border));
-    right_sizer->Add(make_tabs(), 0, wxEXPAND);
-    right_sizer->AddSpacer(FromDIP(inner_border));
-    right_sizer->Add(make_bottom_section1(), 0, wxEXPAND);
-    right_sizer->AddSpacer(FromDIP(inner_border));
-    right_sizer->Add(make_bottom_section2(), 0, wxEXPAND);
-    _controls.reset_values();
-
-    bind_all_controls();
-
-    sizer->Add(right_sizer, 0, wxEXPAND | wxALL, FromDIP(outside_border));
+    sizer->Add(arrange_all_controls(), 0, wxEXPAND | wxALL, FromDIP(outside_border));
     SetSizerAndFit(sizer);
 }
 
@@ -526,6 +501,22 @@ void main_window::on_reload(wxCommandEvent& event) {
     event.Skip();
 }
 
+wxSizer* main_window::arrange_all_controls() {
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(_parts_list.control(), 1, wxEXPAND);
+    sizer->AddSpacer(FromDIP(inner_border));
+    sizer->Add(arrange_part_buttons(), 0, wxEXPAND);
+    sizer->AddSpacer(FromDIP(inner_border));
+    sizer->Add(_parts_list.label());
+    sizer->AddSpacer(FromDIP(inner_border));
+    sizer->Add(arrange_tabs(), 0, wxEXPAND);
+    sizer->AddSpacer(FromDIP(inner_border));
+    sizer->Add(arrange_bottom_section1(), 0, wxEXPAND);
+    sizer->AddSpacer(FromDIP(inner_border));
+    sizer->Add(arrange_bottom_section2(), 0, wxEXPAND);
+    return sizer;
+}
+
 wxSizer* main_window::arrange_part_buttons() {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     _controls.import_button->SetMinSize(FromDIP(button_size));
@@ -542,44 +533,37 @@ wxSizer* main_window::arrange_part_buttons() {
     return sizer;
 }
 
-wxSizer* main_window::make_bottom_section1() {
+wxSizer* main_window::arrange_bottom_section1() {
     auto sizer = new wxGridBagSizer(FromDIP(inner_border), FromDIP(inner_border));
-
     sizer->Add(_controls.min_clearance_text, wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
     sizer->Add(_controls.section_view_text, wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
     sizer->Add(_controls.min_clearance_spinner, wxGBPosition(0, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
     sizer->Add(_controls.section_view_checkbox, wxGBPosition(1, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
-
     new wxGBSizerItem(sizer, wxGBPosition(1, 2), wxDefaultSpan, wxEXPAND);
-
     _controls.export_button->SetMinSize(FromDIP(button_size));
     sizer->Add(_controls.export_button, wxGBPosition(1, 3));
-
     sizer->AddGrowableCol(2, 1);
     return sizer;
 }
 
-wxSizer* main_window::make_bottom_section2() {
+wxSizer* main_window::arrange_bottom_section2() {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
-
     _controls.progress_bar->SetMinSize(FromDIP(button_size));
     _controls.stack_button->SetMinSize(FromDIP(button_size));
-
     sizer->Add(_controls.progress_bar, 1, wxEXPAND);
     sizer->AddSpacer(FromDIP(inner_border));
     sizer->Add(_controls.stack_button);
-
     return sizer;
 }
 
-wxWindow* main_window::make_tabs() {
-    make_tab_part_settings(_controls.notebook_panels[0]);
-    make_tab_sinterbox(_controls.notebook_panels[1]);
-    make_tab_bounding_box(_controls.notebook_panels[2]);
+wxNotebook* main_window::arrange_tabs() {
+    arrange_tab_part_settings(_controls.notebook_panels[0]);
+    arrange_tab_sinterbox(_controls.notebook_panels[1]);
+    arrange_tab_bounding_box(_controls.notebook_panels[2]);
     return _controls.notebook;
 }
 
-void main_window::make_tab_part_settings(wxPanel* panel) {
+void main_window::arrange_tab_part_settings(wxPanel* panel) {
     auto panel_sizer = new wxBoxSizer(wxVERTICAL);
     panel->SetSizer(panel_sizer);
     auto top_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -623,11 +607,9 @@ void main_window::make_tab_part_settings(wxPanel* panel) {
         bottom_sizer->AddSpacer(panel->FromDIP(inner_border));
         bottom_sizer->Add(_controls.mirror_button);
     }
-
-    enable_part_settings(false);
 }
 
-void main_window::make_tab_sinterbox(wxPanel* panel) {
+void main_window::arrange_tab_sinterbox(wxPanel* panel) {
     auto panel_sizer = new wxBoxSizer(wxHORIZONTAL);
     panel->SetSizer(panel_sizer);
 
@@ -655,7 +637,7 @@ void main_window::make_tab_sinterbox(wxPanel* panel) {
     panel_sizer->Add(checkbox_sizer, 0, wxALIGN_LEFT | wxALIGN_TOP | wxUP, panel->FromDIP(4));
 }
 
-void main_window::make_tab_bounding_box(wxPanel* panel) {
+void main_window::arrange_tab_bounding_box(wxPanel* panel) {
     auto panel_sizer = new wxBoxSizer(wxHORIZONTAL);
     panel->SetSizer(panel_sizer);
 

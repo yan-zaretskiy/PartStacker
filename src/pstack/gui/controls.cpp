@@ -107,6 +107,8 @@ void controls::initialize(main_window* parent) {
         maximum_y_spinner = make_spinner();
         maximum_z_spinner = make_spinner();
     }
+
+    reset_values();
 }
 
 void controls::reset_values() {
