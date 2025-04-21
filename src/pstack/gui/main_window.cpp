@@ -39,7 +39,6 @@ main_window::main_window(const wxString& title)
     SetBackgroundColour(background_colour);
 #endif
 
-    Bind(wxEVT_CLOSE_WINDOW, &main_window::on_close, this);
     SetMenuBar(make_menu_bar());
 
     wxGLAttributes attrs;
@@ -69,6 +68,8 @@ main_window::main_window(const wxString& title)
     right_sizer->AddSpacer(FromDIP(inner_border));
     right_sizer->Add(make_bottom_section2(), 0, wxEXPAND);
     reset_fields();
+
+    bind_all_controls();
 
     sizer->Add(right_sizer, 0, wxEXPAND | wxALL, FromDIP(outside_border));
     SetSizerAndFit(sizer);
@@ -395,6 +396,62 @@ wxMenuBar* main_window::make_menu_bar() {
     return menu_bar;
 }
 
+void main_window::bind_all_controls() {
+    Bind(wxEVT_CLOSE_WINDOW, &main_window::on_close, this);
+
+    _import_button->Bind(wxEVT_BUTTON, &main_window::on_import, this);
+    _delete_button->Bind(wxEVT_BUTTON, &main_window::on_delete, this);
+    _change_button->Bind(wxEVT_BUTTON, &main_window::on_change, this);
+    _reload_button->Bind(wxEVT_BUTTON, &main_window::on_reload, this);
+
+    _stack_button->Bind(wxEVT_BUTTON, &main_window::on_stacking, this);
+    _export_button->Bind(wxEVT_BUTTON, &main_window::on_export, this);
+
+    _quantity_spinner->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent& event) {
+        _current_part->quantity = event.GetPosition();
+        event.Skip();
+        _parts_list.reload_quantity(_current_part_index.value());
+    });
+    _min_hole_spinner->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent& event) {
+        _current_part->min_hole = event.GetPosition();
+        event.Skip();
+    });
+    _minimize_checkbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& event) {
+        _current_part->rotate_min_box = event.IsChecked();
+        event.Skip();
+    });
+
+    _radio_none->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent& event) {
+        _current_part->rotation_index = 0;
+        event.Skip();
+    });
+    _radio_arbitrary->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent& event) {
+        _current_part->rotation_index = 2;
+        event.Skip();
+    });
+    _radio_cubic->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent& event) {
+        _current_part->rotation_index = 1;
+        event.Skip();
+    });
+
+    _preview_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+        wxMessageBox("Not yet implemented", "Error", wxICON_WARNING);
+    });
+    _copy_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+        _parts_list.append(*_current_part);
+        _parts_list.update_label();
+        event.Skip();
+    });
+    _mirror_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+        _current_part->mirrored = not _current_part->mirrored;
+        _current_part->mesh.mirror_x();
+        _current_part->mesh.set_baseline({ 0, 0, 0 });
+        _parts_list.reload_text(_current_part_index.value());
+        set_part(_current_part_index.value());
+        event.Skip();
+    });
+}
+
 void main_window::on_new(wxCommandEvent& event) {
     if (_parts_list.rows() == 0 or
         wxMessageBox("Clear the current working session?",
@@ -514,17 +571,16 @@ void main_window::on_reload(wxCommandEvent& event) {
 
 wxSizer* main_window::make_part_buttons() {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
-    const auto make_button = [this](const char* text, bool enable, void(main_window::*fn)(wxCommandEvent&)) {
+    const auto make_button = [this](const char* text, bool enable) {
         auto button = new wxButton(this, wxID_ANY, text);
         button->SetMinSize(FromDIP(button_size));
-        button->Bind(wxEVT_BUTTON, fn, this);
         button->Enable(enable);
         return button;
     };
-    _import_button = make_button("Import", true, &main_window::on_import);
-    _delete_button = make_button("Delete", false, &main_window::on_delete);
-    _change_button = make_button("Change", false, &main_window::on_change);
-    _reload_button = make_button("Reload", false, &main_window::on_reload);
+    _import_button = make_button("Import", true);
+    _delete_button = make_button("Delete", false);
+    _change_button = make_button("Change", false);
+    _reload_button = make_button("Reload", false);
     sizer->Add(_import_button, 1, wxEXPAND);
     sizer->AddSpacer(FromDIP(inner_border));
     sizer->Add(_delete_button, 1, wxEXPAND);
@@ -556,7 +612,6 @@ wxSizer* main_window::make_bottom_section1() {
 
     _export_button = new wxButton(this, wxID_ANY, "Export result as STL");
     _export_button->SetMinSize(FromDIP(button_size));
-    _export_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) { return on_export(event); });
     _export_button->Disable();
     sizer->Add(_export_button, wxGBPosition(1, 3));
 
@@ -572,7 +627,6 @@ wxSizer* main_window::make_bottom_section2() {
 
     _stack_button = new wxButton(this, wxID_ANY, "Start");
     _stack_button->SetMinSize(FromDIP(button_size));
-    _stack_button->Bind(wxEVT_BUTTON, &main_window::on_stacking, this);
 
     sizer->Add(_progress_bar, 1, wxEXPAND);
     sizer->AddSpacer(FromDIP(inner_border));
@@ -623,12 +677,6 @@ void main_window::make_tab_part_settings(wxPanel* panel) {
         button_sizer->Add(_quantity_spinner, 0, wxALIGN_CENTER_VERTICAL);
         button_sizer->Add(_min_hole_spinner, 0, wxALIGN_CENTER_VERTICAL);
         button_sizer->Add(_minimize_checkbox, 0, wxALIGN_CENTER_VERTICAL);
-        _quantity_spinner->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent& event) {
-            _current_part->quantity = event.GetPosition();
-            _parts_list.reload_quantity(_current_part_index.value());
-        });
-        _min_hole_spinner->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent& event) { _current_part->min_hole = event.GetPosition(); });
-        _minimize_checkbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& event) { _current_part->rotate_min_box = event.IsChecked(); });
 
         auto radio_box = new wxStaticBoxSizer(wxVERTICAL, panel, "Part rotations");
         auto radio_sizer = new wxGridSizer(2, 2, panel->FromDIP(inner_border), panel->FromDIP(inner_border));
@@ -639,9 +687,6 @@ void main_window::make_tab_part_settings(wxPanel* panel) {
         radio_sizer->Add(_radio_none, 0, wxEXPAND);
         radio_sizer->Add(_radio_arbitrary, 0, wxEXPAND);
         radio_sizer->Add(_radio_cubic, 0, wxEXPAND);
-        _radio_none->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent& event) { _current_part->rotation_index = 0; });
-        _radio_arbitrary->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent& event) { _current_part->rotation_index = 2; });
-        _radio_cubic->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent& event) { _current_part->rotation_index = 1; });
 
         top_sizer->Add(label_sizer, 0, wxEXPAND);
         top_sizer->AddSpacer(panel->FromDIP(3 * inner_border));
@@ -653,26 +698,10 @@ void main_window::make_tab_part_settings(wxPanel* panel) {
     {
         _preview_button = new wxButton(panel, wxID_ANY, "Preview");
         _preview_button->SetMinSize(panel->FromDIP(button_size));
-        _preview_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
-            wxMessageBox("Not yet implemented", "Error", wxICON_WARNING);
-        });
         _copy_button = new wxButton(panel, wxID_ANY, "Copy");
         _copy_button->SetMinSize(panel->FromDIP(button_size));
-        _copy_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
-            _parts_list.append(*_current_part);
-            _parts_list.update_label();
-            event.Skip();
-        });
         _mirror_button = new wxButton(panel, wxID_ANY, "Mirror");
         _mirror_button->SetMinSize(panel->FromDIP(button_size));
-        _mirror_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
-            _current_part->mirrored = not _current_part->mirrored;
-            _current_part->mesh.mirror_x();
-            _current_part->mesh.set_baseline({ 0, 0, 0 });
-            _parts_list.reload_text(_current_part_index.value());
-            set_part(_current_part_index.value());
-            event.Skip();
-        });
         bottom_sizer->Add(_preview_button);
         bottom_sizer->AddSpacer(panel->FromDIP(inner_border));
         bottom_sizer->Add(_copy_button);
