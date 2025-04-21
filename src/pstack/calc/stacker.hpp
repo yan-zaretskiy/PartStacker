@@ -14,7 +14,7 @@ struct stack_parameters {
 
     std::function<void(double, double)> set_progress;
     std::function<void(const mesh&, int, int, int)> display_mesh;
-    std::function<void(mesh, std::chrono::duration<double>)> on_success;
+    std::function<void(mesh, std::chrono::system_clock::duration)> on_success;
     std::function<void()> on_failure;
     std::function<void()> on_finish;
 

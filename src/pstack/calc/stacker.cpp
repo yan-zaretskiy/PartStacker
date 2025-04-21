@@ -339,7 +339,7 @@ void stacker::stack(const stack_parameters params) {
         if (result->triangles().empty()) {
             params.on_failure();
         } else {
-            params.on_success(std::move(*result), std::chrono::duration_cast<std::chrono::duration<double>>(elapsed));
+            params.on_success(std::move(*result), elapsed);
         }
     }
     params.on_finish();

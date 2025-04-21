@@ -116,7 +116,7 @@ void main_window::on_stacking_start() {
                 _viewport->set_mesh(mesh, { max_x / 2.0f, max_y / 2.0f, max_z / 2.0f });
             });
         },
-        .on_success = [this](calc::mesh mesh, const std::chrono::duration<double> elapsed) {
+        .on_success = [this](calc::mesh mesh, const std::chrono::system_clock::duration elapsed) {
             CallAfter([=, mesh = std::move(mesh)] {
                 on_stacking_success(std::move(mesh), elapsed);
                 _controls.export_button->Enable();
@@ -151,7 +151,7 @@ void main_window::on_stacking_stop() {
     }
 }
 
-void main_window::on_stacking_success(calc::mesh mesh, const std::chrono::duration<double> elapsed) {
+void main_window::on_stacking_success(calc::mesh mesh, const std::chrono::system_clock::duration elapsed) {
     _last_result.emplace(std::move(mesh));
     auto bounding = _last_result->bounding();
     if (_controls.sinterbox_checkbox->GetValue()) {
@@ -178,7 +178,7 @@ void main_window::on_stacking_success(calc::mesh mesh, const std::chrono::durati
 
     const auto message = wxString::Format(
         "Stacking complete!\n\nElapsed time: %.1fs\n\nFinal bounding box: %.1fx%.1fx%.1fmm (%.1f%% density).\n\nWould you like to save the result now?",
-        elapsed.count(), size.x, size.y, size.z, percent_volume);
+        std::chrono::duration_cast<std::chrono::duration<double>>(elapsed).count(), size.x, size.y, size.z, percent_volume);
     if (wxMessageBox(message, "Stacking complete", wxYES_NO | wxYES_DEFAULT | wxICON_INFORMATION) == wxYES) {
         on_export();
     }
