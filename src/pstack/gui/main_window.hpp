@@ -29,10 +29,10 @@ private:
     viewport* _viewport = nullptr;
     controls _controls;
 
-    void select_parts(const std::vector<std::size_t>& indices);
+    void on_select_parts(const std::vector<std::size_t>& indices);
     void set_part(std::size_t index);
     void unset_part();
-    parts_list _parts_list{ this, wxSize(380, 240), &main_window::select_parts };
+    parts_list _parts_list{};
     part_properties* _current_part = nullptr;
     std::optional<std::size_t> _current_part_index = std::nullopt;
     void enable_part_settings(bool enable);

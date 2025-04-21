@@ -31,9 +31,9 @@ main_window::main_window(const wxString& title)
     SetMenuBar(make_menu_bar());
 
     _controls.initialize(this);
+    _parts_list.initialize(this, wxSize(380, 240));
     bind_all_controls();
     enable_part_settings(false);
-    _parts_list.update_label();
 
     wxGLAttributes attrs;
     attrs.PlatformDefaults().Defaults().EndList();
@@ -55,7 +55,7 @@ void main_window::after_show() {
     _viewport->render();
 }
 
-void main_window::select_parts(const std::vector<std::size_t>& indices) {
+void main_window::on_select_parts(const std::vector<std::size_t>& indices) {
     const auto size = indices.size();
     _controls.delete_button->Enable(size != 0);
     _controls.change_button->Enable(size == 1);
@@ -331,6 +331,10 @@ wxMenuBar* main_window::make_menu_bar() {
 void main_window::bind_all_controls() {
     Bind(wxEVT_CLOSE_WINDOW, &main_window::on_close, this);
 
+    _parts_list.bind([this](const std::vector<std::size_t>& selected) {
+        return on_select_parts(selected);
+    });
+
     _controls.import_button->Bind(wxEVT_BUTTON, &main_window::on_import, this);
     _controls.delete_button->Bind(wxEVT_BUTTON, &main_window::on_delete, this);
     _controls.change_button->Bind(wxEVT_BUTTON, &main_window::on_change, this);
@@ -469,7 +473,7 @@ void main_window::on_delete(wxCommandEvent& event) {
     if (dialog.ShowModal() == wxID_YES) {
         _parts_list.delete_selected();
         _parts_list.update_label();
-        select_parts({});
+        on_select_parts({});
     }
     event.Skip();
 }
@@ -497,7 +501,7 @@ void main_window::on_reload(wxCommandEvent& event) {
         _parts_list.reload_file(row);
     }
     _parts_list.update_label();
-    select_parts({});
+    on_select_parts({});
     event.Skip();
 }
 
