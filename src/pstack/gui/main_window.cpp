@@ -74,6 +74,25 @@ main_window::main_window(const wxString& title)
     SetSizerAndFit(sizer);
 }
 
+namespace {
+
+std::pair<wxNotebook*, std::vector<wxPanel*>> make_tab_panels(wxWindow* parent, const std::vector<const char*> labels) {
+    wxNotebook* const notebook = new wxNotebook(parent, wxID_ANY);
+    std::vector<wxPanel*> panels;
+    for (std::size_t i = 0; i != labels.size(); ++i) {
+        wxPanel* const panel_base = new wxPanel(notebook);
+        wxBoxSizer* const panel_base_sizer = new wxBoxSizer(wxVERTICAL);
+        panel_base->SetSizer(panel_base_sizer);
+        notebook->InsertPage(i, panel_base, labels[i]);
+        wxPanel* const panel = new wxPanel(panel_base);
+        panel_base_sizer->Add(panel, 1, wxEXPAND | wxALL, notebook->FromDIP(tab_padding));
+        panels.push_back(panel);
+    }
+    return { notebook, std::move(panels) };
+}
+
+} // namespace
+
 void main_window::after_show() {
     _viewport->on_move_by({0, 0});
     _viewport->render();
@@ -563,22 +582,14 @@ wxSizer* main_window::make_bottom_section2() {
 }
 
 wxWindow* main_window::make_tabs() {
-    auto notebook = new wxNotebook(this, wxID_ANY);
-
-    const auto make_tab_panel = [notebook](std::size_t index, const char* label) -> wxPanel* {
-        auto panel_base = new wxPanel(notebook);
-        auto panel_base_sizer = new wxBoxSizer(wxVERTICAL);
-        panel_base->SetSizer(panel_base_sizer);
-        notebook->InsertPage(index, panel_base, label);
-        auto panel = new wxPanel(panel_base);
-        panel_base_sizer->Add(panel, 1, wxEXPAND | wxALL, notebook->FromDIP(tab_padding));
-        return panel;
-    };
-
-    make_tab_part_settings(make_tab_panel(0, "Part Settings"));
-    make_tab_sinterbox(make_tab_panel(1, "Sinterbox"));
-    make_tab_bounding_box(make_tab_panel(2, "Bounding Box"));
-
+    const auto [notebook, panels] = make_tab_panels(this, {
+        "Part Settings",
+        "Sinterbox",
+        "Bounding Box"
+    });
+    make_tab_part_settings(panels[0]);
+    make_tab_sinterbox(panels[1]);
+    make_tab_bounding_box(panels[2]);
     return notebook;
 }
 
