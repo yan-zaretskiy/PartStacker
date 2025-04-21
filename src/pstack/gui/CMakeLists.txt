@@ -1,11 +1,14 @@
 add_executable(pstack_gui WIN32
     app.cpp
+    controls.cpp
     list_view.cpp
     main_window.cpp
     parts_list.cpp
     viewport.cpp
 )
 target_sources(pstack_gui PUBLIC FILE_SET headers TYPE HEADERS FILES
+    constants.hpp
+    controls.hpp
     list_view.hpp
     main_window.hpp
     parts_list.hpp

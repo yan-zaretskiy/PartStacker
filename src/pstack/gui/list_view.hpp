@@ -10,12 +10,10 @@
 
 namespace pstack::gui {
 
-class main_window;
-
 class list_view {
 public:
     list_view() = default;
-    list_view(main_window* parent, wxSize min_size, const std::vector<std::pair<wxString, int>>& columns);
+    list_view(wxWindow* parent, const std::vector<std::pair<wxString, int>>& columns);
 
     void append(std::vector<wxString> items);
     void replace(std::size_t row_index, std::vector<wxString> items);
@@ -27,11 +25,6 @@ public:
 
     wxWindow* control() const {
         return _list;
-    }
-
-    template <class... Args>
-    void bind(Args&&... args) {
-        _list->Bind(std::forward<Args>(args)...);
     }
 
 private:

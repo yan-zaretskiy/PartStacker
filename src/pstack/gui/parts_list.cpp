@@ -1,5 +1,4 @@
 #include "pstack/files/stl.hpp"
-#include "pstack/gui/main_window.hpp"
 #include "pstack/gui/parts_list.hpp"
 #include <wx/string.h>
 #include <charconv>
@@ -50,8 +49,8 @@ part_properties make_properties(std::string mesh_file, bool mirrored) {
 
 } // namespace
 
-parts_list::parts_list(main_window* parent, wxSize min_size, void(main_window::*select_parts)(const std::vector<std::size_t>&)) {
-    _list = list_view(parent, min_size, {
+void parts_list::initialize(wxWindow* parent) {
+    _list = list_view(parent, {
         { "Name", 105 },
         { "Quantity", 60 },
         { "Volume", 60 },
@@ -59,15 +58,7 @@ parts_list::parts_list(main_window* parent, wxSize min_size, void(main_window::*
         { "Comment", 90 },
     });
     _label = new wxStaticText(parent, wxID_ANY, "");
-
-    auto callback = [=, this](wxListEvent& event) {
-        _selected.at(event.GetIndex()) = (event.GetEventType() == wxEVT_LIST_ITEM_SELECTED);
-        static thread_local std::vector<std::size_t> selected{};
-        get_selected(selected);
-        (parent->*select_parts)(selected);
-    };
-    _list.bind(wxEVT_LIST_ITEM_SELECTED, callback);
-    _list.bind(wxEVT_LIST_ITEM_DESELECTED, callback);
+    update_label();
 }
 
 void parts_list::append(std::string mesh_file) {
