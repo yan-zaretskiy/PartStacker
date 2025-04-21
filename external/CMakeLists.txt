@@ -1,5 +1,9 @@
 set(wxBUILD_SHARED OFF)
-set(wxBUILD_CXX_STANDARD 20)
+if(CMAKE_CXX_STANDARD GREATER 20)
+    set(wxBUILD_CXX_STANDARD 20)
+else()
+    set(wxBUILD_CXX_STANDARD ${CMAKE_CXX_STANDARD})
+endif()
 add_subdirectory(wxWidgets)
 
 set(GLEW_USE_STATIC_LIBS ON)
@@ -17,6 +21,21 @@ if(WIN32)
             "${PROJECT_SOURCE_DIR}/external/wxWidgets/lib/vc_x64_lib/${PARTSTACKER_COPY_WXWIDGETS_HEADERS_DIRECTORY}/wx/setup.h"
     )
 endif()
+
+# Functions from https://stackoverflow.com/a/62311397
+function(get_all_targets var dir)
+    set(targets)
+    get_all_targets_recursive(targets ${dir})
+    set(${var} ${targets} PARENT_SCOPE)
+endfunction()
+macro(get_all_targets_recursive targets dir)
+    get_property(subdirectories DIRECTORY ${dir} PROPERTY SUBDIRECTORIES)
+    foreach(subdir ${subdirectories})
+        get_all_targets_recursive(${targets} ${subdir})
+    endforeach()
+    get_property(current_targets DIRECTORY ${dir} PROPERTY BUILDSYSTEM_TARGETS)
+    list(APPEND ${targets} ${current_targets})
+endmacro()
 
 get_all_targets(external_targets "${CMAKE_CURRENT_LIST_DIR}")
 foreach(target ${external_targets})
