@@ -353,6 +353,10 @@ void main_window::bind_all_controls() {
     _controls.preview_bounding_box_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         wxMessageBox("Not yet implemented", "Error", wxICON_WARNING);
     });
+    
+    _controls.section_view_checkbox->Bind(wxEVT_CHECKBOX, [this](wxCommandEvent& event) {
+        wxMessageBox("Not yet implemented", "Error", wxICON_WARNING);
+    });
 }
 
 void main_window::on_new(wxCommandEvent& event) {
