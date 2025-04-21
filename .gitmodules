@@ -4,3 +4,6 @@
 [submodule "external/mdspan"]
 	path = external/mdspan
 	url = https://github.com/kokkos/mdspan.git
+[submodule "external/glew"]
+	path = external/glew
+	url = https://github.com/PartStackerCommunity/glew.git
