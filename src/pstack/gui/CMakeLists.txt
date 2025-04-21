@@ -38,4 +38,7 @@ endif()
 set(PSTACK_OUTPUT_TYPE "GUI")
 set(PSTACK_OUTPUT_FILE_NAME "PartStackerGUI")
 pstack_configure_target_info(pstack_gui)
-set_target_properties(pstack_gui PROPERTIES OUTPUT_NAME ${PSTACK_OUTPUT_FILE_NAME})
+set_target_properties(pstack_gui PROPERTIES
+    OUTPUT_NAME ${PSTACK_OUTPUT_FILE_NAME}
+    RUNTIME_OUTPUT_DIRECTORY "${PROJECT_SOURCE_DIR}/bin"
+)

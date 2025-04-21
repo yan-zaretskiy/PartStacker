@@ -110,9 +110,9 @@ git pull --recurse-submodules
 
 * Open Windows PowerShell
 * Navigate to the PartStacker directory
-* Type `cmake . -B build`, and wait for it to finish
-* Then type `cmake --build build`, and wait again
-    * The first time you build, this will take a long time
+* Type `cmake --preset Release`, and wait for it to finish
+* Then type `cmake --build --preset Release`, and wait again
+* The first time you build, both of these commands will take longer
 
 If you choose to make edits to the code, repeat these steps to rebuild PartStacker
 
@@ -122,7 +122,7 @@ If you choose to make edits to the code, repeat these steps to rebuild PartStack
 
 After building, the PartStacker GUI will be in the PartStacker directory
 
-* It will either be located at `{PartStacker-directory}\build\src\pstack\gui\Debug\PartStackerGUI.exe` or at `{PartStacker-directory}\build\src\pstack\gui\Release\PartStackerGUI.exe`
+* It will be located in `{PartStacker-directory}\bin`
 * Navigate to that location in your regular file explorer or in Windows PowerShell
 * Run the application!
 

@@ -25,11 +25,11 @@ git clone --recurse-submodules https://github.com/PartStackerCommunity/PartStack
 
 Navigate to `./external/glew/auto`, and run `make`
 
-Then, back at the root directory, configure and build with CMake
+Then, back at the root directory, configure and build with CMake by running these 2 commands in order
 
 ```
-cmake . -B build
-cmake --build build
+cmake --preset Release
+cmake --build --preset Release
 ```
 
 The PartStacker GUI will be an executable called `PartStackerGUI`
