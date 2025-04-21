@@ -21,7 +21,7 @@ struct stack_state {
     std::vector<std::vector<mesh_entry>> meshes;
     std::vector<util::mdarray<int, 3>> voxels;
     util::mdarray<Bool, 3> space;
-    std::vector<part_properties> ordered_parts;
+    std::vector<const part_properties*> ordered_parts;
     mesh result;
 };
 
@@ -73,7 +73,7 @@ std::size_t try_place(const stack_parameters& params, stack_state& state, const 
             const int z = s - r;
             for (int x = std::max(0, r - max.y); x <= std::min(r, max.x); ++x) {
                 const int y = r - x;
-                const std::span rotations = rotation_sets[state.ordered_parts[part_index].rotation_index];
+                const std::span rotations = rotation_sets[state.ordered_parts[part_index]->rotation_index];
 
                 // Calculate which orientations fit in bounding box
                 int bit_index = 1;
@@ -121,7 +121,7 @@ std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic
         std::ranges::sort(parts, std::greater{}, &part_properties::volume);
         state.ordered_parts.reserve(parts.size());
         for (const part_properties* part : parts) {
-            state.ordered_parts.push_back(*part);
+            state.ordered_parts.push_back(part);
         }
     }
     state.meshes.assign(state.ordered_parts.size(), {});
@@ -130,17 +130,17 @@ std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic
     double triangles = 0;
     const double scale_factor = 1 / params.resolution;
     int total_parts = 0;
-    for (const part_properties& part : state.ordered_parts) {
-        triangles += part.triangle_count * rotation_sets[part.rotation_index].size();
-        total_parts += part.quantity;
+    for (const part_properties* part : state.ordered_parts) {
+        triangles += part->triangle_count * rotation_sets[part->rotation_index].size();
+        total_parts += part->quantity;
     }
 
     double progress = 0;
     for (int i = 0; i < state.ordered_parts.size(); ++i) {
         geo::matrix3 base_rotation = geo::eye3<float>;
 
-        if (state.ordered_parts[i].rotate_min_box) {
-            auto reduced_view = state.ordered_parts[i].mesh.triangles()
+        if (state.ordered_parts[i]->rotate_min_box) {
+            auto reduced_view = state.ordered_parts[i]->mesh.triangles()
                               | std::views::filter([i = 0](auto&&) mutable { return i++ % 16 == 0; });
             mesh reduced_mesh{ std::vector<geo::triangle>(reduced_view.begin(), reduced_view.end()) };
 
@@ -172,7 +172,7 @@ std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic
         }
 
         // Set up array of parts
-        const std::span rotations = rotation_sets[state.ordered_parts[i].rotation_index];
+        const std::span rotations = rotation_sets[state.ordered_parts[i]->rotation_index];
         state.meshes[i].reserve(rotations.size());
 
         // Track bounding box size
@@ -184,7 +184,8 @@ std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic
                 return std::nullopt;
             }
 
-            mesh m = state.ordered_parts[i].mesh;
+            const part_properties* const part = state.ordered_parts[i];
+            mesh m = part->mesh;
             m.scale(scale_factor);
             m.rotate(base_rotation * rotations[j]);
             m.set_baseline({ 0, 0, 0 });
@@ -201,7 +202,7 @@ std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic
             state.meshes[i].push_back(stack_state::mesh_entry{std::move(m), std::move(bounding)});
 #endif
 
-            progress += state.ordered_parts[i].triangle_count / 2;
+            progress += part->triangle_count / 2;
             params.set_progress(progress, triangles);
         }
 
@@ -215,10 +216,10 @@ std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic
                 return std::nullopt;
             }
 
-            voxelize(mesh, state.voxels[i], bit_index, state.ordered_parts[i].min_hole);
+            voxelize(mesh, state.voxels[i], bit_index, state.ordered_parts[i]->min_hole);
             bit_index *= 2;
 
-            progress += state.ordered_parts[i].triangle_count / 2;
+            progress += state.ordered_parts[i]->triangle_count / 2;
             params.set_progress(progress, triangles);
         }
     }
@@ -236,7 +237,7 @@ std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic
 
     std::size_t total_placed = 0;
     for (std::size_t part_index = 0; part_index != state.ordered_parts.size(); ++part_index) {
-        std::size_t to_place = state.ordered_parts[part_index].quantity;
+        std::size_t to_place = state.ordered_parts[part_index]->quantity;
         while (to_place > 0) {
             if (not running) {
                 return std::nullopt;
@@ -276,7 +277,7 @@ std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic
                                 continue;
                             }
 
-                            const std::span rotations = rotation_sets[state.ordered_parts[part_index].rotation_index];
+                            const std::span rotations = rotation_sets[state.ordered_parts[part_index]->rotation_index];
 
                             // Calculate which orientations fit in bounding box
                             int bit_index = 1;
