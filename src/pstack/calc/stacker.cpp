@@ -66,7 +66,7 @@ int can_place(const util::mdspan<const Bool, 3> space, int possible, const util:
     return possible;
 }
 
-std::size_t try_place(const stacker_parameters& params, stack_state& state, const std::size_t part_index, const std::size_t to_place, const geo::point3<int> max) {
+std::size_t try_place(const stack_parameters& params, stack_state& state, const std::size_t part_index, const std::size_t to_place, const geo::point3<int> max) {
     std::size_t placed = 0;
     for (int s = 0; s <= max.x + max.y + max.z; ++s) {
         for (int r = std::max(0, s - max.z); r <= std::min(s, max.x + max.y); ++r) {
@@ -114,7 +114,7 @@ std::size_t try_place(const stacker_parameters& params, stack_state& state, cons
     return placed;
 }
 
-std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atomic<bool>& running) {
+std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic<bool>& running) {
     stack_state state{};
     {
         auto parts = params.parts;
@@ -328,7 +328,7 @@ std::optional<mesh> stack_impl(const stacker_parameters& params, const std::atom
 
 } // namespace
 
-void stacker::stack(const stacker_parameters params) {
+void stacker::stack(const stack_parameters params) {
     if (_running.exchange(true)) {
         return;
     }

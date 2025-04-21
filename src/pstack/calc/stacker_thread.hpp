@@ -16,7 +16,7 @@ public:
         stop();
     }
 
-    void start(stacker_parameters params) {
+    void start(stack_parameters params) {
         if (_thread.has_value()) {
             throw std::runtime_error("Thread already exists");
         }

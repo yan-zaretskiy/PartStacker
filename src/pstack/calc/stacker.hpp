@@ -9,7 +9,7 @@
 
 namespace pstack::calc {
 
-struct stacker_parameters {
+struct stack_parameters {
     std::vector<const part_properties*> parts;
 
     std::function<void(double, double)> set_progress;
@@ -37,7 +37,7 @@ public:
         return _running;
     }
 
-    void stack(stacker_parameters params);
+    void stack(stack_parameters params);
 
     void abort() {
         _running = false;

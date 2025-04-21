@@ -102,7 +102,7 @@ void main_window::on_stacking_start() {
         }
     }
 
-    calc::stacker_parameters params {
+    calc::stack_parameters params {
         .parts = _parts_list.get_all(),
 
         .set_progress = [this](double progress, double total) {
