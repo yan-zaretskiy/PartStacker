@@ -15,7 +15,7 @@ namespace {
 struct stack_state {
     struct mesh_entry {
         mesh mesh;
-        mesh::bounding_t bounding;
+        geo::vector3<int> box_size;
     };
 
     std::vector<std::vector<mesh_entry>> meshes;
@@ -79,7 +79,7 @@ std::size_t try_place(const stack_parameters& params, stack_state& state, const 
                 int bit_index = 1;
                 int possible = 0;
                 for (int i = 0; i < rotations.size(); ++i) {
-                    const auto& box_size = state.meshes[part_index][i].bounding.box_size;
+                    const auto& box_size = state.meshes[part_index][i].box_size;
                     if (x + box_size.x < max.x && y + box_size.y < max.y && z + box_size.z < max.z) {
                         possible |= bit_index;
                     }
@@ -190,16 +190,15 @@ std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic
             m.rotate(base_rotation * rotations[j]);
             m.set_baseline({ 0, 0, 0 });
 
-            auto bounding = m.bounding();
-            const auto box_size = bounding.box_size;
+            const auto box_size = m.bounding().box_size;
             max_box_size.x = std::max(box_size.x, max_box_size.x);
             max_box_size.y = std::max(box_size.y, max_box_size.y);
             max_box_size.z = std::max(box_size.z, max_box_size.z);
 
 #if defined(__cpp_aggregate_paren_init) and __cpp_aggregate_paren_init >= 201902L
-            state.meshes[i].emplace_back(std::move(m), std::move(bounding));
+            state.meshes[i].emplace_back(std::move(m), box_size);
 #else
-            state.meshes[i].push_back(stack_state::mesh_entry{std::move(m), std::move(bounding)});
+            state.meshes[i].push_back(stack_state::mesh_entry{std::move(m), box_size});
 #endif
 
             progress += part->triangle_count / 2;
@@ -258,10 +257,10 @@ std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic
                 int min_box_x = std::numeric_limits<int>::max();
                 int min_box_y = std::numeric_limits<int>::max();
                 int min_box_z = std::numeric_limits<int>::max();
-                for (const auto& [_, bounding] : state.meshes[part_index]) {
-                    min_box_x = std::min(bounding.box_size.x, min_box_x);
-                    min_box_y = std::min(bounding.box_size.y, min_box_y);
-                    min_box_z = std::min(bounding.box_size.z, min_box_z);
+                for (const auto& [_, box_size] : state.meshes[part_index]) {
+                    min_box_x = std::min(box_size.x, min_box_x);
+                    min_box_y = std::min(box_size.y, min_box_y);
+                    min_box_z = std::min(box_size.z, min_box_z);
                 }
 
                 for (int s = 0; s < state.space.extent(0) + state.space.extent(1) + state.space.extent(2) - min_box_x - min_box_y - min_box_z; ++s) {
@@ -283,7 +282,7 @@ std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic
                             int bit_index = 1;
                             int possible = 0;
                             for (int i = 0; i < rotations.size(); ++i) {
-                                const auto& box_size = state.meshes[part_index][i].bounding.box_size;
+                                const auto& box_size = state.meshes[part_index][i].box_size;
                                 if (x + box_size.x < state.space.extent(0) && y + box_size.y < state.space.extent(1) && z + box_size.z < state.space.extent(2)) {
                                     possible |= bit_index;
                                 }
@@ -296,7 +295,7 @@ std::optional<mesh> stack_impl(const stack_parameters& params, const std::atomic
                                 bit_index = 1;
                                 for (int i = 0; i < rotations.size(); ++i) {
                                     if ((possible & bit_index) != 0) {
-                                        const auto& box_size = state.meshes[part_index][i].bounding.box_size;
+                                        const auto& box_size = state.meshes[part_index][i].box_size;
                                         const int new_box = std::max(max_x, x + box_size.x) * std::max(max_y, y + box_size.y) * std::max(max_z, z + box_size.z);
                                         if (new_box < best) {
                                             best = new_box;
