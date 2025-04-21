@@ -12,8 +12,8 @@ static constexpr int tab_padding = 7;
 static constexpr int outer_border = 20;
 static constexpr int inner_border = 5;
 
-inline static const wxSize button_size{72, 25};
-inline static const wxSize min_list_size{380, 240};
+inline static const wxSize min_button_size{72, 25};
+inline static const wxSize min_list_size{380, 200};
 inline static const wxSize min_viewport_size{640, -1};
 
 #ifdef _WIN32

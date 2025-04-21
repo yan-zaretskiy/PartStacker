@@ -4,7 +4,6 @@
 #include <wx/checkbox.h>
 #include <wx/frame.h>
 #include <wx/gauge.h>
-#include <wx/radiobut.h>
 #include <wx/sizer.h>
 #include <wx/spinctrl.h>
 #include <wx/string.h>
@@ -53,7 +52,6 @@ private:
     void on_export();
     void on_import(wxCommandEvent& event);
     void on_delete(wxCommandEvent& event);
-    void on_change(wxCommandEvent& event);
     void on_reload(wxCommandEvent& event);
 
     wxSizer* arrange_all_controls();
@@ -62,8 +60,8 @@ private:
     wxSizer* arrange_bottom_section2();
     wxNotebook* arrange_tabs();
     void arrange_tab_part_settings(wxPanel* panel);
-    void arrange_tab_sinterbox(wxPanel* panel);
-    void arrange_tab_bounding_box(wxPanel* panel);
+    void arrange_tab_stack_settings(wxPanel* panel);
+    void arrange_tab_results(wxPanel* panel);
 };
 
 } // namespace pstack::gui

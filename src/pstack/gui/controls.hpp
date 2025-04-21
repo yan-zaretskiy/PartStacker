@@ -3,10 +3,10 @@
 
 #include <wx/button.h>
 #include <wx/checkbox.h>
+#include <wx/choice.h>
 #include <wx/gauge.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
-#include <wx/radiobut.h>
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
 #include <vector>
@@ -24,8 +24,9 @@ struct controls {
 
     wxButton* import_button;
     wxButton* delete_button;
-    wxButton* change_button;
     wxButton* reload_button;
+    wxButton* copy_button;
+    wxButton* mirror_button;
     
     wxStaticText* min_clearance_text;
     wxStaticText* section_view_text;
@@ -45,12 +46,10 @@ struct controls {
     wxSpinCtrl* quantity_spinner;
     wxSpinCtrl* min_hole_spinner;
     wxCheckBox* minimize_checkbox;
-    wxRadioButton* radio_none;
-    wxRadioButton* radio_arbitrary;
-    wxRadioButton* radio_cubic;
-    wxButton* preview_button;
-    wxButton* copy_button;
-    wxButton* mirror_button;
+    wxStaticText* rotation_text;
+    wxChoice* rotation_dropdown;
+    wxButton* preview_voxelization_button;
+    wxButton* preview_bounding_box_button;
     
     // Sinterbox tab
     wxStaticText* clearance_text;

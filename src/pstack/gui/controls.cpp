@@ -1,6 +1,7 @@
 #include "pstack/gui/constants.hpp"
 #include "pstack/gui/controls.hpp"
 #include "pstack/gui/main_window.hpp"
+#include <array>
 
 namespace pstack::gui {
 
@@ -24,34 +25,32 @@ std::pair<wxNotebook*, std::vector<wxPanel*>> make_tab_panels(wxWindow* parent, 
 } // namespace
 
 void controls::initialize(main_window* parent) {
-    import_button = new wxButton(parent, wxID_ANY, "Import");
-    delete_button = new wxButton(parent, wxID_ANY, "Delete");
-    delete_button->Disable();
-    change_button = new wxButton(parent, wxID_ANY, "Change");
-    change_button->Disable();
-    reload_button = new wxButton(parent, wxID_ANY, "Reload");
-    reload_button->Disable();
-
-    min_clearance_text = new wxStaticText(parent, wxID_ANY, "Minimum clearance:");
     section_view_text = new wxStaticText(parent, wxID_ANY, "Section view:");
-    min_clearance_spinner = new wxSpinCtrlDouble(parent);
-    min_clearance_spinner->SetDigits(2);
-    min_clearance_spinner->SetIncrement(0.05);
-    min_clearance_spinner->SetRange(0.5, 2);
     section_view_checkbox = new wxCheckBox(parent, wxID_ANY, "");
     export_button = new wxButton(parent, wxID_ANY, "Export result as STL");
     export_button->Disable();
     progress_bar = new wxGauge(parent, wxID_ANY, 100);
-    stack_button = new wxButton(parent, wxID_ANY, "Start");
+    stack_button = new wxButton(parent, wxID_ANY, "Stack");
     
     std::tie(notebook, notebook_panels) = make_tab_panels(parent, {
-        "Part Settings",
-        "Sinterbox",
-        "Bounding Box"
+        "Parts",
+        "Stack Settings",
+        "Results",
     });
     
     {
         const auto panel = notebook_panels[0];
+
+        import_button = new wxButton(panel, wxID_ANY, "Import");
+        delete_button = new wxButton(panel, wxID_ANY, "Delete");
+        delete_button->Disable();
+        reload_button = new wxButton(panel, wxID_ANY, "Reload");
+        reload_button->Disable();
+        copy_button = new wxButton(panel, wxID_ANY, "Copy");
+        copy_button->Disable();
+        mirror_button = new wxButton(panel, wxID_ANY, "Mirror");
+        mirror_button->Disable();
+
         quantity_text = new wxStaticText(panel, wxID_ANY, "Quantity:");
         min_hole_text = new wxStaticText(panel, wxID_ANY, "Minimum hole:");
         minimize_text = new wxStaticText(panel, wxID_ANY, "Minimize box:");
@@ -60,16 +59,44 @@ void controls::initialize(main_window* parent) {
         min_hole_spinner = new wxSpinCtrl(panel);
         min_hole_spinner->SetRange(0, 100);
         minimize_checkbox = new wxCheckBox(panel, wxID_ANY, "");
-        radio_none = new wxRadioButton(panel, wxID_ANY, "None");
-        radio_arbitrary = new wxRadioButton(panel, wxID_ANY, "Arbitrary");
-        radio_cubic = new wxRadioButton(panel, wxID_ANY, "Cubic");
-        preview_button = new wxButton(panel, wxID_ANY, "Preview");
-        copy_button = new wxButton(panel, wxID_ANY, "Copy");
-        mirror_button = new wxButton(panel, wxID_ANY, "Mirror");
+        wxArrayString rotation_choices;
+        rotation_choices.Add("None");
+        rotation_choices.Add("Cubic");
+        rotation_choices.Add("Arbitrary");
+        rotation_text = new wxStaticText(panel, wxID_ANY, "Rotations:");
+        rotation_dropdown = new wxChoice(panel, wxID_ANY, wxDefaultPosition, wxDefaultSize, rotation_choices);
+        preview_voxelization_button = new wxButton(panel, wxID_ANY, "Preview voxelization");
+        preview_bounding_box_button = new wxButton(panel, wxID_ANY, "Preview bounding box");
     }
 
     {
         const auto panel = notebook_panels[1];
+        initial_x_text = new wxStaticText(panel, wxID_ANY, "Initial X:");
+        initial_y_text = new wxStaticText(panel, wxID_ANY, "Initial Y:");
+        initial_z_text = new wxStaticText(panel, wxID_ANY, "Initial Z:");
+        maximum_x_text = new wxStaticText(panel, wxID_ANY, "Maximum X:");
+        maximum_y_text = new wxStaticText(panel, wxID_ANY, "Maximum Y:");
+        maximum_z_text = new wxStaticText(panel, wxID_ANY, "Maximum Z:");
+        const auto make_spinner = [panel] {
+            auto spinner = new wxSpinCtrl(panel);
+            spinner->SetRange(10, 250);
+            return spinner;
+        };
+        initial_x_spinner = make_spinner();
+        initial_y_spinner = make_spinner();
+        initial_z_spinner = make_spinner();
+        maximum_x_spinner = make_spinner();
+        maximum_y_spinner = make_spinner();
+        maximum_z_spinner = make_spinner();
+        min_clearance_text = new wxStaticText(panel, wxID_ANY, "Minimum clearance:");
+        min_clearance_spinner = new wxSpinCtrlDouble(panel);
+        min_clearance_spinner->SetDigits(2);
+        min_clearance_spinner->SetIncrement(0.05);
+        min_clearance_spinner->SetRange(0.5, 2);
+    }
+
+    {
+        const auto panel = notebook_panels[2];
         clearance_text = new wxStaticText(panel, wxID_ANY, "Clearance:");
         spacing_text = new wxStaticText(panel, wxID_ANY, "Spacing:");
         thickness_text = new wxStaticText(panel, wxID_ANY, "Thickness:");
@@ -88,27 +115,6 @@ void controls::initialize(main_window* parent) {
         sinterbox_checkbox = new wxCheckBox(panel, wxID_ANY, "");
     }
 
-    {
-        const auto panel = notebook_panels[2];
-        initial_x_text = new wxStaticText(panel, wxID_ANY, "Initial X:");
-        initial_y_text = new wxStaticText(panel, wxID_ANY, "Initial Y:");
-        initial_z_text = new wxStaticText(panel, wxID_ANY, "Initial Z:");
-        maximum_x_text = new wxStaticText(panel, wxID_ANY, "Maximum X:");
-        maximum_y_text = new wxStaticText(panel, wxID_ANY, "Maximum Y:");
-        maximum_z_text = new wxStaticText(panel, wxID_ANY, "Maximum Z:");
-        const auto make_spinner = [panel] {
-            auto spinner = new wxSpinCtrl(panel);
-            spinner->SetRange(10, 250);
-            return spinner;
-        };
-        initial_x_spinner = make_spinner();
-        initial_y_spinner = make_spinner();
-        initial_z_spinner = make_spinner();
-        maximum_x_spinner = make_spinner();
-        maximum_y_spinner = make_spinner();
-        maximum_z_spinner = make_spinner();
-    }
-
     reset_values();
 }
 
@@ -118,9 +124,7 @@ void controls::reset_values() {
     quantity_spinner->SetValue(1);
     min_hole_spinner->SetValue(1);
     minimize_checkbox->SetValue(false);
-    radio_none->SetValue(false);
-    radio_cubic->SetValue(false);
-    radio_arbitrary->SetValue(false);
+    rotation_dropdown->SetSelection(1);
 
     clearance_spinner->SetValue(0.8);
     spacing_spinner->SetValue(6.0);

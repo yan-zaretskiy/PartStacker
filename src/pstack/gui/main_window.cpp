@@ -24,7 +24,7 @@ main_window::main_window(const wxString& title)
     SetMenuBar(make_menu_bar());
 
     _controls.initialize(this);
-    _parts_list.initialize(this);
+    _parts_list.initialize(_controls.notebook_panels[0]);
     bind_all_controls();
     enable_part_settings(false);
 
@@ -51,8 +51,9 @@ void main_window::after_show() {
 void main_window::on_select_parts(const std::vector<std::size_t>& indices) {
     const auto size = indices.size();
     _controls.delete_button->Enable(size != 0);
-    _controls.change_button->Enable(size == 1);
     _controls.reload_button->Enable(size != 0);
+    _controls.copy_button->Enable(size == 1);
+    _controls.mirror_button->Enable(size == 1);
     if (size == 1) {
         set_part(indices[0]);
     } else {
@@ -67,27 +68,7 @@ void main_window::set_part(const std::size_t index) {
     _controls.quantity_spinner->SetValue(_current_part->quantity);
     _controls.min_hole_spinner->SetValue(_current_part->min_hole);
     _controls.minimize_checkbox->SetValue(_current_part->rotate_min_box);
-    switch (_current_part->rotation_index) {
-        case 0: {
-            _controls.radio_none->SetValue(true);
-            _controls.radio_cubic->SetValue(false);
-            _controls.radio_arbitrary->SetValue(false);
-            break;
-        }
-        case 1: {
-            _controls.radio_cubic->SetValue(true);
-            _controls.radio_none->SetValue(false);
-            _controls.radio_arbitrary->SetValue(false);
-            break;
-        }
-        case 2: {
-            _controls.radio_arbitrary->SetValue(true);
-            _controls.radio_none->SetValue(false);
-            _controls.radio_cubic->SetValue(false);
-            break;
-        }
-        default: std::unreachable();
-    }
+    _controls.rotation_dropdown->SetSelection(_current_part->rotation_index);
     _viewport->set_mesh(_current_part->mesh, _current_part->centroid);
 }
 
@@ -102,12 +83,9 @@ void main_window::enable_part_settings(bool enable) {
     _controls.quantity_spinner->Enable(enable);
     _controls.min_hole_spinner->Enable(enable);
     _controls.minimize_checkbox->Enable(enable);
-    _controls.radio_none->Enable(enable);
-    _controls.radio_arbitrary->Enable(enable);
-    _controls.radio_cubic->Enable(enable);
-    _controls.preview_button->Enable(enable);
-    _controls.copy_button->Enable(enable);
-    _controls.mirror_button->Enable(enable);
+    _controls.rotation_dropdown->Enable(enable);
+    _controls.preview_voxelization_button->Enable(enable);
+    _controls.preview_bounding_box_button->Enable(enable);
 }
 
 void main_window::on_stacking(wxCommandEvent& event) {
@@ -224,13 +202,15 @@ void main_window::enable_on_stacking(const bool starting) {
         _parts_list.get_selected(selected);
         _controls.import_button->Enable();
         _controls.delete_button->Enable(selected.size() != 0);
-        _controls.change_button->Enable(selected.size() == 1);
         _controls.reload_button->Enable(selected.size() != 0);
+        _controls.copy_button->Enable(selected.size() != 0);
+        _controls.mirror_button->Enable(selected.size() != 0);
     } else {
         _controls.import_button->Disable();
         _controls.delete_button->Disable();
-        _controls.change_button->Disable();
         _controls.reload_button->Disable();
+        _controls.copy_button->Disable();
+        _controls.mirror_button->Disable();
     }
 
     _controls.clearance_spinner->Enable(enable);
@@ -249,7 +229,7 @@ void main_window::enable_on_stacking(const bool starting) {
     _controls.min_clearance_spinner->Enable(enable);
     _controls.section_view_checkbox->Enable(enable);
     // _controls.export_button is handled elsewhere
-    _controls.stack_button->SetLabelText(enable ? "Start" : "Stop");
+    _controls.stack_button->SetLabelText(enable ? "Stack" : "Stop");
     _controls.progress_bar->SetValue(0);
 }
 
@@ -330,8 +310,20 @@ void main_window::bind_all_controls() {
 
     _controls.import_button->Bind(wxEVT_BUTTON, &main_window::on_import, this);
     _controls.delete_button->Bind(wxEVT_BUTTON, &main_window::on_delete, this);
-    _controls.change_button->Bind(wxEVT_BUTTON, &main_window::on_change, this);
     _controls.reload_button->Bind(wxEVT_BUTTON, &main_window::on_reload, this);
+    _controls.copy_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+        _parts_list.append(*_current_part);
+        _parts_list.update_label();
+        event.Skip();
+    });
+    _controls.mirror_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+        _current_part->mirrored = not _current_part->mirrored;
+        _current_part->mesh.mirror_x();
+        _current_part->mesh.set_baseline({ 0, 0, 0 });
+        _parts_list.reload_text(_current_part_index.value());
+        set_part(_current_part_index.value());
+        event.Skip();
+    });
 
     _controls.stack_button->Bind(wxEVT_BUTTON, &main_window::on_stacking, this);
     _controls.export_button->Bind(wxEVT_BUTTON, &main_window::on_export, this);
@@ -350,34 +342,16 @@ void main_window::bind_all_controls() {
         event.Skip();
     });
 
-    _controls.radio_none->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent& event) {
-        _current_part->rotation_index = 0;
-        event.Skip();
-    });
-    _controls.radio_arbitrary->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent& event) {
-        _current_part->rotation_index = 2;
-        event.Skip();
-    });
-    _controls.radio_cubic->Bind(wxEVT_RADIOBUTTON, [this](wxCommandEvent& event) {
-        _current_part->rotation_index = 1;
+    _controls.rotation_dropdown->Bind(wxEVT_CHOICE, [this](wxCommandEvent& event) {
+        _current_part->rotation_index = _controls.rotation_dropdown->GetSelection();
         event.Skip();
     });
 
-    _controls.preview_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+    _controls.preview_voxelization_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         wxMessageBox("Not yet implemented", "Error", wxICON_WARNING);
     });
-    _controls.copy_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
-        _parts_list.append(*_current_part);
-        _parts_list.update_label();
-        event.Skip();
-    });
-    _controls.mirror_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
-        _current_part->mirrored = not _current_part->mirrored;
-        _current_part->mesh.mirror_x();
-        _current_part->mesh.set_baseline({ 0, 0, 0 });
-        _parts_list.reload_text(_current_part_index.value());
-        set_part(_current_part_index.value());
-        event.Skip();
+    _controls.preview_bounding_box_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+        wxMessageBox("Not yet implemented", "Error", wxICON_WARNING);
     });
 }
 
@@ -471,22 +445,6 @@ void main_window::on_delete(wxCommandEvent& event) {
     event.Skip();
 }
 
-void main_window::on_change(wxCommandEvent& event) {
-    wxFileDialog dialog(this, "Change mesh", "", "",
-                        "STL files (*.stl)|*.stl",
-                        wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-
-    if (dialog.ShowModal() == wxID_CANCEL) {
-        return;
-    }
-
-    _parts_list.change(dialog.GetPath().ToStdString(), _current_part_index.value());
-    _parts_list.update_label();
-    set_part(_current_part_index.value());
-
-    event.Skip();
-}
-
 void main_window::on_reload(wxCommandEvent& event) {
     static thread_local std::vector<std::size_t> selected{};
     _parts_list.get_selected(selected);
@@ -500,13 +458,7 @@ void main_window::on_reload(wxCommandEvent& event) {
 
 wxSizer* main_window::arrange_all_controls() {
     auto sizer = new wxBoxSizer(wxVERTICAL);
-    sizer->Add(_parts_list.control(), 1, wxEXPAND);
-    sizer->AddSpacer(FromDIP(constants::inner_border));
-    sizer->Add(arrange_part_buttons(), 0, wxEXPAND);
-    sizer->AddSpacer(FromDIP(constants::inner_border));
-    sizer->Add(_parts_list.label());
-    sizer->AddSpacer(FromDIP(constants::inner_border));
-    sizer->Add(arrange_tabs(), 0, wxEXPAND);
+    sizer->Add(arrange_tabs(), 1, wxEXPAND);
     sizer->AddSpacer(FromDIP(constants::inner_border));
     sizer->Add(arrange_bottom_section1(), 0, wxEXPAND);
     sizer->AddSpacer(FromDIP(constants::inner_border));
@@ -516,37 +468,37 @@ wxSizer* main_window::arrange_all_controls() {
 
 wxSizer* main_window::arrange_part_buttons() {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
-    _controls.import_button->SetMinSize(FromDIP(constants::button_size));
-    _controls.delete_button->SetMinSize(FromDIP(constants::button_size));
-    _controls.change_button->SetMinSize(FromDIP(constants::button_size));
-    _controls.reload_button->SetMinSize(FromDIP(constants::button_size));
+    _controls.import_button->SetMinSize(FromDIP(constants::min_button_size));
+    _controls.delete_button->SetMinSize(FromDIP(constants::min_button_size));
+    _controls.reload_button->SetMinSize(FromDIP(constants::min_button_size));
+    _controls.copy_button->SetMinSize(FromDIP(constants::min_button_size));
+    _controls.mirror_button->SetMinSize(FromDIP(constants::min_button_size));
     sizer->Add(_controls.import_button, 1, wxEXPAND);
     sizer->AddSpacer(FromDIP(constants::inner_border));
     sizer->Add(_controls.delete_button, 1, wxEXPAND);
     sizer->AddSpacer(FromDIP(constants::inner_border));
-    sizer->Add(_controls.change_button, 1, wxEXPAND);
-    sizer->AddSpacer(FromDIP(constants::inner_border));
     sizer->Add(_controls.reload_button, 1, wxEXPAND);
+    sizer->AddSpacer(FromDIP(constants::inner_border));
+    sizer->Add(_controls.copy_button, 1, wxEXPAND);
+    sizer->AddSpacer(FromDIP(constants::inner_border));
+    sizer->Add(_controls.mirror_button, 1, wxEXPAND);
     return sizer;
 }
 
 wxSizer* main_window::arrange_bottom_section1() {
-    auto sizer = new wxGridBagSizer(FromDIP(constants::inner_border), FromDIP(constants::inner_border));
-    sizer->Add(_controls.min_clearance_text, wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
-    sizer->Add(_controls.section_view_text, wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
-    sizer->Add(_controls.min_clearance_spinner, wxGBPosition(0, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
-    sizer->Add(_controls.section_view_checkbox, wxGBPosition(1, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
-    new wxGBSizerItem(sizer, wxGBPosition(1, 2), wxDefaultSpan, wxEXPAND);
-    _controls.export_button->SetMinSize(FromDIP(constants::button_size));
-    sizer->Add(_controls.export_button, wxGBPosition(1, 3));
-    sizer->AddGrowableCol(2, 1);
+    auto sizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(_controls.section_view_text, 0, wxALIGN_CENTER_VERTICAL);
+    sizer->AddSpacer(FromDIP(constants::inner_border));
+    sizer->Add(_controls.section_view_checkbox, 0, wxALIGN_CENTER_VERTICAL);
+    sizer->AddStretchSpacer();
+    sizer->Add(_controls.export_button, 0, wxALIGN_CENTER_VERTICAL);
     return sizer;
 }
 
 wxSizer* main_window::arrange_bottom_section2() {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
-    _controls.progress_bar->SetMinSize(FromDIP(constants::button_size));
-    _controls.stack_button->SetMinSize(FromDIP(constants::button_size));
+    _controls.progress_bar->SetMinSize(FromDIP(constants::min_button_size));
+    _controls.stack_button->SetMinSize(FromDIP(constants::min_button_size));
     sizer->Add(_controls.progress_bar, 1, wxEXPAND);
     sizer->AddSpacer(FromDIP(constants::inner_border));
     sizer->Add(_controls.stack_button);
@@ -555,19 +507,24 @@ wxSizer* main_window::arrange_bottom_section2() {
 
 wxNotebook* main_window::arrange_tabs() {
     arrange_tab_part_settings(_controls.notebook_panels[0]);
-    arrange_tab_sinterbox(_controls.notebook_panels[1]);
-    arrange_tab_bounding_box(_controls.notebook_panels[2]);
+    arrange_tab_stack_settings(_controls.notebook_panels[1]);
+    arrange_tab_results(_controls.notebook_panels[2]);
     return _controls.notebook;
 }
 
 void main_window::arrange_tab_part_settings(wxPanel* panel) {
-    auto panel_sizer = new wxBoxSizer(wxVERTICAL);
-    panel->SetSizer(panel_sizer);
-    auto top_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto bottom_sizer = new wxBoxSizer(wxHORIZONTAL);
-    panel_sizer->Add(top_sizer, 0, wxEXPAND);
-    panel_sizer->AddSpacer(panel->FromDIP(constants::inner_border));
-    panel_sizer->Add(bottom_sizer);
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+    panel->SetSizer(sizer);
+
+    sizer->Add(_parts_list.control(), 1, wxEXPAND);
+    sizer->AddSpacer(panel->FromDIP(constants::inner_border));
+    sizer->Add(arrange_part_buttons(), 0, wxEXPAND);
+    sizer->AddSpacer(panel->FromDIP(constants::inner_border));
+    sizer->Add(_parts_list.label());
+    sizer->AddSpacer(panel->FromDIP(constants::inner_border));
+
+    auto lower_sizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(lower_sizer, 0, wxEXPAND);
 
     {
         auto label_sizer = new wxGridSizer(3, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
@@ -575,97 +532,113 @@ void main_window::arrange_tab_part_settings(wxPanel* panel) {
         label_sizer->Add(_controls.min_hole_text, 0, wxALIGN_CENTER_VERTICAL);
         label_sizer->Add(_controls.minimize_text, 0, wxALIGN_CENTER_VERTICAL);
 
+        auto spinner_sizer = new wxGridSizer(3, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
+        spinner_sizer->Add(_controls.quantity_spinner, 0, wxALIGN_CENTER_VERTICAL);
+        spinner_sizer->Add(_controls.min_hole_spinner, 0, wxALIGN_CENTER_VERTICAL);
+        spinner_sizer->Add(_controls.minimize_checkbox, 0, wxALIGN_CENTER_VERTICAL);
+
         auto button_sizer = new wxGridSizer(3, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
-        button_sizer->Add(_controls.quantity_spinner, 0, wxALIGN_CENTER_VERTICAL);
-        button_sizer->Add(_controls.min_hole_spinner, 0, wxALIGN_CENTER_VERTICAL);
-        button_sizer->Add(_controls.minimize_checkbox, 0, wxALIGN_CENTER_VERTICAL);
+        auto rotation_sizer = new wxBoxSizer(wxHORIZONTAL);
+        rotation_sizer->Add(_controls.rotation_text, 0, wxALIGN_CENTER_VERTICAL);
+        rotation_sizer->AddSpacer(panel->FromDIP(2 * constants::inner_border));
+        rotation_sizer->Add(_controls.rotation_dropdown, 0, wxALIGN_CENTER_VERTICAL);
+        button_sizer->Add(rotation_sizer);
+        button_sizer->Add(_controls.preview_voxelization_button);
+        button_sizer->Add(_controls.preview_bounding_box_button);
 
-        auto radio_box = new wxStaticBoxSizer(wxVERTICAL, panel, "Part rotations");
-        auto radio_sizer = new wxGridSizer(2, 2, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
-        radio_box->Add(radio_sizer, 1, wxEXPAND | wxALL, panel->FromDIP(constants::tab_padding));
-        radio_sizer->Add(_controls.radio_none, 0, wxEXPAND);
-        radio_sizer->Add(_controls.radio_arbitrary, 0, wxEXPAND);
-        radio_sizer->Add(_controls.radio_cubic, 0, wxEXPAND);
-
-        top_sizer->Add(label_sizer, 0, wxEXPAND);
-        top_sizer->AddSpacer(panel->FromDIP(3 * constants::inner_border));
-        top_sizer->Add(button_sizer, 0, wxEXPAND);
-        top_sizer->AddStretchSpacer();
-        top_sizer->Add(radio_box, 0, wxEXPAND);
+        lower_sizer->Add(label_sizer, 0, wxEXPAND);
+        lower_sizer->AddSpacer(panel->FromDIP(3 * constants::inner_border));
+        lower_sizer->Add(spinner_sizer, 0, wxEXPAND);
+        lower_sizer->AddSpacer(panel->FromDIP(6 * constants::inner_border));
+        lower_sizer->Add(button_sizer, 0, wxEXPAND);
+        lower_sizer->AddStretchSpacer();
     }
+}
 
+void main_window::arrange_tab_stack_settings(wxPanel* panel) {
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+    panel->SetSizer(sizer);
+
+    auto bounding_box_sizer_ = new wxStaticBoxSizer(wxHORIZONTAL, panel, "Bounding box");
     {
-        _controls.preview_button->SetMinSize(panel->FromDIP(constants::button_size));
-        _controls.copy_button->SetMinSize(panel->FromDIP(constants::button_size));
-        _controls.mirror_button->SetMinSize(panel->FromDIP(constants::button_size));
-        bottom_sizer->Add(_controls.preview_button);
-        bottom_sizer->AddSpacer(panel->FromDIP(constants::inner_border));
-        bottom_sizer->Add(_controls.copy_button);
-        bottom_sizer->AddSpacer(panel->FromDIP(constants::inner_border));
-        bottom_sizer->Add(_controls.mirror_button);
+        auto bounding_box_sizer = new wxBoxSizer(wxHORIZONTAL);
+        bounding_box_sizer_->Add(bounding_box_sizer, 0, wxALL, panel->FromDIP(constants::inner_border));
+
+        auto label_sizer1 = new wxGridSizer(3, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
+        label_sizer1->Add(_controls.initial_x_text, 0, wxALIGN_CENTER_VERTICAL);
+        label_sizer1->Add(_controls.initial_y_text, 0, wxALIGN_CENTER_VERTICAL);
+        label_sizer1->Add(_controls.initial_z_text, 0, wxALIGN_CENTER_VERTICAL);
+
+        auto button_sizer1 = new wxGridSizer(3, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
+        button_sizer1->Add(_controls.initial_x_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
+        button_sizer1->Add(_controls.initial_y_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
+        button_sizer1->Add(_controls.initial_z_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
+
+        auto label_sizer2 = new wxGridSizer(3, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
+        label_sizer2->Add(_controls.maximum_x_text, 0, wxALIGN_CENTER_VERTICAL);
+        label_sizer2->Add(_controls.maximum_y_text, 0, wxALIGN_CENTER_VERTICAL);
+        label_sizer2->Add(_controls.maximum_z_text, 0, wxALIGN_CENTER_VERTICAL);
+
+        auto button_sizer2 = new wxGridSizer(3, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
+        button_sizer2->Add(_controls.maximum_x_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
+        button_sizer2->Add(_controls.maximum_y_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
+        button_sizer2->Add(_controls.maximum_z_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
+
+        bounding_box_sizer->Add(label_sizer1, 0, wxEXPAND);
+        bounding_box_sizer->AddSpacer(panel->FromDIP(4 * constants::inner_border));
+        bounding_box_sizer->Add(button_sizer1, 0, wxEXPAND);
+        bounding_box_sizer->AddSpacer(panel->FromDIP(8 * constants::inner_border));
+        bounding_box_sizer->Add(label_sizer2, 0, wxEXPAND);
+        bounding_box_sizer->AddSpacer(panel->FromDIP(4 * constants::inner_border));
+        bounding_box_sizer->Add(button_sizer2, 0, wxEXPAND);
+        bounding_box_sizer->AddStretchSpacer();
     }
+
+    auto min_clearance_sizer = new wxBoxSizer(wxHORIZONTAL);
+    min_clearance_sizer->Add(_controls.min_clearance_text, 0, wxALIGN_CENTER_VERTICAL);
+    min_clearance_sizer->AddSpacer(4 * FromDIP(constants::inner_border));
+    min_clearance_sizer->Add(_controls.min_clearance_spinner, 0, wxALIGN_CENTER_VERTICAL);
+
+    sizer->Add(bounding_box_sizer_, 0, wxEXPAND | wxLEFT | wxRIGHT);
+    sizer->AddSpacer(FromDIP(constants::inner_border));
+    sizer->Add(min_clearance_sizer);
 }
 
-void main_window::arrange_tab_sinterbox(wxPanel* panel) {
-    auto panel_sizer = new wxBoxSizer(wxHORIZONTAL);
-    panel->SetSizer(panel_sizer);
+void main_window::arrange_tab_results(wxPanel* panel) {
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+    panel->SetSizer(sizer);
 
-    auto label_sizer = new wxGridSizer(4, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
-    label_sizer->Add(_controls.clearance_text, 0, wxALIGN_CENTER_VERTICAL);
-    label_sizer->Add(_controls.spacing_text, 0, wxALIGN_CENTER_VERTICAL);
-    label_sizer->Add(_controls.thickness_text, 0, wxALIGN_CENTER_VERTICAL);
-    label_sizer->Add(_controls.width_text, 0, wxALIGN_CENTER_VERTICAL);
+    auto sinterbox_sizer_ = new wxStaticBoxSizer(wxHORIZONTAL, panel, "Sinterbox");
+    {
+        auto sinterbox_sizer = new wxBoxSizer(wxHORIZONTAL);
+        sinterbox_sizer_->Add(sinterbox_sizer, 0, wxALL, panel->FromDIP(constants::inner_border));
 
-    auto button_sizer = new wxGridSizer(4, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
-    button_sizer->Add(_controls.clearance_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
-    button_sizer->Add(_controls.spacing_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
-    button_sizer->Add(_controls.thickness_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
-    button_sizer->Add(_controls.width_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
+        auto label_sizer = new wxGridSizer(4, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
+        label_sizer->Add(_controls.clearance_text, 0, wxALIGN_CENTER_VERTICAL);
+        label_sizer->Add(_controls.spacing_text, 0, wxALIGN_CENTER_VERTICAL);
+        label_sizer->Add(_controls.thickness_text, 0, wxALIGN_CENTER_VERTICAL);
+        label_sizer->Add(_controls.width_text, 0, wxALIGN_CENTER_VERTICAL);
 
-    auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
-    checkbox_sizer->Add(_controls.generate_text, 0, wxALIGN_CENTER_VERTICAL);
-    checkbox_sizer->AddSpacer(panel->FromDIP(2 * constants::inner_border));
-    checkbox_sizer->Add(_controls.sinterbox_checkbox, 0, wxALIGN_CENTER_VERTICAL);
+        auto button_sizer = new wxGridSizer(4, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
+        button_sizer->Add(_controls.clearance_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
+        button_sizer->Add(_controls.spacing_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
+        button_sizer->Add(_controls.thickness_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
+        button_sizer->Add(_controls.width_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
 
-    panel_sizer->Add(label_sizer, 0, wxEXPAND);
-    panel_sizer->AddSpacer(panel->FromDIP(8 * constants::inner_border + 2));
-    panel_sizer->Add(button_sizer, 0, wxEXPAND);
-    panel_sizer->AddSpacer(panel->FromDIP(2 * constants::inner_border));
-    panel_sizer->Add(checkbox_sizer, 0, wxALIGN_LEFT | wxALIGN_TOP | wxUP, panel->FromDIP(4));
-}
+        auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
+        checkbox_sizer->Add(_controls.generate_text, 0, wxALIGN_CENTER_VERTICAL);
+        checkbox_sizer->AddSpacer(panel->FromDIP(2 * constants::inner_border));
+        checkbox_sizer->Add(_controls.sinterbox_checkbox, 0, wxALIGN_CENTER_VERTICAL);
 
-void main_window::arrange_tab_bounding_box(wxPanel* panel) {
-    auto panel_sizer = new wxBoxSizer(wxHORIZONTAL);
-    panel->SetSizer(panel_sizer);
-
-    auto label_sizer1 = new wxGridSizer(4, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
-    label_sizer1->Add(_controls.initial_x_text, 0, wxALIGN_CENTER_VERTICAL);
-    label_sizer1->Add(_controls.initial_y_text, 0, wxALIGN_CENTER_VERTICAL);
-    label_sizer1->Add(_controls.initial_z_text, 0, wxALIGN_CENTER_VERTICAL);
-
-    auto button_sizer1 = new wxGridSizer(4, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
-    button_sizer1->Add(_controls.initial_x_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
-    button_sizer1->Add(_controls.initial_y_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
-    button_sizer1->Add(_controls.initial_z_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
-
-    auto label_sizer2 = new wxGridSizer(4, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
-    label_sizer2->Add(_controls.maximum_x_text, 0, wxALIGN_CENTER_VERTICAL);
-    label_sizer2->Add(_controls.maximum_y_text, 0, wxALIGN_CENTER_VERTICAL);
-    label_sizer2->Add(_controls.maximum_z_text, 0, wxALIGN_CENTER_VERTICAL);
-
-    auto button_sizer2 = new wxGridSizer(4, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
-    button_sizer2->Add(_controls.maximum_x_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
-    button_sizer2->Add(_controls.maximum_y_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
-    button_sizer2->Add(_controls.maximum_z_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
-
-    panel_sizer->Add(label_sizer1, 0, wxEXPAND);
-    panel_sizer->AddSpacer(panel->FromDIP(4 * constants::inner_border));
-    panel_sizer->Add(button_sizer1, 0, wxEXPAND);
-    panel_sizer->AddSpacer(panel->FromDIP(8 * constants::inner_border));
-    panel_sizer->Add(label_sizer2, 0, wxEXPAND);
-    panel_sizer->AddSpacer(panel->FromDIP(4 * constants::inner_border));
-    panel_sizer->Add(button_sizer2, 0, wxEXPAND);
-    panel_sizer->AddStretchSpacer();
+        sinterbox_sizer->Add(label_sizer, 0, wxEXPAND);
+        sinterbox_sizer->AddSpacer(panel->FromDIP(8 * constants::inner_border + 2));
+        sinterbox_sizer->Add(button_sizer, 0, wxEXPAND);
+        sinterbox_sizer->AddSpacer(panel->FromDIP(2 * constants::inner_border));
+        sinterbox_sizer->Add(checkbox_sizer, 0, wxALIGN_LEFT | wxALIGN_TOP | wxUP, panel->FromDIP(4));
+        sinterbox_sizer->AddStretchSpacer();
+    }
+    
+    sizer->Add(sinterbox_sizer_, 0, wxEXPAND | wxLEFT | wxRIGHT);
 }
 
 } // namespace pstack::gui
