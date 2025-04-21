@@ -545,10 +545,8 @@ wxSizer* main_window::arrange_part_buttons() {
 wxSizer* main_window::make_bottom_section1() {
     auto sizer = new wxGridBagSizer(FromDIP(inner_border), FromDIP(inner_border));
 
-    auto text1 = new wxStaticText(this, wxID_ANY, "Minimum clearance:");
-    auto text2 = new wxStaticText(this, wxID_ANY, "Section view:");
-    sizer->Add(text1, wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
-    sizer->Add(text2, wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+    sizer->Add(_controls.min_clearance_text, wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+    sizer->Add(_controls.section_view_text, wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
     sizer->Add(_controls.min_clearance_spinner, wxGBPosition(0, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
     sizer->Add(_controls.section_view_checkbox, wxGBPosition(1, 1), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
 
@@ -592,12 +590,9 @@ void main_window::make_tab_part_settings(wxPanel* panel) {
 
     {
         auto label_sizer = new wxGridSizer(3, 1, panel->FromDIP(inner_border), panel->FromDIP(inner_border));
-        auto text1 = new wxStaticText(panel, wxID_ANY, "Quantity:");
-        auto text2 = new wxStaticText(panel, wxID_ANY, "Minimum hole:");
-        auto text3 = new wxStaticText(panel, wxID_ANY, "Minimize box:");
-        label_sizer->Add(text1, 0, wxALIGN_CENTER_VERTICAL);
-        label_sizer->Add(text2, 0, wxALIGN_CENTER_VERTICAL);
-        label_sizer->Add(text3, 0, wxALIGN_CENTER_VERTICAL);
+        label_sizer->Add(_controls.quantity_text, 0, wxALIGN_CENTER_VERTICAL);
+        label_sizer->Add(_controls.min_hole_text, 0, wxALIGN_CENTER_VERTICAL);
+        label_sizer->Add(_controls.minimize_text, 0, wxALIGN_CENTER_VERTICAL);
 
         auto button_sizer = new wxGridSizer(3, 1, panel->FromDIP(inner_border), panel->FromDIP(inner_border));
         button_sizer->Add(_controls.quantity_spinner, 0, wxALIGN_CENTER_VERTICAL);
@@ -637,14 +632,10 @@ void main_window::make_tab_sinterbox(wxPanel* panel) {
     panel->SetSizer(panel_sizer);
 
     auto label_sizer = new wxGridSizer(4, 1, panel->FromDIP(inner_border), panel->FromDIP(inner_border));
-    auto text1 = new wxStaticText(panel, wxID_ANY, "Clearance:");
-    auto text2 = new wxStaticText(panel, wxID_ANY, "Spacing:");
-    auto text3 = new wxStaticText(panel, wxID_ANY, "Thickness:");
-    auto text4 = new wxStaticText(panel, wxID_ANY, "Width:");
-    label_sizer->Add(text1, 0, wxALIGN_CENTER_VERTICAL);
-    label_sizer->Add(text2, 0, wxALIGN_CENTER_VERTICAL);
-    label_sizer->Add(text3, 0, wxALIGN_CENTER_VERTICAL);
-    label_sizer->Add(text4, 0, wxALIGN_CENTER_VERTICAL);
+    label_sizer->Add(_controls.clearance_text, 0, wxALIGN_CENTER_VERTICAL);
+    label_sizer->Add(_controls.spacing_text, 0, wxALIGN_CENTER_VERTICAL);
+    label_sizer->Add(_controls.thickness_text, 0, wxALIGN_CENTER_VERTICAL);
+    label_sizer->Add(_controls.width_text, 0, wxALIGN_CENTER_VERTICAL);
 
     auto button_sizer = new wxGridSizer(4, 1, panel->FromDIP(inner_border), panel->FromDIP(inner_border));
     button_sizer->Add(_controls.clearance_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
@@ -653,8 +644,7 @@ void main_window::make_tab_sinterbox(wxPanel* panel) {
     button_sizer->Add(_controls.width_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
 
     auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
-    auto generate_text = new wxStaticText(panel, wxID_ANY, "Generate sinterbox:");
-    checkbox_sizer->Add(generate_text, 0, wxALIGN_CENTER_VERTICAL);
+    checkbox_sizer->Add(_controls.generate_text, 0, wxALIGN_CENTER_VERTICAL);
     checkbox_sizer->AddSpacer(panel->FromDIP(2 * inner_border));
     checkbox_sizer->Add(_controls.sinterbox_checkbox, 0, wxALIGN_CENTER_VERTICAL);
 
@@ -670,12 +660,9 @@ void main_window::make_tab_bounding_box(wxPanel* panel) {
     panel->SetSizer(panel_sizer);
 
     auto label_sizer1 = new wxGridSizer(4, 1, panel->FromDIP(inner_border), panel->FromDIP(inner_border));
-    auto text1 = new wxStaticText(panel, wxID_ANY, "Initial X:");
-    auto text2 = new wxStaticText(panel, wxID_ANY, "Initial Y:");
-    auto text3 = new wxStaticText(panel, wxID_ANY, "Initial Z:");
-    label_sizer1->Add(text1, 0, wxALIGN_CENTER_VERTICAL);
-    label_sizer1->Add(text2, 0, wxALIGN_CENTER_VERTICAL);
-    label_sizer1->Add(text3, 0, wxALIGN_CENTER_VERTICAL);
+    label_sizer1->Add(_controls.initial_x_text, 0, wxALIGN_CENTER_VERTICAL);
+    label_sizer1->Add(_controls.initial_y_text, 0, wxALIGN_CENTER_VERTICAL);
+    label_sizer1->Add(_controls.initial_z_text, 0, wxALIGN_CENTER_VERTICAL);
 
     auto button_sizer1 = new wxGridSizer(4, 1, panel->FromDIP(inner_border), panel->FromDIP(inner_border));
     button_sizer1->Add(_controls.initial_x_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
@@ -683,12 +670,9 @@ void main_window::make_tab_bounding_box(wxPanel* panel) {
     button_sizer1->Add(_controls.initial_z_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
 
     auto label_sizer2 = new wxGridSizer(4, 1, panel->FromDIP(inner_border), panel->FromDIP(inner_border));
-    auto text4 = new wxStaticText(panel, wxID_ANY, "Maximum X:");
-    auto text5 = new wxStaticText(panel, wxID_ANY, "Maximum Y:");
-    auto text6 = new wxStaticText(panel, wxID_ANY, "Maximum Z:");
-    label_sizer2->Add(text4, 0, wxALIGN_CENTER_VERTICAL);
-    label_sizer2->Add(text5, 0, wxALIGN_CENTER_VERTICAL);
-    label_sizer2->Add(text6, 0, wxALIGN_CENTER_VERTICAL);
+    label_sizer2->Add(_controls.maximum_x_text, 0, wxALIGN_CENTER_VERTICAL);
+    label_sizer2->Add(_controls.maximum_y_text, 0, wxALIGN_CENTER_VERTICAL);
+    label_sizer2->Add(_controls.maximum_z_text, 0, wxALIGN_CENTER_VERTICAL);
 
     auto button_sizer2 = new wxGridSizer(4, 1, panel->FromDIP(inner_border), panel->FromDIP(inner_border));
     button_sizer2->Add(_controls.maximum_x_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);

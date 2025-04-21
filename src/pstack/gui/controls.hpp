@@ -26,6 +26,8 @@ struct controls {
     wxButton* change_button;
     wxButton* reload_button;
     
+    wxStaticText* min_clearance_text;
+    wxStaticText* section_view_text;
     wxSpinCtrlDouble* min_clearance_spinner;
     wxCheckBox* section_view_checkbox;
     wxButton* export_button;
@@ -36,6 +38,9 @@ struct controls {
     std::vector<wxPanel*> notebook_panels;
     
     // Part settings tab
+    wxStaticText* quantity_text;
+    wxStaticText* min_hole_text;
+    wxStaticText* minimize_text;
     wxSpinCtrl* quantity_spinner;
     wxSpinCtrl* min_hole_spinner;
     wxCheckBox* minimize_checkbox;
@@ -47,6 +52,11 @@ struct controls {
     wxButton* mirror_button;
     
     // Sinterbox tab
+    wxStaticText* clearance_text;
+    wxStaticText* spacing_text;
+    wxStaticText* thickness_text;
+    wxStaticText* width_text;
+    wxStaticText* generate_text;
     wxSpinCtrlDouble* clearance_spinner;
     wxSpinCtrlDouble* spacing_spinner;
     wxSpinCtrlDouble* thickness_spinner;
@@ -54,6 +64,12 @@ struct controls {
     wxCheckBox* sinterbox_checkbox;
 
     // Bounding box tab
+    wxStaticText* initial_x_text;
+    wxStaticText* initial_y_text;
+    wxStaticText* initial_z_text;
+    wxStaticText* maximum_x_text;
+    wxStaticText* maximum_y_text;
+    wxStaticText* maximum_z_text;
     wxSpinCtrl* initial_x_spinner;
     wxSpinCtrl* initial_y_spinner;
     wxSpinCtrl* initial_z_spinner;

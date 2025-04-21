@@ -31,6 +31,8 @@ void controls::initialize(main_window* parent) {
     reload_button = new wxButton(parent, wxID_ANY, "Reload");
     reload_button->Disable();
 
+    min_clearance_text = new wxStaticText(parent, wxID_ANY, "Minimum clearance:");
+    section_view_text = new wxStaticText(parent, wxID_ANY, "Section view:");
     min_clearance_spinner = new wxSpinCtrlDouble(parent);
     min_clearance_spinner->SetDigits(2);
     min_clearance_spinner->SetIncrement(0.05);
@@ -49,6 +51,9 @@ void controls::initialize(main_window* parent) {
     
     {
         const auto panel = notebook_panels[0];
+        quantity_text = new wxStaticText(panel, wxID_ANY, "Quantity:");
+        min_hole_text = new wxStaticText(panel, wxID_ANY, "Minimum hole:");
+        minimize_text = new wxStaticText(panel, wxID_ANY, "Minimize box:");
         quantity_spinner = new wxSpinCtrl(panel);
         quantity_spinner->SetRange(0, 200);
         min_hole_spinner = new wxSpinCtrl(panel);
@@ -64,6 +69,11 @@ void controls::initialize(main_window* parent) {
 
     {
         const auto panel = notebook_panels[1];
+        clearance_text = new wxStaticText(panel, wxID_ANY, "Clearance:");
+        spacing_text = new wxStaticText(panel, wxID_ANY, "Spacing:");
+        thickness_text = new wxStaticText(panel, wxID_ANY, "Thickness:");
+        width_text = new wxStaticText(panel, wxID_ANY, "Width:");
+        generate_text = new wxStaticText(panel, wxID_ANY, "Generate sinterbox:");
         const auto make_spinner = [&panel](double minimum, double maximum, double increment) {
             auto spinner = new wxSpinCtrlDouble(panel);
             spinner->SetIncrement(increment);
@@ -79,6 +89,12 @@ void controls::initialize(main_window* parent) {
 
     {
         const auto panel = notebook_panels[2];
+        initial_x_text = new wxStaticText(panel, wxID_ANY, "Initial X:");
+        initial_y_text = new wxStaticText(panel, wxID_ANY, "Initial Y:");
+        initial_z_text = new wxStaticText(panel, wxID_ANY, "Initial Z:");
+        maximum_x_text = new wxStaticText(panel, wxID_ANY, "Maximum X:");
+        maximum_y_text = new wxStaticText(panel, wxID_ANY, "Maximum Y:");
+        maximum_z_text = new wxStaticText(panel, wxID_ANY, "Maximum Z:");
         const auto make_spinner = [panel] {
             auto spinner = new wxSpinCtrl(panel);
             spinner->SetRange(10, 250);
