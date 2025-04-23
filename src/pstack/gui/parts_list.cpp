@@ -4,7 +4,6 @@
 #include <charconv>
 #include <cmath>
 #include <filesystem>
-#include <ranges>
 
 namespace pstack::gui {
 
@@ -50,7 +49,7 @@ calc::part make_part(std::string mesh_file, bool mirrored) {
 } // namespace
 
 void parts_list::initialize(wxWindow* parent) {
-    _list = list_view(parent, {
+    list_view::initialize(parent, {
         { "Name", 105 },
         { "Quantity", 60 },
         { "Volume", 60 },
@@ -66,7 +65,7 @@ void parts_list::append(std::string mesh_file) {
 }
 
 void parts_list::append(calc::part part) {
-    _list.append({
+    list_view::append({
         part.name,
         std::to_string(part.quantity),
         wxString::Format("%.2f", part.volume / 1000),
@@ -74,14 +73,13 @@ void parts_list::append(calc::part part) {
         (part.mirrored ? "Mirrored" : "")
     });
     _parts.push_back(std::make_shared<calc::part>(std::move(part)));
-    _selected.push_back(false);
 }
 
 void parts_list::change(std::string mesh_file, const std::size_t row) {
     calc::part& part = *_parts.at(row);
     part = make_part(std::move(mesh_file), part.mirrored);
     reload_text(row);
-    _selected.at(row) = false;
+    list_view::deselect(row);
 }
 
 void parts_list::reload_file(const std::size_t row) {
@@ -90,7 +88,7 @@ void parts_list::reload_file(const std::size_t row) {
 
 void parts_list::reload_text(const std::size_t row) {
     const calc::part& part = *_parts.at(row);
-    _list.replace(row, {
+    list_view::replace(row, {
         part.name,
         std::to_string(part.quantity),
         wxString::Format("%.2f", part.volume / 1000),
@@ -100,38 +98,18 @@ void parts_list::reload_text(const std::size_t row) {
 }
 
 void parts_list::reload_quantity(std::size_t row) {
-    _list.set_text(row, 1, std::to_string(_parts.at(row)->quantity));
+    list_view::set_text(row, 1, std::to_string(_parts.at(row)->quantity));
     update_label();
 }
 
 void parts_list::delete_all() {
-    for (std::size_t index = _parts.size(); index-- != 0; ) {
-        _list.delete_row(index);
-    }
+    list_view::delete_all();
     _parts.clear();
-    _selected.clear();
     update_label();
 }
 
 void parts_list::delete_selected() {
-    static thread_local std::vector<std::size_t> indices_to_delete{};
-    get_selected(indices_to_delete);
-    for (const std::size_t index : indices_to_delete | std::views::reverse) {
-        _list.delete_row(index);
-        _parts.erase(_parts.begin() + index);
-        _selected.erase(_selected.begin() + index);
-    }
-}
-
-void parts_list::get_selected(std::vector<std::size_t>& vec) {
-    vec.clear();
-    std::size_t index = 0;
-    for (const bool value : _selected) {
-        if (value) {
-            vec.push_back(index);
-        }
-        ++index;
-    }
+    list_view::delete_selected(_parts);
 }
 
 std::vector<std::shared_ptr<const calc::part>> parts_list::get_all() const {

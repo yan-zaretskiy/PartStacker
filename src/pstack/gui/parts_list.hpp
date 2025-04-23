@@ -10,7 +10,7 @@
 
 namespace pstack::gui {
 
-class parts_list {
+class parts_list : public list_view {
 public:
     parts_list() = default;
     void initialize(wxWindow* parent);
@@ -19,9 +19,6 @@ public:
     parts_list(const parts_list&) = delete;
     parts_list& operator=(const parts_list&) = delete;
 
-    std::size_t rows() {
-        return _list.rows();
-    }
     void append(std::string mesh_file);
     void append(calc::part part);
     void change(std::string mesh_file, std::size_t row);
@@ -30,21 +27,6 @@ public:
     void reload_quantity(std::size_t row);
     void delete_all();
     void delete_selected();
-    void get_selected(std::vector<std::size_t>& vec);
-
-    template <class F>
-    requires (std::is_invocable_r_v<void, F, const std::vector<std::size_t>&>)
-    void bind(F on_select_parts) {
-        const auto callback = [=](wxListEvent& event) {
-            _selected.at(event.GetIndex()) = (event.GetEventType() == wxEVT_LIST_ITEM_SELECTED);
-            static thread_local std::vector<std::size_t> selected{};
-            get_selected(selected);
-            on_select_parts(selected);
-        };
-        _list.control()->Bind(wxEVT_LIST_ITEM_SELECTED, callback);
-        _list.control()->Bind(wxEVT_LIST_ITEM_DESELECTED, callback);
-    }
-
     std::shared_ptr<calc::part> at(std::size_t row) {
         return _parts.at(row);
     }
@@ -64,14 +46,8 @@ public:
         return _total_triangles;
     }
 
-    wxWindow* control() {
-        return _list.control();
-    }
-
 private:
-    list_view _list{};
     std::vector<std::shared_ptr<calc::part>> _parts;
-    std::vector<bool> _selected{};
 
     wxStaticText* _label{};
     std::size_t _total_parts{};

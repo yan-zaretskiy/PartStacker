@@ -4,7 +4,18 @@
 
 namespace pstack::gui {
 
-list_view::list_view(wxWindow* parent, const std::vector<std::pair<wxString, int>>& columns) {
+void list_view::get_selected(std::vector<std::size_t>& vec) {
+    vec.clear();
+    std::size_t index = 0;
+    for (const bool value : _selected) {
+        if (value) {
+            vec.push_back(index);
+        }
+        ++index;
+    }
+}
+
+void list_view::initialize(wxWindow* parent, const std::vector<std::pair<wxString, int>>& columns) {
     _list = new wxListView(parent);
     _list->SetMinSize(parent->FromDIP(constants::min_list_size));
     for (const auto& [label, width] : columns) {
@@ -25,6 +36,7 @@ void list_view::append(const std::vector<wxString> items) {
         _list->SetItem(row_index, column, item);
         ++column;
     }
+    _selected.push_back(false);
 }
 
 void list_view::replace(const std::size_t row_index, const std::vector<wxString> items) {
@@ -48,6 +60,13 @@ void list_view::delete_row(const std::size_t row_index) {
     }
     _list->DeleteItem(row_index);
     --_rows;
+}
+
+void list_view::delete_all() {
+    while (_rows != 0) {
+        _list->DeleteItem(--_rows);
+    }
+    _selected.clear();
 }
 
 void list_view::set_text(std::size_t row_index, int column, const wxString& text) {
