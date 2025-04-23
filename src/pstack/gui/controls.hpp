@@ -22,12 +22,12 @@ struct controls {
     void initialize(main_window* parent);
     void reset_values();
 
-    wxButton* import_button;
-    wxButton* delete_button;
-    wxButton* reload_button;
-    wxButton* copy_button;
-    wxButton* mirror_button;
-    
+    wxButton* import_part_button;
+    wxButton* delete_part_button;
+    wxButton* reload_part_button;
+    wxButton* copy_part_button;
+    wxButton* mirror_part_button;
+
     wxStaticText* min_clearance_text;
     wxStaticText* section_view_text;
     wxSpinCtrlDouble* min_clearance_spinner;
@@ -38,7 +38,7 @@ struct controls {
 
     wxNotebook* notebook;
     std::vector<wxPanel*> notebook_panels;
-    
+
     // Part settings tab
     wxStaticText* quantity_text;
     wxStaticText* min_hole_text;
@@ -50,7 +50,7 @@ struct controls {
     wxChoice* rotation_dropdown;
     wxButton* preview_voxelization_button;
     wxButton* preview_bounding_box_button;
-    
+
     // Sinterbox tab
     wxStaticText* clearance_text;
     wxStaticText* spacing_text;

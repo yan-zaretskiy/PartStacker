@@ -50,9 +50,9 @@ private:
     void on_close(wxCloseEvent& event);
     void on_export(wxCommandEvent& event);
     void on_export();
-    void on_import(wxCommandEvent& event);
-    void on_delete(wxCommandEvent& event);
-    void on_reload(wxCommandEvent& event);
+    void on_import_part(wxCommandEvent& event);
+    void on_delete_part(wxCommandEvent& event);
+    void on_reload_part(wxCommandEvent& event);
 
     wxSizer* arrange_all_controls();
     wxSizer* arrange_part_buttons();

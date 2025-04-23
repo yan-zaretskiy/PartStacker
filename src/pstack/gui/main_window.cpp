@@ -45,10 +45,10 @@ main_window::main_window(const wxString& title)
 
 void main_window::on_select_parts(const std::vector<std::size_t>& indices) {
     const auto size = indices.size();
-    _controls.delete_button->Enable(size != 0);
-    _controls.reload_button->Enable(size != 0);
-    _controls.copy_button->Enable(size == 1);
-    _controls.mirror_button->Enable(size == 1);
+    _controls.delete_part_button->Enable(size != 0);
+    _controls.reload_part_button->Enable(size != 0);
+    _controls.copy_part_button->Enable(size == 1);
+    _controls.mirror_part_button->Enable(size == 1);
     if (size == 1) {
         set_part(indices[0]);
     } else {
@@ -195,17 +195,17 @@ void main_window::enable_on_stacking(const bool starting) {
     if (enable) {
         static thread_local std::vector<std::size_t> selected{};
         _parts_list.get_selected(selected);
-        _controls.import_button->Enable();
-        _controls.delete_button->Enable(selected.size() != 0);
-        _controls.reload_button->Enable(selected.size() != 0);
-        _controls.copy_button->Enable(selected.size() != 0);
-        _controls.mirror_button->Enable(selected.size() != 0);
+        _controls.import_part_button->Enable();
+        _controls.delete_part_button->Enable(selected.size() != 0);
+        _controls.reload_part_button->Enable(selected.size() != 0);
+        _controls.copy_part_button->Enable(selected.size() != 0);
+        _controls.mirror_part_button->Enable(selected.size() != 0);
     } else {
-        _controls.import_button->Disable();
-        _controls.delete_button->Disable();
-        _controls.reload_button->Disable();
-        _controls.copy_button->Disable();
-        _controls.mirror_button->Disable();
+        _controls.import_part_button->Disable();
+        _controls.delete_part_button->Disable();
+        _controls.reload_part_button->Disable();
+        _controls.copy_part_button->Disable();
+        _controls.mirror_part_button->Disable();
     }
 
     _controls.clearance_spinner->Enable(enable);
@@ -254,7 +254,7 @@ wxMenuBar* main_window::make_menu_bar() {
                 break;
             }
             case menu_item::import: {
-                return on_import(event);
+                return on_import_part(event);
             }
             case menu_item::export_: {
                 return on_export(event);
@@ -303,15 +303,15 @@ void main_window::bind_all_controls() {
         return on_select_parts(selected);
     });
 
-    _controls.import_button->Bind(wxEVT_BUTTON, &main_window::on_import, this);
-    _controls.delete_button->Bind(wxEVT_BUTTON, &main_window::on_delete, this);
-    _controls.reload_button->Bind(wxEVT_BUTTON, &main_window::on_reload, this);
-    _controls.copy_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+    _controls.import_part_button->Bind(wxEVT_BUTTON, &main_window::on_import_part, this);
+    _controls.delete_part_button->Bind(wxEVT_BUTTON, &main_window::on_delete_part, this);
+    _controls.reload_part_button->Bind(wxEVT_BUTTON, &main_window::on_reload_part, this);
+    _controls.copy_part_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         _parts_list.append(*_current_part);
         _parts_list.update_label();
         event.Skip();
     });
-    _controls.mirror_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+    _controls.mirror_part_button->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         _current_part->mirrored = not _current_part->mirrored;
         _current_part->mesh.mirror_x();
         _current_part->mesh.set_baseline({ 0, 0, 0 });
@@ -407,7 +407,7 @@ void main_window::on_export() {
     files::to_stl(_last_result->mesh, path.ToStdString());
 }
 
-void main_window::on_import(wxCommandEvent& event) {
+void main_window::on_import_part(wxCommandEvent& event) {
     wxFileDialog dialog(this, "Import mesh", "", "",
                         "STL files (*.stl)|*.stl",
                         wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
@@ -431,7 +431,7 @@ void main_window::on_import(wxCommandEvent& event) {
     event.Skip();
 }
 
-void main_window::on_delete(wxCommandEvent& event) {
+void main_window::on_delete_part(wxCommandEvent& event) {
     static thread_local std::vector<std::size_t> selected{};
     _parts_list.get_selected(selected);
     const auto message = wxString::Format("Delete %s %zu item%s?", selected.size() == 1 ? "this" : "these", selected.size(), selected.size() == 1 ? "" : "s");
@@ -444,7 +444,7 @@ void main_window::on_delete(wxCommandEvent& event) {
     event.Skip();
 }
 
-void main_window::on_reload(wxCommandEvent& event) {
+void main_window::on_reload_part(wxCommandEvent& event) {
     static thread_local std::vector<std::size_t> selected{};
     _parts_list.get_selected(selected);
     for (const std::size_t row : selected) {
@@ -467,20 +467,20 @@ wxSizer* main_window::arrange_all_controls() {
 
 wxSizer* main_window::arrange_part_buttons() {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
-    _controls.import_button->SetMinSize(FromDIP(constants::min_button_size));
-    _controls.delete_button->SetMinSize(FromDIP(constants::min_button_size));
-    _controls.reload_button->SetMinSize(FromDIP(constants::min_button_size));
-    _controls.copy_button->SetMinSize(FromDIP(constants::min_button_size));
-    _controls.mirror_button->SetMinSize(FromDIP(constants::min_button_size));
-    sizer->Add(_controls.import_button, 1, wxEXPAND);
+    _controls.import_part_button->SetMinSize(FromDIP(constants::min_button_size));
+    _controls.delete_part_button->SetMinSize(FromDIP(constants::min_button_size));
+    _controls.reload_part_button->SetMinSize(FromDIP(constants::min_button_size));
+    _controls.copy_part_button->SetMinSize(FromDIP(constants::min_button_size));
+    _controls.mirror_part_button->SetMinSize(FromDIP(constants::min_button_size));
+    sizer->Add(_controls.import_part_button, 1, wxEXPAND);
     sizer->AddSpacer(FromDIP(constants::inner_border));
-    sizer->Add(_controls.delete_button, 1, wxEXPAND);
+    sizer->Add(_controls.delete_part_button, 1, wxEXPAND);
     sizer->AddSpacer(FromDIP(constants::inner_border));
-    sizer->Add(_controls.reload_button, 1, wxEXPAND);
+    sizer->Add(_controls.reload_part_button, 1, wxEXPAND);
     sizer->AddSpacer(FromDIP(constants::inner_border));
-    sizer->Add(_controls.copy_button, 1, wxEXPAND);
+    sizer->Add(_controls.copy_part_button, 1, wxEXPAND);
     sizer->AddSpacer(FromDIP(constants::inner_border));
-    sizer->Add(_controls.mirror_button, 1, wxEXPAND);
+    sizer->Add(_controls.mirror_part_button, 1, wxEXPAND);
     return sizer;
 }
 
