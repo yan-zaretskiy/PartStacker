@@ -30,6 +30,7 @@ struct controls {
 
     wxButton* export_result_button;
     wxButton* delete_result_button;
+    wxButton* sinterbox_result_button;
 
     wxStaticText* min_clearance_text;
     wxStaticText* section_view_text;
@@ -58,12 +59,10 @@ struct controls {
     wxStaticText* spacing_text;
     wxStaticText* thickness_text;
     wxStaticText* width_text;
-    wxStaticText* generate_text;
     wxSpinCtrlDouble* clearance_spinner;
     wxSpinCtrlDouble* spacing_spinner;
     wxSpinCtrlDouble* thickness_spinner;
     wxSpinCtrlDouble* width_spinner;
-    wxCheckBox* sinterbox_checkbox;
 
     // Bounding box tab
     wxStaticText* initial_x_text;

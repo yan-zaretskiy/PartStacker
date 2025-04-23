@@ -99,11 +99,12 @@ void controls::initialize(main_window* parent) {
         export_result_button->Disable();
         delete_result_button = new wxButton(panel, wxID_ANY, "Delete");
         delete_result_button->Disable();
+        sinterbox_result_button = new wxButton(panel, wxID_ANY, "Add sinterbox");
+        sinterbox_result_button->Disable();
         clearance_text = new wxStaticText(panel, wxID_ANY, "Clearance:");
         spacing_text = new wxStaticText(panel, wxID_ANY, "Spacing:");
         thickness_text = new wxStaticText(panel, wxID_ANY, "Thickness:");
         width_text = new wxStaticText(panel, wxID_ANY, "Width:");
-        generate_text = new wxStaticText(panel, wxID_ANY, "Generate sinterbox:");
         const auto make_spinner = [&panel](double minimum, double maximum, double increment) {
             auto spinner = new wxSpinCtrlDouble(panel);
             spinner->SetIncrement(increment);
@@ -114,7 +115,6 @@ void controls::initialize(main_window* parent) {
         spacing_spinner = make_spinner(1, 20, 0.5);
         thickness_spinner = make_spinner(0.1, 4, 0.1);
         width_spinner = make_spinner(0.1, 4, 0.1);
-        sinterbox_checkbox = new wxCheckBox(panel, wxID_ANY, "");
     }
 
     reset_values();
@@ -132,7 +132,6 @@ void controls::reset_values() {
     spacing_spinner->SetValue(6.0);
     thickness_spinner->SetValue(0.8);
     width_spinner->SetValue(1.1);
-    sinterbox_checkbox->SetValue(true);
 
     initial_x_spinner->SetValue(150);
     initial_y_spinner->SetValue(150);

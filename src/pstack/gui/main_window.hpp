@@ -60,6 +60,7 @@ private:
     void on_reload_part(wxCommandEvent& event);
     void on_export_result(wxCommandEvent& event);
     void on_delete_result(wxCommandEvent& event);
+    void on_sinterbox_result(wxCommandEvent& event);
 
     wxSizer* arrange_all_controls();
     wxSizer* arrange_part_buttons();

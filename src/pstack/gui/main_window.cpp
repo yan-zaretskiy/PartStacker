@@ -87,6 +87,7 @@ void main_window::on_select_results(const std::vector<std::size_t>& indices) {
     const auto size = indices.size();
     _controls.export_result_button->Enable(size == 1);
     _controls.delete_result_button->Enable(size != 0);
+    _controls.sinterbox_result_button->Enable(size == 1);
     if (size == 1) {
         set_result(indices[0]);
     } else {
@@ -178,22 +179,6 @@ void main_window::on_stacking_success(calc::stack_result result, const std::chro
     _results_list.append(std::move(result));
     set_result(_results_list.rows() - 1);
 
-    // Todo:
-    // if (_controls.sinterbox_checkbox->GetValue()) {
-    //     const double offset = _controls.thickness_spinner->GetValue() + _controls.clearance_spinner->GetValue();
-    //     _last_result->mesh.set_baseline(geo::origin3<float> + offset);
-    //     const calc::sinterbox_parameters params {
-    //         .min = bounding.min + offset,
-    //         .max = bounding.max + offset,
-    //         .clearance = _controls.clearance_spinner->GetValue(),
-    //         .thickness = _controls.thickness_spinner->GetValue(),
-    //         .width = _controls.width_spinner->GetValue(),
-    //         .spacing = _controls.spacing_spinner->GetValue() + 0.00013759,
-    //     };
-    //     _last_result->mesh.add_sinterbox(params);
-    //     bounding = _last_result->mesh.bounding();
-    // }
-
     const auto message = wxString::Format(
         "Stacking complete!\n\nElapsed time: %.1fs\n\nFinal bounding box: %.1fx%.1fx%.1fmm (%.1f%% density).",
         std::chrono::duration_cast<std::chrono::duration<double>>(elapsed).count(),
@@ -220,6 +205,7 @@ void main_window::enable_on_stacking(const bool starting) {
         _results_list.get_selected(selected);
         _controls.export_result_button->Enable(selected.size() == 1);
         _controls.delete_result_button->Enable(selected.size() != 0);
+        _controls.sinterbox_result_button->Enable(selected.size() != 0);
     } else {
         _controls.import_part_button->Disable();
         _controls.delete_part_button->Disable();
@@ -228,13 +214,13 @@ void main_window::enable_on_stacking(const bool starting) {
         _controls.mirror_part_button->Disable();
         _controls.export_result_button->Disable();
         _controls.delete_result_button->Disable();
+        _controls.sinterbox_result_button->Disable();
     }
 
     _controls.clearance_spinner->Enable(enable);
     _controls.spacing_spinner->Enable(enable);
     _controls.thickness_spinner->Enable(enable);
     _controls.width_spinner->Enable(enable);
-    _controls.sinterbox_checkbox->Enable(enable);
 
     _controls.initial_x_spinner->Enable(enable);
     _controls.initial_y_spinner->Enable(enable);
@@ -347,6 +333,7 @@ void main_window::bind_all_controls() {
     _controls.stack_button->Bind(wxEVT_BUTTON, &main_window::on_stacking, this);
     _controls.export_result_button->Bind(wxEVT_BUTTON, &main_window::on_export_result, this);
     _controls.delete_result_button->Bind(wxEVT_BUTTON, &main_window::on_delete_result, this);
+    _controls.sinterbox_result_button->Bind(wxEVT_BUTTON, &main_window::on_sinterbox_result, this);
 
     _controls.quantity_spinner->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent& event) {
         _current_part->quantity = event.GetPosition();
@@ -459,7 +446,7 @@ void main_window::on_reload_part(wxCommandEvent& event) {
 
 void main_window::on_export_result(wxCommandEvent& event) {
     if (nullptr == _current_result) {
-        wxMessageBox("Nothing to export", "Error", wxICON_WARNING);
+        wxMessageBox("No result selected", "Error", wxICON_WARNING);
         return;
     }
 
@@ -485,6 +472,35 @@ void main_window::on_delete_result(wxCommandEvent& event) {
         _results_list.delete_selected();
         on_select_results({});
     }
+    event.Skip();
+}
+
+void main_window::on_sinterbox_result(wxCommandEvent& event) {
+    if (nullptr == _current_result) {
+        wxMessageBox("No result selected", "Error", wxICON_WARNING);
+        return;
+    }
+    if (_current_result->sinterbox.has_value()) {
+        wxMessageBox("This result already has a sinterbox", "Error", wxICON_WARNING);
+        return;
+    }
+
+    auto result = *_current_result; // Copy the result
+    const double offset = _controls.thickness_spinner->GetValue() + _controls.clearance_spinner->GetValue();
+    const auto bounding = result.mesh.bounding();
+    result.mesh.set_baseline(geo::origin3<float> + offset);
+    result.sinterbox = calc::sinterbox_parameters{
+        .min = bounding.min + offset,
+        .max = bounding.max + offset,
+        .clearance = _controls.clearance_spinner->GetValue(),
+        .thickness = _controls.thickness_spinner->GetValue(),
+        .width = _controls.width_spinner->GetValue(),
+        .spacing = _controls.spacing_spinner->GetValue() + 0.00013759,
+    };
+    result.mesh.add_sinterbox(*result.sinterbox);
+
+    _results_list.append(std::move(result));
+    set_result(_results_list.rows() - 1);
     event.Skip();
 }
 
@@ -521,9 +537,12 @@ wxSizer* main_window::arrange_result_buttons() {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     _controls.export_result_button->SetMinSize(FromDIP(constants::min_button_size));
     _controls.delete_result_button->SetMinSize(FromDIP(constants::min_button_size));
+    _controls.sinterbox_result_button->SetMinSize(FromDIP(constants::min_button_size));
     sizer->Add(_controls.export_result_button, 1, wxEXPAND);
     sizer->AddSpacer(FromDIP(constants::inner_border));
     sizer->Add(_controls.delete_result_button, 1, wxEXPAND);
+    sizer->AddSpacer(FromDIP(constants::inner_border));
+    sizer->Add(_controls.sinterbox_result_button, 1, wxEXPAND);
     return sizer;
 }
 
@@ -659,29 +678,29 @@ void main_window::arrange_tab_results(wxPanel* panel) {
         auto sinterbox_sizer = new wxBoxSizer(wxHORIZONTAL);
         sinterbox_sizer_->Add(sinterbox_sizer, 0, wxALL, panel->FromDIP(constants::inner_border));
 
-        auto label_sizer = new wxGridSizer(4, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
-        label_sizer->Add(_controls.clearance_text, 0, wxALIGN_CENTER_VERTICAL);
-        label_sizer->Add(_controls.spacing_text, 0, wxALIGN_CENTER_VERTICAL);
-        label_sizer->Add(_controls.thickness_text, 0, wxALIGN_CENTER_VERTICAL);
-        label_sizer->Add(_controls.width_text, 0, wxALIGN_CENTER_VERTICAL);
+        auto label_sizer1 = new wxGridSizer(2, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
+        label_sizer1->Add(_controls.clearance_text, 0, wxALIGN_CENTER_VERTICAL);
+        label_sizer1->Add(_controls.spacing_text, 0, wxALIGN_CENTER_VERTICAL);
 
-        auto button_sizer = new wxGridSizer(4, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
-        button_sizer->Add(_controls.clearance_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
-        button_sizer->Add(_controls.spacing_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
-        button_sizer->Add(_controls.thickness_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
-        button_sizer->Add(_controls.width_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
+        auto button_sizer1 = new wxGridSizer(2, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
+        button_sizer1->Add(_controls.clearance_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
+        button_sizer1->Add(_controls.spacing_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
 
-        auto checkbox_sizer = new wxBoxSizer(wxHORIZONTAL);
-        checkbox_sizer->Add(_controls.generate_text, 0, wxALIGN_CENTER_VERTICAL);
-        checkbox_sizer->AddSpacer(panel->FromDIP(2 * constants::inner_border));
-        checkbox_sizer->Add(_controls.sinterbox_checkbox, 0, wxALIGN_CENTER_VERTICAL);
+        auto label_sizer2 = new wxGridSizer(2, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
+        label_sizer2->Add(_controls.thickness_text, 0, wxALIGN_CENTER_VERTICAL);
+        label_sizer2->Add(_controls.width_text, 0, wxALIGN_CENTER_VERTICAL);
 
-        sinterbox_sizer->Add(label_sizer, 0, wxEXPAND);
+        auto button_sizer2 = new wxGridSizer(2, 1, panel->FromDIP(constants::inner_border), panel->FromDIP(constants::inner_border));
+        button_sizer2->Add(_controls.thickness_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
+        button_sizer2->Add(_controls.width_spinner, 0, wxALIGN_CENTER_VERTICAL | wxEXPAND);
+
+        sinterbox_sizer->Add(label_sizer1, 0, wxEXPAND);
+        sinterbox_sizer->AddSpacer(panel->FromDIP(6 * constants::inner_border + 2));
+        sinterbox_sizer->Add(button_sizer1, 0, wxEXPAND);
         sinterbox_sizer->AddSpacer(panel->FromDIP(8 * constants::inner_border + 2));
-        sinterbox_sizer->Add(button_sizer, 0, wxEXPAND);
-        sinterbox_sizer->AddSpacer(panel->FromDIP(2 * constants::inner_border));
-        sinterbox_sizer->Add(checkbox_sizer, 0, wxALIGN_LEFT | wxALIGN_TOP | wxUP, panel->FromDIP(4));
-        sinterbox_sizer->AddStretchSpacer();
+        sinterbox_sizer->Add(label_sizer2, 0, wxEXPAND);
+        sinterbox_sizer->AddSpacer(panel->FromDIP(6 * constants::inner_border + 2));
+        sinterbox_sizer->Add(button_sizer2, 0, wxEXPAND);
     }
 
     sizer->Add(sinterbox_sizer_, 0, wxEXPAND | wxLEFT | wxRIGHT);
