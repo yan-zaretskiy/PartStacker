@@ -27,8 +27,8 @@ std::pair<wxNotebook*, std::vector<wxPanel*>> make_tab_panels(wxWindow* parent, 
 void controls::initialize(main_window* parent) {
     section_view_text = new wxStaticText(parent, wxID_ANY, "Section view:");
     section_view_checkbox = new wxCheckBox(parent, wxID_ANY, "");
-    export_button = new wxButton(parent, wxID_ANY, "Export result as STL");
-    export_button->Disable();
+    export_result_button = new wxButton(parent, wxID_ANY, "Export result as STL");
+    export_result_button->Disable();
     progress_bar = new wxGauge(parent, wxID_ANY, 100);
     stack_button = new wxButton(parent, wxID_ANY, "Stack");
 

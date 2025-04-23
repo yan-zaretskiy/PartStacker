@@ -32,7 +32,7 @@ struct controls {
     wxStaticText* section_view_text;
     wxSpinCtrlDouble* min_clearance_spinner;
     wxCheckBox* section_view_checkbox;
-    wxButton* export_button;
+    wxButton* export_result_button;
     wxButton* stack_button;
     wxGauge* progress_bar;
 

@@ -119,12 +119,12 @@ void main_window::on_stacking_start() {
         .on_success = [this](calc::stack_result result, const std::chrono::system_clock::duration elapsed) {
             CallAfter([=, result = std::move(result)] {
                 on_stacking_success(std::move(result), elapsed);
-                _controls.export_button->Enable();
+                _controls.export_result_button->Enable();
             });
         },
         .on_failure = [this] {
             CallAfter([=] {
-                _controls.export_button->Disable();
+                _controls.export_result_button->Disable();
                 _last_result.reset();
                 wxMessageBox("Could not stack parts within maximum bounding box", "Stacking failed");
             });
@@ -180,7 +180,7 @@ void main_window::on_stacking_success(calc::stack_result result, const std::chro
         "Stacking complete!\n\nElapsed time: %.1fs\n\nFinal bounding box: %.1fx%.1fx%.1fmm (%.1f%% density).\n\nWould you like to save the result now?",
         std::chrono::duration_cast<std::chrono::duration<double>>(elapsed).count(), size.x, size.y, size.z, percent_volume);
     if (wxMessageBox(message, "Stacking complete", wxYES_NO | wxYES_DEFAULT | wxICON_INFORMATION) == wxYES) {
-        on_export();
+        on_export_result();
     }
 }
 
@@ -223,7 +223,7 @@ void main_window::enable_on_stacking(const bool starting) {
 
     _controls.min_clearance_spinner->Enable(enable);
     _controls.section_view_checkbox->Enable(enable);
-    // _controls.export_button is handled elsewhere
+    // _controls.export_result_button is handled elsewhere
     _controls.stack_button->SetLabelText(enable ? "Stack" : "Stop");
     _controls.progress_bar->SetValue(0);
 }
@@ -257,7 +257,7 @@ wxMenuBar* main_window::make_menu_bar() {
                 return on_import_part(event);
             }
             case menu_item::export_: {
-                return on_export(event);
+                return on_export_result(event);
             }
             case menu_item::about: {
                 constexpr auto str =
@@ -321,7 +321,7 @@ void main_window::bind_all_controls() {
     });
 
     _controls.stack_button->Bind(wxEVT_BUTTON, &main_window::on_stacking, this);
-    _controls.export_button->Bind(wxEVT_BUTTON, &main_window::on_export, this);
+    _controls.export_result_button->Bind(wxEVT_BUTTON, &main_window::on_export_result, this);
 
     _controls.quantity_spinner->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent& event) {
         _current_part->quantity = event.GetPosition();
@@ -365,7 +365,7 @@ void main_window::on_new(wxCommandEvent& event) {
         unset_part();
         _viewport->remove_mesh();
         _last_result.reset();
-        _controls.export_button->Disable();
+        _controls.export_result_button->Disable();
     }
     event.Skip();
 }
@@ -384,12 +384,12 @@ void main_window::on_close(wxCloseEvent& event) {
     event.Skip();
 }
 
-void main_window::on_export(wxCommandEvent& event) {
-    on_export();
+void main_window::on_export_result(wxCommandEvent& event) {
+    on_export_result();
     event.Skip();
 }
 
-void main_window::on_export() {
+void main_window::on_export_result() {
     if (not _last_result.has_value()) {
         wxMessageBox("Nothing to export", "Error", wxICON_WARNING);
         return;
@@ -490,7 +490,7 @@ wxSizer* main_window::arrange_bottom_section1() {
     sizer->AddSpacer(FromDIP(constants::inner_border));
     sizer->Add(_controls.section_view_checkbox, 0, wxALIGN_CENTER_VERTICAL);
     sizer->AddStretchSpacer();
-    sizer->Add(_controls.export_button, 0, wxALIGN_CENTER_VERTICAL);
+    sizer->Add(_controls.export_result_button, 0, wxALIGN_CENTER_VERTICAL);
     return sizer;
 }
 

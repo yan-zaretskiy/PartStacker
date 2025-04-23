@@ -48,8 +48,8 @@ private:
     void bind_all_controls();
     void on_new(wxCommandEvent& event);
     void on_close(wxCloseEvent& event);
-    void on_export(wxCommandEvent& event);
-    void on_export();
+    void on_export_result(wxCommandEvent& event);
+    void on_export_result();
     void on_import_part(wxCommandEvent& event);
     void on_delete_part(wxCommandEvent& event);
     void on_reload_part(wxCommandEvent& event);
