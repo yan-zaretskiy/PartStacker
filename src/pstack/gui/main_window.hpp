@@ -13,6 +13,7 @@
 #include "pstack/calc/stacker_thread.hpp"
 #include "pstack/gui/controls.hpp"
 #include "pstack/gui/parts_list.hpp"
+#include "pstack/gui/preferences.hpp"
 #include "pstack/gui/results_list.hpp"
 
 namespace pstack::gui {
@@ -26,6 +27,7 @@ public:
 private:
     viewport* _viewport = nullptr;
     controls _controls;
+    preferences _preferences;
 
     void on_select_parts(const std::vector<std::size_t>& indices);
     void set_part(std::size_t index);
@@ -40,7 +42,8 @@ private:
     void unset_result();
     results_list _results_list{};
     calc::stack_result* _current_result = nullptr;
-    std::optional<std::size_t> _current_result_index = std::nullopt;
+
+    void on_switch_tab(wxBookCtrlEvent& event);
 
     void on_stacking(wxCommandEvent& event);
     void on_stacking_start();

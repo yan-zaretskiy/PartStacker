@@ -1,6 +1,7 @@
 #ifndef PSTACK_CALC_PART_HPP
 #define PSTACK_CALC_PART_HPP
 
+#include <optional>
 #include <string>
 #include "pstack/calc/mesh.hpp"
 
@@ -11,6 +12,7 @@ struct part {
     std::string name;
     mesh mesh;
 
+    std::optional<int> base_quantity;
     int quantity;
 
     double volume;

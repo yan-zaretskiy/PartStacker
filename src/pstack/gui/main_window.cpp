@@ -97,7 +97,6 @@ void main_window::on_select_results(const std::vector<std::size_t>& indices) {
 
 void main_window::set_result(const std::size_t index) {
     _current_result = &_results_list.at(index);
-    _current_result_index.emplace(index);
     const auto& result = _results_list.at(index);
     const auto bounding = result.mesh.bounding();
     const auto size = bounding.max - bounding.min;
@@ -107,7 +106,27 @@ void main_window::set_result(const std::size_t index) {
 
 void main_window::unset_result() {
     _current_result = nullptr;
-    _current_result_index.reset();
+}
+
+void main_window::on_switch_tab(wxBookCtrlEvent& event) {
+    static thread_local std::vector<std::size_t> selected{};
+    switch (event.GetSelection()) {
+        case 0: {
+            _parts_list.get_selected(selected);
+            if (selected.size() == 1) {
+                set_part(selected[0]);
+            }
+            break;
+        }
+        case 2: {
+            _results_list.get_selected(selected);
+            if (selected.size() == 1) {
+                set_result(selected[0]);
+            }
+            break;
+        }
+    }
+    event.Skip();
 }
 
 void main_window::on_stacking(wxCommandEvent& event) {
@@ -238,9 +257,10 @@ void main_window::enable_on_stacking(const bool starting) {
 wxMenuBar* main_window::make_menu_bar() {
     auto menu_bar = new wxMenuBar();
     enum class menu_item {
-        _ = 0, // Menu items cannot be 0 on Mac
-        new_, open, save, close,
+         // Menu items cannot be 0 on Mac
+        new_ = 1, open, save, close,
         import, export_,
+        pref_scroll, pref_extra,
         about, website,
     };
     menu_bar->Bind(wxEVT_MENU, [this](wxCommandEvent& event) {
@@ -265,6 +285,17 @@ wxMenuBar* main_window::make_menu_bar() {
             }
             case menu_item::export_: {
                 return on_export_result(event);
+            }
+            case menu_item::pref_scroll: {
+                _preferences.invert_scroll = not _preferences.invert_scroll;
+                _viewport->scroll_direction(_preferences.invert_scroll);
+                break;
+            }
+            case menu_item::pref_extra: {
+                _preferences.extra_parts = not _preferences.extra_parts;
+                _parts_list.show_extra(_preferences.extra_parts);
+                _parts_list.reload_all_text();
+                break;
             }
             case menu_item::about: {
                 constexpr auto str =
@@ -295,6 +326,11 @@ wxMenuBar* main_window::make_menu_bar() {
     _disableable_menu_items.push_back(import_menu->Append((int)menu_item::export_, "&Export\tCtrl-E", "Save last result as mesh file"));
     menu_bar->Append(import_menu, "&Mesh");
 
+    auto preferences_menu = new wxMenu();
+    preferences_menu->AppendCheckItem((int)menu_item::pref_scroll, "Invert &scroll", "Change the viewport scroll direction");
+    preferences_menu->AppendCheckItem((int)menu_item::pref_extra, "Display &extra parts", "Display the extra part quantity separately");
+    menu_bar->Append(preferences_menu, "&Preferences");
+
     auto help_menu = new wxMenu();
     help_menu->Append((int)menu_item::about, "&About", "About PartStacker");
     help_menu->Append((int)menu_item::website, "Visit &website", "Open PartStacker GitHub");
@@ -312,6 +348,7 @@ void main_window::bind_all_controls() {
     _results_list.bind([this](const std::vector<std::size_t>& selected) {
         on_select_results(selected);
     });
+    _controls.notebook->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, &main_window::on_switch_tab, this);
 
     _controls.import_part_button->Bind(wxEVT_BUTTON, &main_window::on_import_part, this);
     _controls.delete_part_button->Bind(wxEVT_BUTTON, &main_window::on_delete_part, this);
@@ -337,8 +374,8 @@ void main_window::bind_all_controls() {
 
     _controls.quantity_spinner->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent& event) {
         _current_part->quantity = event.GetPosition();
-        event.Skip();
         _parts_list.reload_quantity(_current_part_index.value());
+        event.Skip();
     });
     _controls.min_hole_spinner->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent& event) {
         _current_part->min_hole = event.GetPosition();

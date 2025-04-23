@@ -13,6 +13,7 @@ target_sources(pstack_gui PUBLIC FILE_SET headers TYPE HEADERS FILES
     list_view.hpp
     main_window.hpp
     parts_list.hpp
+    preferences.hpp
     results_list.hpp
     transformation.hpp
     viewport.hpp

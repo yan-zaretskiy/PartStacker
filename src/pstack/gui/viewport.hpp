@@ -22,11 +22,16 @@ public:
 
 private:
     bool initialize();
+    int _scroll_direction = 1;
 
 public:
     void set_mesh(const calc::mesh& mesh, const geo::point3<float>& centroid);
     void remove_mesh();
     void render();
+
+    void scroll_direction(bool invert_scroll) {
+        _scroll_direction = invert_scroll ? -1 : 1;
+    }
 
 private:
     void render(wxDC& dc);
