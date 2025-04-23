@@ -72,7 +72,6 @@ void main_window::unset_part() {
     enable_part_settings(false);
     _current_part.reset();
     _current_part_index.reset();
-    return;
 }
 
 void main_window::enable_part_settings(bool enable) {
@@ -82,6 +81,32 @@ void main_window::enable_part_settings(bool enable) {
     _controls.rotation_dropdown->Enable(enable);
     _controls.preview_voxelization_button->Enable(enable);
     _controls.preview_bounding_box_button->Enable(enable);
+}
+
+void main_window::on_select_results(const std::vector<std::size_t>& indices) {
+    const auto size = indices.size();
+    _controls.export_result_button->Enable(size == 1);
+    _controls.delete_result_button->Enable(size != 0);
+    if (size == 1) {
+        set_result(indices[0]);
+    } else {
+        unset_result();
+    }
+}
+
+void main_window::set_result(const std::size_t index) {
+    _current_result = &_results_list.at(index);
+    _current_result_index.emplace(index);
+    const auto& result = _results_list.at(index);
+    const auto bounding = result.mesh.bounding();
+    const auto size = bounding.max - bounding.min;
+    const auto centroid = (size / 2) + geo::origin3<float>;
+    _viewport->set_mesh(result.mesh, centroid);
+}
+
+void main_window::unset_result() {
+    _current_result = nullptr;
+    _current_result_index.reset();
 }
 
 void main_window::on_stacking(wxCommandEvent& event) {
@@ -124,7 +149,6 @@ void main_window::on_stacking_start() {
         },
         .on_failure = [this] {
             CallAfter([=] {
-                _last_result.reset();
                 wxMessageBox("Could not stack parts within maximum bounding box", "Stacking failed");
             });
         },
@@ -151,36 +175,30 @@ void main_window::on_stacking_stop() {
 }
 
 void main_window::on_stacking_success(calc::stack_result result, const std::chrono::system_clock::duration elapsed) {
-    _last_result.emplace(std::move(result));
-    auto bounding = _last_result->mesh.bounding();
-    if (_controls.sinterbox_checkbox->GetValue()) {
-        const double offset = _controls.thickness_spinner->GetValue() + _controls.clearance_spinner->GetValue();
-        _last_result->mesh.set_baseline(geo::origin3<float> + offset);
-        const calc::sinterbox_parameters params {
-            .min = bounding.min + offset,
-            .max = bounding.max + offset,
-            .clearance = _controls.clearance_spinner->GetValue(),
-            .thickness = _controls.thickness_spinner->GetValue(),
-            .width = _controls.width_spinner->GetValue(),
-            .spacing = _controls.spacing_spinner->GetValue() + 0.00013759,
-        };
-        _last_result->mesh.add_sinterbox(params);
-        bounding = _last_result->mesh.bounding();
-    }
+    _results_list.append(std::move(result));
+    set_result(_results_list.rows() - 1);
 
-    const auto size = bounding.max - bounding.min;
-    const auto centroid = (size / 2) + geo::origin3<float>;
-    _viewport->set_mesh(_last_result->mesh, centroid);
-
-    const double volume = _last_result->mesh.volume_and_centroid().volume;
-    const double percent_volume = 100 * volume / (size.x * size.y * size.z);
+    // Todo:
+    // if (_controls.sinterbox_checkbox->GetValue()) {
+    //     const double offset = _controls.thickness_spinner->GetValue() + _controls.clearance_spinner->GetValue();
+    //     _last_result->mesh.set_baseline(geo::origin3<float> + offset);
+    //     const calc::sinterbox_parameters params {
+    //         .min = bounding.min + offset,
+    //         .max = bounding.max + offset,
+    //         .clearance = _controls.clearance_spinner->GetValue(),
+    //         .thickness = _controls.thickness_spinner->GetValue(),
+    //         .width = _controls.width_spinner->GetValue(),
+    //         .spacing = _controls.spacing_spinner->GetValue() + 0.00013759,
+    //     };
+    //     _last_result->mesh.add_sinterbox(params);
+    //     bounding = _last_result->mesh.bounding();
+    // }
 
     const auto message = wxString::Format(
-        "Stacking complete!\n\nElapsed time: %.1fs\n\nFinal bounding box: %.1fx%.1fx%.1fmm (%.1f%% density).\n\nWould you like to save the result now?",
-        std::chrono::duration_cast<std::chrono::duration<double>>(elapsed).count(), size.x, size.y, size.z, percent_volume);
-    if (wxMessageBox(message, "Stacking complete", wxYES_NO | wxYES_DEFAULT | wxICON_INFORMATION) == wxYES) {
-        on_export_result();
-    }
+        "Stacking complete!\n\nElapsed time: %.1fs\n\nFinal bounding box: %.1fx%.1fx%.1fmm (%.1f%% density).",
+        std::chrono::duration_cast<std::chrono::duration<double>>(elapsed).count(),
+        _current_result->size.x, _current_result->size.y, _current_result->size.z, 100 * _current_result->density);
+    wxMessageBox(message, "Stacking complete");
 }
 
 void main_window::enable_on_stacking(const bool starting) {
@@ -303,7 +321,10 @@ void main_window::bind_all_controls() {
     Bind(wxEVT_CLOSE_WINDOW, &main_window::on_close, this);
 
     _parts_list.bind([this](const std::vector<std::size_t>& selected) {
-        return on_select_parts(selected);
+        on_select_parts(selected);
+    });
+    _results_list.bind([this](const std::vector<std::size_t>& selected) {
+        on_select_results(selected);
     });
 
     _controls.import_part_button->Bind(wxEVT_BUTTON, &main_window::on_import_part, this);
@@ -325,6 +346,7 @@ void main_window::bind_all_controls() {
 
     _controls.stack_button->Bind(wxEVT_BUTTON, &main_window::on_stacking, this);
     _controls.export_result_button->Bind(wxEVT_BUTTON, &main_window::on_export_result, this);
+    _controls.delete_result_button->Bind(wxEVT_BUTTON, &main_window::on_delete_result, this);
 
     _controls.quantity_spinner->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent& event) {
         _current_part->quantity = event.GetPosition();
@@ -366,8 +388,9 @@ void main_window::on_new(wxCommandEvent& event) {
         _controls.reset_values();
         _parts_list.delete_all();
         unset_part();
+        _results_list.delete_all();
+        unset_result();
         _viewport->remove_mesh();
-        _last_result.reset();
     }
     event.Skip();
 }
@@ -384,29 +407,6 @@ void main_window::on_close(wxCloseEvent& event) {
     }
     _stacker_thread.stop();
     event.Skip();
-}
-
-void main_window::on_export_result(wxCommandEvent& event) {
-    on_export_result();
-    event.Skip();
-}
-
-void main_window::on_export_result() {
-    if (not _last_result.has_value()) {
-        wxMessageBox("Nothing to export", "Error", wxICON_WARNING);
-        return;
-    }
-
-    wxFileDialog dialog(this, "Export mesh", "", "",
-                        "STL files (*.stl)|*.stl",
-                        wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-
-    if (dialog.ShowModal() == wxID_CANCEL) {
-        return;
-    }
-
-    const wxString path = dialog.GetPath();
-    files::to_stl(_last_result->mesh, path.ToStdString());
 }
 
 void main_window::on_import_part(wxCommandEvent& event) {
@@ -454,6 +454,37 @@ void main_window::on_reload_part(wxCommandEvent& event) {
     }
     _parts_list.update_label();
     on_select_parts({});
+    event.Skip();
+}
+
+void main_window::on_export_result(wxCommandEvent& event) {
+    if (nullptr == _current_result) {
+        wxMessageBox("Nothing to export", "Error", wxICON_WARNING);
+        return;
+    }
+
+    wxFileDialog dialog(this, "Export mesh", "", "",
+                        "STL files (*.stl)|*.stl",
+                        wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+    if (dialog.ShowModal() == wxID_CANCEL) {
+        return;
+    }
+
+    const wxString path = dialog.GetPath();
+    files::to_stl(_current_result->mesh, path.ToStdString());
+    event.Skip();
+}
+
+void main_window::on_delete_result(wxCommandEvent& event) {
+    static thread_local std::vector<std::size_t> selected{};
+    _results_list.get_selected(selected);
+    const auto message = wxString::Format("Delete %s %zu result%s?", selected.size() == 1 ? "this" : "these", selected.size(), selected.size() == 1 ? "" : "s");
+    wxMessageDialog dialog(this, message, "Warning", wxYES_NO | wxNO_DEFAULT | wxICON_WARNING);
+    if (dialog.ShowModal() == wxID_YES) {
+        _results_list.delete_selected();
+        on_select_results({});
+    }
     event.Skip();
 }
 

@@ -2,9 +2,12 @@
 #define PSTACK_CALC_STACKER_HPP
 
 #include "pstack/calc/part.hpp"
+#include "pstack/calc/sinterbox.hpp"
+#include "pstack/geo/vector3.hpp"
 #include <atomic>
 #include <chrono>
 #include <functional>
+#include <optional>
 #include <vector>
 
 namespace pstack::calc {
@@ -15,8 +18,12 @@ struct stack_result {
         geo::matrix3<float> rotation;
         geo::vector3<float> translation;
     };
-    std::vector<piece> pieces;
-    mesh mesh;
+    std::vector<piece> pieces{};
+
+    mesh mesh{};
+    geo::vector3<float> size{};
+    double density{};
+    std::optional<sinterbox_parameters> sinterbox{};
 };
 
 struct stack_parameters {
