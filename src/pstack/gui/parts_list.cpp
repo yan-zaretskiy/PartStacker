@@ -145,7 +145,8 @@ void parts_list::update_label() {
         _total_volume += part->quantity * part->volume;
         _total_triangles += part->quantity * part->triangle_count;
     }
-    _label->SetLabelText(wxString::Format("Parts: %zu - Volume: %.1f - Triangles: %zu", _total_parts, _total_volume / 1000, _total_triangles));
+    _label->SetLabelText(wxString::Format("Files: %zu - Parts: %zu - Volume: %.1f - Triangles: %zu",
+        _parts.size(), _total_parts, _total_volume / 1000, _total_triangles));
 }
 
 } // namespace pstack::gui
