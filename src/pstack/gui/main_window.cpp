@@ -25,6 +25,7 @@ main_window::main_window(const wxString& title)
 
     _controls.initialize(this);
     _parts_list.initialize(_controls.notebook_panels[0]);
+    _results_list.initialize(_controls.notebook_panels[2]);
     bind_all_controls();
     enable_part_settings(false);
 
@@ -119,12 +120,10 @@ void main_window::on_stacking_start() {
         .on_success = [this](calc::stack_result result, const std::chrono::system_clock::duration elapsed) {
             CallAfter([=, result = std::move(result)] {
                 on_stacking_success(std::move(result), elapsed);
-                _controls.export_result_button->Enable();
             });
         },
         .on_failure = [this] {
             CallAfter([=] {
-                _controls.export_result_button->Disable();
                 _last_result.reset();
                 wxMessageBox("Could not stack parts within maximum bounding box", "Stacking failed");
             });
@@ -198,14 +197,19 @@ void main_window::enable_on_stacking(const bool starting) {
         _controls.import_part_button->Enable();
         _controls.delete_part_button->Enable(selected.size() != 0);
         _controls.reload_part_button->Enable(selected.size() != 0);
-        _controls.copy_part_button->Enable(selected.size() != 0);
-        _controls.mirror_part_button->Enable(selected.size() != 0);
+        _controls.copy_part_button->Enable(selected.size() == 1);
+        _controls.mirror_part_button->Enable(selected.size() == 1);
+        _results_list.get_selected(selected);
+        _controls.export_result_button->Enable(selected.size() == 1);
+        _controls.delete_result_button->Enable(selected.size() != 0);
     } else {
         _controls.import_part_button->Disable();
         _controls.delete_part_button->Disable();
         _controls.reload_part_button->Disable();
         _controls.copy_part_button->Disable();
         _controls.mirror_part_button->Disable();
+        _controls.export_result_button->Disable();
+        _controls.delete_result_button->Disable();
     }
 
     _controls.clearance_spinner->Enable(enable);
@@ -223,7 +227,6 @@ void main_window::enable_on_stacking(const bool starting) {
 
     _controls.min_clearance_spinner->Enable(enable);
     _controls.section_view_checkbox->Enable(enable);
-    // _controls.export_result_button is handled elsewhere
     _controls.stack_button->SetLabelText(enable ? "Stack" : "Stop");
     _controls.progress_bar->SetValue(0);
 }
@@ -365,7 +368,6 @@ void main_window::on_new(wxCommandEvent& event) {
         unset_part();
         _viewport->remove_mesh();
         _last_result.reset();
-        _controls.export_result_button->Disable();
     }
     event.Skip();
 }
@@ -484,13 +486,22 @@ wxSizer* main_window::arrange_part_buttons() {
     return sizer;
 }
 
+wxSizer* main_window::arrange_result_buttons() {
+    auto sizer = new wxBoxSizer(wxHORIZONTAL);
+    _controls.export_result_button->SetMinSize(FromDIP(constants::min_button_size));
+    _controls.delete_result_button->SetMinSize(FromDIP(constants::min_button_size));
+    sizer->Add(_controls.export_result_button, 1, wxEXPAND);
+    sizer->AddSpacer(FromDIP(constants::inner_border));
+    sizer->Add(_controls.delete_result_button, 1, wxEXPAND);
+    return sizer;
+}
+
 wxSizer* main_window::arrange_bottom_section1() {
     auto sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(_controls.section_view_text, 0, wxALIGN_CENTER_VERTICAL);
     sizer->AddSpacer(FromDIP(constants::inner_border));
     sizer->Add(_controls.section_view_checkbox, 0, wxALIGN_CENTER_VERTICAL);
     sizer->AddStretchSpacer();
-    sizer->Add(_controls.export_result_button, 0, wxALIGN_CENTER_VERTICAL);
     return sizer;
 }
 
@@ -606,6 +617,11 @@ void main_window::arrange_tab_stack_settings(wxPanel* panel) {
 void main_window::arrange_tab_results(wxPanel* panel) {
     auto sizer = new wxBoxSizer(wxVERTICAL);
     panel->SetSizer(sizer);
+
+    sizer->Add(_results_list.control(), 1, wxEXPAND);
+    sizer->AddSpacer(panel->FromDIP(constants::inner_border));
+    sizer->Add(arrange_result_buttons(), 0, wxEXPAND);
+    sizer->AddSpacer(panel->FromDIP(constants::inner_border));
 
     auto sinterbox_sizer_ = new wxStaticBoxSizer(wxHORIZONTAL, panel, "Sinterbox");
     {

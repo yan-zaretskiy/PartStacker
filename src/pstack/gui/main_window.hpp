@@ -13,6 +13,7 @@
 #include "pstack/calc/stacker_thread.hpp"
 #include "pstack/gui/controls.hpp"
 #include "pstack/gui/parts_list.hpp"
+#include "pstack/gui/results_list.hpp"
 
 namespace pstack::gui {
 
@@ -33,6 +34,7 @@ private:
     std::shared_ptr<calc::part> _current_part = nullptr;
     std::optional<std::size_t> _current_part_index = std::nullopt;
     void enable_part_settings(bool enable);
+    results_list _results_list{};
 
     void on_stacking(wxCommandEvent& event);
     void on_stacking_start();
@@ -56,6 +58,7 @@ private:
 
     wxSizer* arrange_all_controls();
     wxSizer* arrange_part_buttons();
+    wxSizer* arrange_result_buttons();
     wxSizer* arrange_bottom_section1();
     wxSizer* arrange_bottom_section2();
     wxNotebook* arrange_tabs();
