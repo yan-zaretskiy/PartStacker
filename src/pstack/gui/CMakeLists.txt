@@ -4,6 +4,7 @@ add_executable(pstack_gui WIN32
     list_view.cpp
     main_window.cpp
     parts_list.cpp
+    results_list.cpp
     viewport.cpp
 )
 target_sources(pstack_gui PUBLIC FILE_SET headers TYPE HEADERS FILES
@@ -12,6 +13,7 @@ target_sources(pstack_gui PUBLIC FILE_SET headers TYPE HEADERS FILES
     list_view.hpp
     main_window.hpp
     parts_list.hpp
+    results_list.hpp
     transformation.hpp
     viewport.hpp
 )

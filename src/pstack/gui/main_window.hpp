@@ -13,6 +13,7 @@
 #include "pstack/calc/stacker_thread.hpp"
 #include "pstack/gui/controls.hpp"
 #include "pstack/gui/parts_list.hpp"
+#include "pstack/gui/results_list.hpp"
 
 namespace pstack::gui {
 
@@ -34,12 +35,18 @@ private:
     std::optional<std::size_t> _current_part_index = std::nullopt;
     void enable_part_settings(bool enable);
 
+    void on_select_results(const std::vector<std::size_t>& indices);
+    void set_result(std::size_t index);
+    void unset_result();
+    results_list _results_list{};
+    calc::stack_result* _current_result = nullptr;
+    std::optional<std::size_t> _current_result_index = std::nullopt;
+
     void on_stacking(wxCommandEvent& event);
     void on_stacking_start();
     void on_stacking_stop();
     void on_stacking_success(calc::stack_result result, std::chrono::system_clock::duration elapsed);
     void enable_on_stacking(bool starting);
-    std::optional<calc::stack_result> _last_result = {};
     calc::stacker_thread _stacker_thread;
 
     wxMenuBar* make_menu_bar();
@@ -48,14 +55,16 @@ private:
     void bind_all_controls();
     void on_new(wxCommandEvent& event);
     void on_close(wxCloseEvent& event);
-    void on_export(wxCommandEvent& event);
-    void on_export();
-    void on_import(wxCommandEvent& event);
-    void on_delete(wxCommandEvent& event);
-    void on_reload(wxCommandEvent& event);
+    void on_import_part(wxCommandEvent& event);
+    void on_delete_part(wxCommandEvent& event);
+    void on_reload_part(wxCommandEvent& event);
+    void on_export_result(wxCommandEvent& event);
+    void on_delete_result(wxCommandEvent& event);
+    void on_sinterbox_result(wxCommandEvent& event);
 
     wxSizer* arrange_all_controls();
     wxSizer* arrange_part_buttons();
+    wxSizer* arrange_result_buttons();
     wxSizer* arrange_bottom_section1();
     wxSizer* arrange_bottom_section2();
     wxNotebook* arrange_tabs();

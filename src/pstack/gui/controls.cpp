@@ -27,29 +27,27 @@ std::pair<wxNotebook*, std::vector<wxPanel*>> make_tab_panels(wxWindow* parent, 
 void controls::initialize(main_window* parent) {
     section_view_text = new wxStaticText(parent, wxID_ANY, "Section view:");
     section_view_checkbox = new wxCheckBox(parent, wxID_ANY, "");
-    export_button = new wxButton(parent, wxID_ANY, "Export result as STL");
-    export_button->Disable();
     progress_bar = new wxGauge(parent, wxID_ANY, 100);
     stack_button = new wxButton(parent, wxID_ANY, "Stack");
-    
+
     std::tie(notebook, notebook_panels) = make_tab_panels(parent, {
         "Parts",
         "Stack Settings",
         "Results",
     });
-    
+
     {
         const auto panel = notebook_panels[0];
 
-        import_button = new wxButton(panel, wxID_ANY, "Import");
-        delete_button = new wxButton(panel, wxID_ANY, "Delete");
-        delete_button->Disable();
-        reload_button = new wxButton(panel, wxID_ANY, "Reload");
-        reload_button->Disable();
-        copy_button = new wxButton(panel, wxID_ANY, "Copy");
-        copy_button->Disable();
-        mirror_button = new wxButton(panel, wxID_ANY, "Mirror");
-        mirror_button->Disable();
+        import_part_button = new wxButton(panel, wxID_ANY, "Import");
+        delete_part_button = new wxButton(panel, wxID_ANY, "Delete");
+        delete_part_button->Disable();
+        reload_part_button = new wxButton(panel, wxID_ANY, "Reload");
+        reload_part_button->Disable();
+        copy_part_button = new wxButton(panel, wxID_ANY, "Copy");
+        copy_part_button->Disable();
+        mirror_part_button = new wxButton(panel, wxID_ANY, "Mirror");
+        mirror_part_button->Disable();
 
         quantity_text = new wxStaticText(panel, wxID_ANY, "Quantity:");
         min_hole_text = new wxStaticText(panel, wxID_ANY, "Minimum hole:");
@@ -97,11 +95,16 @@ void controls::initialize(main_window* parent) {
 
     {
         const auto panel = notebook_panels[2];
+        export_result_button = new wxButton(panel, wxID_ANY, "Export");
+        export_result_button->Disable();
+        delete_result_button = new wxButton(panel, wxID_ANY, "Delete");
+        delete_result_button->Disable();
+        sinterbox_result_button = new wxButton(panel, wxID_ANY, "Add sinterbox");
+        sinterbox_result_button->Disable();
         clearance_text = new wxStaticText(panel, wxID_ANY, "Clearance:");
         spacing_text = new wxStaticText(panel, wxID_ANY, "Spacing:");
         thickness_text = new wxStaticText(panel, wxID_ANY, "Thickness:");
         width_text = new wxStaticText(panel, wxID_ANY, "Width:");
-        generate_text = new wxStaticText(panel, wxID_ANY, "Generate sinterbox:");
         const auto make_spinner = [&panel](double minimum, double maximum, double increment) {
             auto spinner = new wxSpinCtrlDouble(panel);
             spinner->SetIncrement(increment);
@@ -112,7 +115,6 @@ void controls::initialize(main_window* parent) {
         spacing_spinner = make_spinner(1, 20, 0.5);
         thickness_spinner = make_spinner(0.1, 4, 0.1);
         width_spinner = make_spinner(0.1, 4, 0.1);
-        sinterbox_checkbox = new wxCheckBox(panel, wxID_ANY, "");
     }
 
     reset_values();
@@ -130,8 +132,7 @@ void controls::reset_values() {
     spacing_spinner->SetValue(6.0);
     thickness_spinner->SetValue(0.8);
     width_spinner->SetValue(1.1);
-    sinterbox_checkbox->SetValue(true);
-    
+
     initial_x_spinner->SetValue(150);
     initial_y_spinner->SetValue(150);
     initial_z_spinner->SetValue(30);
