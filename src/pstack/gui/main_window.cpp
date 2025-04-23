@@ -383,7 +383,7 @@ void main_window::on_new(wxCommandEvent& event) {
 }
 
 void main_window::on_close(wxCloseEvent& event) {
-    if (_parts_list.rows() != 0 and event.CanVeto()) {
+    if ((_parts_list.rows() != 0 or _results_list.rows() != 0) and event.CanVeto()) {
         if (wxMessageBox("Close PartStacker?",
                          "Warning",
                          wxYES_NO | wxNO_DEFAULT | wxICON_INFORMATION) != wxYES)
