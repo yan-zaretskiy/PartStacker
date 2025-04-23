@@ -14,7 +14,7 @@ To see if `git` is installed
 * Open a new instance of Windows PowerShell
 * Type `git --version`
 * If you see the output "`git version 2.47.1.windows.2`", or some variation, then it worked
-* If you see something along the lines of "`git : The term 'git' is not recognized as the name of a cmdlet, ...`" then it didn't work
+* If you see something that looks like "`git : The term 'git' is not recognized as the name of a cmdlet, ...`" then it didn't work
     * Either close and reopen PowerShell
     * Or try installing again
 
@@ -30,7 +30,7 @@ To see if CMake is properly installed
 * Open a new instance of Windows PowerShell
 * Type `cmake --version`
 * If you see the output "`cmake version 3.30.8`", or some variation, then it worked
-* If you see something along the lines of "`cmake : The term 'cmake' is not recognized as the name of a cmdlet, ...`" then it didn't work
+* If you see something that looks like "`cmake : The term 'cmake' is not recognized as the name of a cmdlet, ...`" then it didn't work
     * Either close and reopen PowerShell
     * Or try installing again
 
@@ -82,7 +82,8 @@ If you already had the code downloaded from before, open Windows PowerShell, nav
 
 ```
 git checkout main
-git pull --recurse-submodules
+git pull
+git submodule update --recursive
 ```
 
 ## Build and run PartStacker
