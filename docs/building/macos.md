@@ -1,4 +1,4 @@
-# Build and run PartStacker on Windows
+# Build and run PartStacker on MacOS
 
 **Please note**, this process can be quite involved. Browse through the full instructions before starting, to know whether this is something you want to do.
 
@@ -57,7 +57,7 @@ After this, you will have a new folder called "PartStacker" in the current direc
 
 ## Ensure the code is up to date
 
-If you already had the code downloaded from before, open Windows PowerShell, navigate to the PartStacker directory, and type the following commands one at a time
+If you already had the code downloaded from before, open Terminal, navigate to the PartStacker directory, and type the following commands one at a time
 
 ```
 git checkout main
