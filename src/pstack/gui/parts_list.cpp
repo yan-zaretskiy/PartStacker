@@ -16,7 +16,7 @@ calc::part make_part(std::string mesh_file, bool mirrored) {
     part.mesh = files::from_stl(part.mesh_file);
     part.mesh.set_baseline({ 0, 0, 0 });
 
-    part.quantity = [name = part.name]() mutable -> int {
+    part.base_quantity = [name = part.name]() mutable -> std::optional<int> {
         char looking_for = '.';
         if (name.ends_with(')')) {
             name.pop_back();
@@ -27,13 +27,14 @@ calc::part make_part(std::string mesh_file, bool mirrored) {
             ++number_length;
         }
         if (number_length == 0 or not (name.size() > number_length and name[name.size() - number_length - 1] == looking_for)) {
-            return 1; // Default is 1, if we can't parse a number
+            return std::nullopt;
         }
         std::string_view number{ name.data() + (name.size() - number_length), name.data() + name.size() };
         int out{-1};
         std::from_chars(number.data(), number.data() + number.size(), out);
         return out;
     }();
+    part.quantity = part.base_quantity.value_or(1);
 
     auto volume_and_centroid = part.mesh.volume_and_centroid();
     part.volume = volume_and_centroid.volume;
@@ -44,6 +45,16 @@ calc::part make_part(std::string mesh_file, bool mirrored) {
     part.rotation_index = 1;
     part.rotate_min_box = false;
     return part;
+}
+
+wxString quantity_string(const calc::part& part, const bool show_extra) {
+    if (show_extra and part.base_quantity.has_value()) {
+        const int diff = part.quantity - *part.base_quantity;
+        if (diff > 0) {
+            return wxString::Format("%d + %d", *part.base_quantity, diff);
+        }
+    }
+    return wxString::Format("%d", part.quantity);
 }
 
 } // namespace
@@ -67,7 +78,7 @@ void parts_list::append(std::string mesh_file) {
 void parts_list::append(calc::part part) {
     list_view::append({
         part.name,
-        std::to_string(part.quantity),
+        quantity_string(part, _show_extra),
         wxString::Format("%.2f", part.volume / 1000),
         std::to_string(part.triangle_count),
         (part.mirrored ? "Mirrored" : "")
@@ -90,15 +101,21 @@ void parts_list::reload_text(const std::size_t row) {
     const calc::part& part = *_parts.at(row);
     list_view::replace(row, {
         part.name,
-        std::to_string(part.quantity),
+        quantity_string(part, _show_extra),
         wxString::Format("%.2f", part.volume / 1000),
         std::to_string(part.triangle_count),
         (part.mirrored ? "Mirrored" : "")
     });
 }
 
+void parts_list::reload_all_text() {
+    for (std::size_t row = 0; row != rows(); ++row) {
+        reload_text(row);
+    }
+}
+
 void parts_list::reload_quantity(std::size_t row) {
-    list_view::set_text(row, 1, std::to_string(_parts.at(row)->quantity));
+    list_view::set_text(row, 1, quantity_string(*_parts.at(row), _show_extra));
     update_label();
 }
 

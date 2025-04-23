@@ -24,6 +24,7 @@ public:
     void change(std::string mesh_file, std::size_t row);
     void reload_file(std::size_t row);
     void reload_text(std::size_t row);
+    void reload_all_text();
     void reload_quantity(std::size_t row);
     void delete_all();
     void delete_selected();
@@ -46,8 +47,13 @@ public:
         return _total_triangles;
     }
 
+    void show_extra(bool value) {
+        _show_extra = value;
+    }
+
 private:
     std::vector<std::shared_ptr<calc::part>> _parts;
+    bool _show_extra = false;
 
     wxStaticText* _label{};
     std::size_t _total_parts{};

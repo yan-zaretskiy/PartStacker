@@ -5,6 +5,7 @@ namespace pstack::gui {
 
 struct preferences {
     bool invert_scroll = false;
+    bool extra_parts = false;
 };
 
 } // namespace pstack::gui

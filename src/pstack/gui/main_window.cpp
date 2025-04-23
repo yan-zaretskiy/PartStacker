@@ -260,7 +260,7 @@ wxMenuBar* main_window::make_menu_bar() {
          // Menu items cannot be 0 on Mac
         new_ = 1, open, save, close,
         import, export_,
-        pref_scroll,
+        pref_scroll, pref_extra,
         about, website,
     };
     menu_bar->Bind(wxEVT_MENU, [this](wxCommandEvent& event) {
@@ -289,6 +289,12 @@ wxMenuBar* main_window::make_menu_bar() {
             case menu_item::pref_scroll: {
                 _preferences.invert_scroll = not _preferences.invert_scroll;
                 _viewport->scroll_direction(_preferences.invert_scroll);
+                break;
+            }
+            case menu_item::pref_extra: {
+                _preferences.extra_parts = not _preferences.extra_parts;
+                _parts_list.show_extra(_preferences.extra_parts);
+                _parts_list.reload_all_text();
                 break;
             }
             case menu_item::about: {
@@ -322,6 +328,7 @@ wxMenuBar* main_window::make_menu_bar() {
 
     auto preferences_menu = new wxMenu();
     preferences_menu->AppendCheckItem((int)menu_item::pref_scroll, "Invert &scroll", "Change the viewport scroll direction");
+    preferences_menu->AppendCheckItem((int)menu_item::pref_extra, "Display &extra parts", "Display the extra part quantity separately");
     menu_bar->Append(preferences_menu, "&Preferences");
 
     auto help_menu = new wxMenu();
@@ -367,8 +374,8 @@ void main_window::bind_all_controls() {
 
     _controls.quantity_spinner->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent& event) {
         _current_part->quantity = event.GetPosition();
-        event.Skip();
         _parts_list.reload_quantity(_current_part_index.value());
+        event.Skip();
     });
     _controls.min_hole_spinner->Bind(wxEVT_SPINCTRL, [this](wxSpinEvent& event) {
         _current_part->min_hole = event.GetPosition();
