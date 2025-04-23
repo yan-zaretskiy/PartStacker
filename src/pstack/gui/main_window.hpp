@@ -40,7 +40,6 @@ private:
     void unset_result();
     results_list _results_list{};
     calc::stack_result* _current_result = nullptr;
-    std::optional<std::size_t> _current_result_index = std::nullopt;
 
     void on_switch_tab(wxBookCtrlEvent& event);
 

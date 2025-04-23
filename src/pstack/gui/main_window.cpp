@@ -97,7 +97,6 @@ void main_window::on_select_results(const std::vector<std::size_t>& indices) {
 
 void main_window::set_result(const std::size_t index) {
     _current_result = &_results_list.at(index);
-    _current_result_index.emplace(index);
     const auto& result = _results_list.at(index);
     const auto bounding = result.mesh.bounding();
     const auto size = bounding.max - bounding.min;
@@ -107,7 +106,6 @@ void main_window::set_result(const std::size_t index) {
 
 void main_window::unset_result() {
     _current_result = nullptr;
-    _current_result_index.reset();
 }
 
 void main_window::on_switch_tab(wxBookCtrlEvent& event) {
