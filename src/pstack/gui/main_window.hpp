@@ -13,6 +13,7 @@
 #include "pstack/calc/stacker_thread.hpp"
 #include "pstack/gui/controls.hpp"
 #include "pstack/gui/parts_list.hpp"
+#include "pstack/gui/preferences.hpp"
 #include "pstack/gui/results_list.hpp"
 
 namespace pstack::gui {
@@ -26,6 +27,7 @@ public:
 private:
     viewport* _viewport = nullptr;
     controls _controls;
+    preferences _preferences;
 
     void on_select_parts(const std::vector<std::size_t>& indices);
     void set_part(std::size_t index);

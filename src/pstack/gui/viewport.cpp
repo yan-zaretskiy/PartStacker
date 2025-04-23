@@ -197,7 +197,8 @@ void viewport::on_capture_lost(wxMouseCaptureLostEvent& evt) {
 }
 
 void viewport::on_scroll(wxMouseEvent& evt) {
-    const float zoom_factor = (float)std::pow(2.0, ((double)evt.GetWheelRotation() / (double)evt.GetWheelDelta()) / 4);
+    const double zoom_amount = ((double)evt.GetWheelRotation() / (double)evt.GetWheelDelta()) / 4;
+    const float zoom_factor = (float)std::pow(2.0, _scroll_direction * zoom_amount);
     _transform.zoom_by(zoom_factor);
     _shader.set_uniform("transform_vertices", _transform.for_vertices());
     _shader.set_uniform("transform_normals", _transform.for_normals());

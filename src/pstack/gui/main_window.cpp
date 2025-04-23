@@ -257,9 +257,10 @@ void main_window::enable_on_stacking(const bool starting) {
 wxMenuBar* main_window::make_menu_bar() {
     auto menu_bar = new wxMenuBar();
     enum class menu_item {
-        _ = 0, // Menu items cannot be 0 on Mac
-        new_, open, save, close,
+         // Menu items cannot be 0 on Mac
+        new_ = 1, open, save, close,
         import, export_,
+        pref_scroll,
         about, website,
     };
     menu_bar->Bind(wxEVT_MENU, [this](wxCommandEvent& event) {
@@ -284,6 +285,11 @@ wxMenuBar* main_window::make_menu_bar() {
             }
             case menu_item::export_: {
                 return on_export_result(event);
+            }
+            case menu_item::pref_scroll: {
+                _preferences.invert_scroll = not _preferences.invert_scroll;
+                _viewport->scroll_direction(_preferences.invert_scroll);
+                break;
             }
             case menu_item::about: {
                 constexpr auto str =
@@ -313,6 +319,10 @@ wxMenuBar* main_window::make_menu_bar() {
     _disableable_menu_items.push_back(import_menu->Append((int)menu_item::import, "&Import\tCtrl-I", "Open mesh files"));
     _disableable_menu_items.push_back(import_menu->Append((int)menu_item::export_, "&Export\tCtrl-E", "Save last result as mesh file"));
     menu_bar->Append(import_menu, "&Mesh");
+
+    auto preferences_menu = new wxMenu();
+    preferences_menu->AppendCheckItem((int)menu_item::pref_scroll, "Invert &scroll", "Change the viewport scroll direction");
+    menu_bar->Append(preferences_menu, "&Preferences");
 
     auto help_menu = new wxMenu();
     help_menu->Append((int)menu_item::about, "&About", "About PartStacker");
