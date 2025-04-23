@@ -42,6 +42,8 @@ private:
     calc::stack_result* _current_result = nullptr;
     std::optional<std::size_t> _current_result_index = std::nullopt;
 
+    void on_switch_tab(wxBookCtrlEvent& event);
+
     void on_stacking(wxCommandEvent& event);
     void on_stacking_start();
     void on_stacking_stop();

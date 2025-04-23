@@ -110,6 +110,27 @@ void main_window::unset_result() {
     _current_result_index.reset();
 }
 
+void main_window::on_switch_tab(wxBookCtrlEvent& event) {
+    static thread_local std::vector<std::size_t> selected{};
+    switch (event.GetSelection()) {
+        case 0: {
+            _parts_list.get_selected(selected);
+            if (selected.size() == 1) {
+                set_part(selected[0]);
+            }
+            break;
+        }
+        case 2: {
+            _results_list.get_selected(selected);
+            if (selected.size() == 1) {
+                set_result(selected[0]);
+            }
+            break;
+        }
+    }
+    event.Skip();
+}
+
 void main_window::on_stacking(wxCommandEvent& event) {
     if (_controls.stack_button->GetLabelText() == "Stop") {
         on_stacking_stop();
@@ -312,6 +333,7 @@ void main_window::bind_all_controls() {
     _results_list.bind([this](const std::vector<std::size_t>& selected) {
         on_select_results(selected);
     });
+    _controls.notebook->Bind(wxEVT_NOTEBOOK_PAGE_CHANGED, &main_window::on_switch_tab, this);
 
     _controls.import_part_button->Bind(wxEVT_BUTTON, &main_window::on_import_part, this);
     _controls.delete_part_button->Bind(wxEVT_BUTTON, &main_window::on_delete_part, this);
