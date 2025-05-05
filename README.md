@@ -23,9 +23,10 @@ First, clone the repo with its submodules
 git clone --recurse-submodules https://github.com/PartStackerCommunity/PartStacker.git
 ```
 
-Then, configure and build with CMake by running these 2 commands in order
+Then, configure and build with CMake by running these commands in order
 
 ```
+cd PartStacker
 cmake --preset Release
 cmake --build --preset Release
 ```
